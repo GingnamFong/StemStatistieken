@@ -16,19 +16,21 @@
       </div>
 
       <div class="nav-actions">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search..."
-          class="search-input"
-          @keyup.enter="performSearch"
-        />
-        <button @click="performSearch" class="search-btn">Zoek</button>
-
+        <div class="search-wrapper">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search..."
+            class="search-input"
+            @keyup.enter="performSearch"
+          />
+          <span class="search-icon">🔍</span>
+          <button @click="performSearch" class="search-btn">Zoek</button>
+        </div>
+      </div>
         <router-link to="/profile" class="profile-link" @click="closeMenu">
         </router-link>
       </div>
-    </div>
   </nav>
 </template>
 
@@ -58,16 +60,36 @@ function performSearch() {
 </script>
 
 <style scoped>
+.navbar,
+.nav-link,
+.brand,
+.search-input,
+.search-btn {
+  font-family: 'Nunito', sans-serif;
+}
 /* Navbar container */
 .navbar {
   display: flex;
+  left: 50%; /* center horizontally */
+  transform: translateX(-50%);
   justify-content: space-between;
+  width: 100%;
+  max-width: 1650px;
   align-items: center;
-  background-color: #2c3e50;
+  background-color: #3F4383;
   color: white;
   padding: 10px 20px;
-  position: relative;
+  position: fixed;
   flex-wrap: wrap;
+  border-bottom-left-radius: 15px; /* rounded bottom corners */
+  border-bottom-right-radius: 15px;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+
+}
+main {
+  margin-top: 80px;
 }
 
 /* Brand */
@@ -93,8 +115,17 @@ function performSearch() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
   width: 100%;
+  overflow: hidden;
 }
+.navbar-collapse.active {
+  opacity: 1;
+  max-height: 500px; /* enough to show all links */
+}
+
 
 .nav-links {
   display: flex;
@@ -108,27 +139,66 @@ function performSearch() {
 
 .nav-link:hover {
   color: #3498db;
+  position: relative;
+  padding: 5px 0
+}
+.nav-link::after {
+  content: '';
+  display: block;
+  height: 2px;
+  width: 0;
+  background: #ffcc00;
+  transition: width 0.3s;
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
 
 .nav-actions {
+  flex: 1;
   display: flex;
+  justify-content: center; /* center the wrapper */
   align-items: center;
-  gap: 10px;
+}
+.search-wrapper {
+  position: relative;
+  width: 220px; /* smaller width */
+  min-width: 150px;
 }
 
 .search-input {
-  padding: 5px 10px;
-  border-radius: 4px;
+  width: 100%;
+  padding: 5px 10px 5px 35px;;
+  border-radius: 25px;
   border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  font-size: 0.9em;
+}
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  pointer-events: none; /* click passes through */
 }
 
+
 .search-btn {
-  padding: 5px 10px;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
   background-color: #3498db;
   color: white;
-  border: none;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
   cursor: pointer;
+  font-size: 0.85em;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.3s;
 }
 
 .search-btn:hover {
@@ -152,8 +222,12 @@ function performSearch() {
     display: none;
     flex-direction: column;
     width: 100%;
-    background-color: #34495e;
+    background-color: #3F4383;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
     padding: 10px 0;
+    opacity: 0;
+    max-height: 0;
   }
 
   .navbar-collapse.active {
