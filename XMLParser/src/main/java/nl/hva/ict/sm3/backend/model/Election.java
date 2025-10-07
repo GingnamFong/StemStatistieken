@@ -31,4 +31,11 @@ public class Election {
     public String toString() {
         return "Election{id='%s', constituencies=%s}".formatted(id, constituencies);
     }
+
+    public Constituency getConstituencyById(String id) {
+        return constituencies.stream()
+                .filter(c -> c.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
 }
