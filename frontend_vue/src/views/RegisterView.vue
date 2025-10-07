@@ -1,9 +1,9 @@
 <script setup>
-import Register from '../components/Register.vue'
+import RegisterComponent from '../components/RegisterComponent.vue'
 </script>
 
 <template>
   <main>
-    <Register />
+    <RegisterComponent />
   </main>
 </template>
