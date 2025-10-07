@@ -1,6 +1,8 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
+import nl.hva.ict.sm3.backend.model.Constituency;
 import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.Municipality;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 
 import java.util.Map;
@@ -23,6 +25,21 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
 
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
+        if (aggregated) {
+            // Extract municipality info from the map
+            String municipalityName = electionData.getOrDefault("ReportingUnitIdentifier", "unknown");
+            int validVotes = Integer.parseInt(electionData.getOrDefault("ValidVotes", "0"));
+            String contestId = electionData.getOrDefault("ContestIdentifier-Id", "unknown");
+
+            // Find the constituency in the election object
+            Constituency constituency = election.getConstituencyById(contestId);
+            if (constituency != null) {
+                constituency.addMunicipality(new Municipality(municipalityName, validVotes));
+            }
+
+            // Optional: print for debug
+            System.out.printf("Municipality votes added: %s - %d votes\n", municipalityName, validVotes);
+        }
         System.out.printf("%s party votes: %s\n", aggregated ? "Municipality" : "Polling station", electionData);
     }
 
