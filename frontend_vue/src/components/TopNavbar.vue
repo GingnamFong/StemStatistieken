@@ -30,9 +30,12 @@
       </div>
 
       <div class="nav-register">
-        <router-link to="/register" class="register-link" @click="closeMenu">
-          <img src="../assets/user.png" alt="Register" />
-        </router-link>
+        <!-- Show user icon when logged in -->
+        <div v-if="isLoggedIn" class="user-section">
+          <img src="/images/user.png" alt="User" class="user-icon" @click="logout" />
+        </div>
+        <!-- Show login link when not logged in -->
+        <router-link v-else to="/login" class="nav-link" @click="closeMenu">Login</router-link>
       </div>
     </div>
   </nav>
@@ -40,12 +43,37 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const searchQuery = ref('')
 const menuOpen = ref(false)
 const router = useRouter()
+
+const loginTrigger = ref(0)
+
+const isLoggedIn = computed(() => {
+  loginTrigger.value // This makes it reactive
+  return localStorage.getItem('token') !== null
+})
+
+function logout() {
+  localStorage.removeItem('token')
+  loginTrigger.value++
+}
+
+
+function handleLoginStateChange() {
+  loginTrigger.value++
+}
+
+onMounted(() => {
+  window.addEventListener('loginStateChanged', handleLoginStateChange)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('loginStateChanged', handleLoginStateChange)
+})
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value
@@ -165,15 +193,16 @@ main {
   margin-left: auto; /* pushes it to the far right */
 }
 
-.register-link img {
+.user-icon {
   display: block;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   transition: transform 0.2s;
+  cursor: pointer;
 }
 
-.register-link img:hover {
+.user-icon:hover {
   transform: scale(1.1);
 }
 
