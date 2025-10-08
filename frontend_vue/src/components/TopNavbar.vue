@@ -1,13 +1,13 @@
 <template>
   <nav class="navbar">
-    <!-- Brand + Hamburger -->
+    <!-- Left side -->
     <div class="navbar-left">
       <router-link to="/" class="brand">MyApp</router-link>
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
 
-    <!-- Collapsible links + search + profile -->
-    <div :class="['navbar-collapse', { 'active': menuOpen }]">
+    <!-- Center -->
+    <div :class="['navbar-collapse', { active: menuOpen }]">
       <div class="nav-links">
         <router-link to="/" class="nav-link" @click="closeMenu">Home</router-link>
         <router-link to="/uitslagen" class="nav-link" @click="closeMenu">Uitslagen</router-link>
@@ -28,10 +28,15 @@
           <button @click="performSearch" class="search-btn">Zoek</button>
         </div>
       </div>
-        <router-link to="/profile" class="profile-link" @click="closeMenu">
+
+      <div class="nav-register">
+        <router-link to="/register" class="register-link" @click="closeMenu">
+          <img src="../assets/user.png" alt="Register" />
         </router-link>
       </div>
+    </div>
   </nav>
+
 </template>
 
 <script setup>
@@ -153,6 +158,23 @@ main {
 
 .nav-link:hover::after {
   width: 100%;
+}
+.nav-register {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* pushes it to the far right */
+}
+
+.register-link img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.register-link img:hover {
+  transform: scale(1.1);
 }
 
 .nav-actions {
