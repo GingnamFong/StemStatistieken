@@ -25,6 +25,11 @@
             <a href="#" @click.prevent>Forgot password?</a>
           </div>
 
+          <!-- Error message -->
+          <div v-if="errorMessage" class="error-message">
+            {{ errorMessage }}
+          </div>
+
           <button type="submit" class="primary">Inloggen</button>
         </form>
       </div>
@@ -118,6 +123,16 @@ input {
 
 .primary:hover { opacity: 0.95; }
 
+.error-message {
+  color: #c0392b;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #fdf2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+}
+
 @media (max-width: 900px) {
   .login-grid { grid-template-columns: 1fr; }
   .left-panel { min-height: auto; }
@@ -125,11 +140,26 @@ input {
 </style>
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const email = ref('')
 const password = ref('')
+const errorMessage = ref('')
+const router = useRouter()
 
 function onSubmit() {
-  console.log('Login attempt', { email: email.value })
+  // Clear previous error
+  errorMessage.value = ''
+
+  // Fake login, check if email is test@demo.com
+  if (email.value === 'test@demo.com' && password.value === 'password') {
+    localStorage.setItem('token', 'fake-jwt-token-12345')
+
+    window.dispatchEvent(new CustomEvent('loginStateChanged'))
+
+    router.push('/')
+  } else {
+    errorMessage.value = 'Ongeldige e-mail of wachtwoord.'
+  }
 }
 </script>
