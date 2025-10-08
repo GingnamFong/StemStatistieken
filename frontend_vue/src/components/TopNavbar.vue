@@ -13,6 +13,7 @@
         <router-link to="/uitslagen" class="nav-link" @click="closeMenu">Uitslagen</router-link>
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
+        <router-link to="/login" class="nav-link" @click="closeMenu">Login</router-link>
       </div>
 
       <div class="nav-actions">
