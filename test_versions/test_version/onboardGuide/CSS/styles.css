@@ -1,0 +1,20 @@
+h1 {
+    color: grey;
+}
+
+.onboarding {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+    width: 300px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+
+}
