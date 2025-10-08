@@ -12,6 +12,8 @@ import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A demo service for demonstrating how an EML-XML parser can be used inside a backend application.<br/>
@@ -20,6 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Service
 public class DutchElectionService {
+    private final Map<String, Election> electionCache = new HashMap<>();
 
     public Election readResults(String electionId, String folderName) {
         System.out.println("Processing files...");
@@ -42,12 +45,14 @@ public class DutchElectionService {
 
         try {
             // Clean and encode the folder name to prevent URI errors
-            folderName = folderName.trim();
             String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
             System.out.println("Resolved folder name: " + safeFolderName);
 
             // Assuming the election data is somewhere on the class-path it should be found.
             electionParser.parseResults(electionId, PathUtils.getResourcePath("/" + safeFolderName));
+
+            electionCache.put(electionId, election);
+
 
             System.out.println("Dutch Election results: " + election);
             return election;
@@ -58,4 +63,7 @@ public class DutchElectionService {
         }
     }
 
+    public Election getElectionById(String electionId) {
+        return electionCache.get(electionId);
+    }
 }

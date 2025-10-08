@@ -14,11 +14,6 @@ import java.util.Map;
 public class DutchMunicipalityVotesTransformer implements VotesTransformer {
     private final Election election;
 
-    /**
-     * Creates a new transformer for handling the votes at the municipality level. It expects an instance of
-     * Election that can be used for storing the results.
-     * @param election the election in which the votes wil be stored.
-     */
     public DutchMunicipalityVotesTransformer(Election election) {
         this.election = election;
     }
@@ -26,31 +21,38 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
-            // Extract municipality info from the map
+            // Extract municipality info
             String municipalityName = electionData.getOrDefault("ReportingUnitIdentifier", "unknown");
             int validVotes = Integer.parseInt(electionData.getOrDefault("ValidVotes", "0"));
             String contestId = electionData.getOrDefault("ContestIdentifier-Id", "unknown");
 
-            // Find the constituency in the election object
+            // Find the constituency
             Constituency constituency = election.getConstituencyById(contestId);
-            if (constituency != null) {
-                constituency.addMunicipality(new Municipality(municipalityName, validVotes));
-            }
 
-            // Optional: print for debug
-            System.out.printf("Municipality votes added: %s - %d votes\n", municipalityName, validVotes);
+            if (constituency != null) {
+                // Add the municipality — totalVotes is updated automatically
+                constituency.addMunicipality(new Municipality(municipalityName, validVotes));
+                System.out.printf("Added municipality: %s with %d votes to constituency %s%n",
+                        municipalityName, validVotes, constituency.getName());
+                System.out.printf("Municipality: %s, ContestId: %s\n", municipalityName, contestId);
+                if (constituency == null) {
+                    System.out.println("No constituency found for ID: " + contestId);
+                }
+            } else {
+                System.err.printf("Warning: constituency with id '%s' not found for municipality '%s'%n",
+                        contestId, municipalityName);
+            }
         }
-        System.out.printf("%s party votes: %s\n", aggregated ? "Municipality" : "Polling station", electionData);
     }
+
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s candidate votes: %s\n", aggregated ? "Municipality" : "Polling station", electionData);
+        // Implement candidate-level votes if needed
     }
 
     @Override
     public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s meta data: %s\n", aggregated ? "Municipality" : "Polling station", electionData);
+        // Implement metadata handling if needed
     }
-
 }

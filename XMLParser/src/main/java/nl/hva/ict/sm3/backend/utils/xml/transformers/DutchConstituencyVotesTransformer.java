@@ -25,14 +25,17 @@ public class DutchConstituencyVotesTransformer implements VotesTransformer {
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
-            System.out.println("🔍 ElectionData keys: " + electionData.keySet());
-            System.out.println("🔍 ElectionData values: " + electionData);
-
-            String id = electionData.getOrDefault("ContestIdentifier-Id", "unknown");
+            String id = electionData.getOrDefault("ContestIdentifier-Id", "unknown").trim();
             String name = electionData.getOrDefault("ContestName", "Unnamed Constituency");
 
+            Constituency existing = election.getConstituencyById(id);
+            if (existing == null) {
+                existing = new Constituency(id, name);
+                election.addConstituency(existing);
+            }
 
-            election.addConstituency(new Constituency(id, name));
+            int votes = Integer.parseInt(electionData.getOrDefault("ValidVotes", "0"));
+            existing.addToTotalVotes(votes); // you’ll need a method in Constituency: addToTotalVotes(int)
         }
     }
 
