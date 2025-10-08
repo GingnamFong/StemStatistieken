@@ -23,12 +23,27 @@ public class Election {
         return constituencies;
     }
 
-    public void addConstituency(Constituency constituency) {
-        constituencies.add(constituency);
+    public void addConstituency(Constituency newConstituency) {
+        Constituency existing = getConstituencyById(newConstituency.getId());
+        if (existing != null) {
+            // merge municipalities — totalVotes updates automatically
+            for (Municipality m : newConstituency.getMunicipalities()) {
+                existing.addMunicipality(m);
+            }
+        } else {
+            constituencies.add(newConstituency);
+        }
     }
 
     @Override
     public String toString() {
         return "Election{id='%s', constituencies=%s}".formatted(id, constituencies);
+    }
+
+    public Constituency getConstituencyById(String id) {
+        return constituencies.stream()
+                .filter(c -> c.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -10,6 +10,10 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A demo service for demonstrating how an EML-XML parser can be used inside a backend application.<br/>
@@ -18,9 +22,14 @@ import java.io.IOException;
  */
 @Service
 public class DutchElectionService {
+    private final Map<String, Election> electionCache = new HashMap<>();
 
     public Election readResults(String electionId, String folderName) {
         System.out.println("Processing files...");
+
+
+        electionId = electionId.trim();
+        folderName = folderName.trim();
 
         Election election = new Election(electionId);
         // TODO This lengthy construction of the parser should be replaced with a fitting design pattern!
@@ -35,20 +44,26 @@ public class DutchElectionService {
         );
 
         try {
-            // Assuming the election data is somewhere on the class-path it should be found.
-            // Please note that you can also specify an absolute path to the folder!
-            electionParser.parseResults(electionId, PathUtils.getResourcePath("/%s".formatted(folderName)));
-            // Do what ever you like to do
-            System.out.println("Dutch Election results: " + election);
-            // Now is also the time to send the election information to a database for example.
+            // Clean and encode the folder name to prevent URI errors
+            String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
+            System.out.println("Resolved folder name: " + safeFolderName);
 
+            // Assuming the election data is somewhere on the class-path it should be found.
+            electionParser.parseResults(electionId, PathUtils.getResourcePath("/" + safeFolderName));
+
+            electionCache.put(electionId, election);
+
+
+            System.out.println("Dutch Election results: " + election);
             return election;
         } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException | SAXException e) {
-            // FIXME You should do here some proper error handling! The code below is NOT how you handle errors properly!
             System.err.println("Failed to process the election results!");
             e.printStackTrace();
             return null;
         }
     }
 
+    public Election getElectionById(String electionId) {
+        return electionCache.get(electionId);
+    }
 }
