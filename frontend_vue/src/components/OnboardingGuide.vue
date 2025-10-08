@@ -48,6 +48,7 @@ function finish() {
   document.getElementById("onboarding-modal").style.display = "none"
   localStorage.setItem("onboardingComplete", "true")
 }
+// test
 </script>
 
 <style scoped>
