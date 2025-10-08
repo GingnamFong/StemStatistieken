@@ -2,19 +2,56 @@ h1 {
     color: grey;
 }
 
-.onboarding {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #fff;
-    color: #333;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    z-index: 1000;
-    width: 300px;
-    text-align: center;
-    font-family: Arial, sans-serif;
-
+h2 {
+    font-family: "SansSerif";
+    font-size: 40px;
 }
+
+p {
+    font-family: "SansSerif";
+    font-size: 20px;
+}
+
+
+/* Overlay */
+.onboarding-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6); /* dim background */
+    display: none; /* hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Modal box */
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 18px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    font-family: Arial, sans-serif;
+}
+
+.modal-content button {
+    margin-top: 20px;
+    padding: 12px 20px;
+    background-color: #3F4383;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: SansSerif;
+    font-size: 18px;
+}
+
+.modal-content button:hover {
+    background-color: #8386b5; /* darker blue on hover */
+    transform: scale(1.05);     /* slight grow effect */
+}
+
