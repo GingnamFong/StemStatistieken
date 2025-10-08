@@ -51,7 +51,7 @@
         </form>
 
         <p class="login-link">
-          Al een account? <a href="#">Log dan in</a>
+          Al een account? <a href="/login">Log dan in</a>
         </p>
       </div>
     </section>
