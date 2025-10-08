@@ -9,18 +9,23 @@
     <h1>Welcome</h1>
     <p>find all government data here</p>
 
-    <div id="onboard_guide" class="onboarding">
-        <div class="step" id="step-1">
-            <p>Welcome! Let's get started</p>
-            <button class="button_okay">Next</button>
-        </div>
-        <div class="step" id="step_2">
-            <p>At first, the government data</p>
-            <button class="button_okay">Next</button>
-        </div>
-        <div class="step" id="step_3">
-            <p>Now let's get started</p>
-            <button class="button_okay">Okay</button>
+    <div id="onboarding-modal" class="onboarding-modal">
+        <div class="modal-content">
+            <div class="step" id="step-1">
+                <h2>Welcome!</h2>
+                <p>Let’s get started with a quick tour.</p>
+                <button class="next">Next</button>
+            </div>
+            <div class="step" id="step-2" style="display: none;">
+                <h2>Feature X</h2>
+                <p>This is how you use feature X.</p>
+                <button class="next">Next</button>
+            </div>
+            <div class="step" id="step-3" style="display: none;">
+                <h2>All set!</h2>
+                <p>You’re ready to explore the site.</p>
+                <button class="finish">Finish</button>
+            </div>
         </div>
     </div>
 

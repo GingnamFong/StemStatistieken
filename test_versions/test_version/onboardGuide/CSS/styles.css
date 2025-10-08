@@ -2,19 +2,38 @@ h1 {
     color: grey;
 }
 
-.onboarding {
+/* Overlay */
+.onboarding-modal {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #fff;
-    color: #333;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.6); /* dim background */
+    display: none; /* hidden by default */
+    justify-content: center;
+    align-items: center;
     z-index: 1000;
-    width: 300px;
-    text-align: center;
-    font-family: Arial, sans-serif;
-
 }
+
+/* Modal box */
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    font-family: Arial, sans-serif;
+}
+
+.modal-content button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #3F4383;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
