@@ -1,6 +1,7 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import TopNavbar from './components/TopNavbar.vue'
+import OnboardingGuide from "@/components/OnboardingGuide.vue";
 </script>
 
 <template>
@@ -11,6 +12,10 @@ import TopNavbar from './components/TopNavbar.vue'
   <main>
     <RouterView />
   </main>
+
+  <!-- Onboarding Modal -->
+  <OnboardingGuide />
+
 </template>
 
 <style>
