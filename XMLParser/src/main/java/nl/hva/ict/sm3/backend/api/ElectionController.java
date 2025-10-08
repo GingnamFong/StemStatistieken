@@ -2,6 +2,7 @@ package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -16,6 +17,14 @@ public class ElectionController {
         this.electionService = electionService;
     }
 
+    @GetMapping("{electionId}")
+    public ResponseEntity<Election> getElection(@PathVariable String electionId) {
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(election);
+    }
     /**
      * Processes the result for a specific election.
      * @param electionId the id of the election, e.g. the value of the Id attribute from the ElectionIdentifier tag.
@@ -26,11 +35,11 @@ public class ElectionController {
      * <i>If you want to return something else please feel free to do so!</i>
      */
     @PostMapping("{electionId}")
-    public Election readResults(@PathVariable String electionId, @RequestParam(required = false) String folderName) {
-        if (folderName == null) {
-            return electionService.readResults(electionId, electionId);
-        } else {
-            return electionService.readResults(electionId, folderName);
-        }
+    public ResponseEntity<Election> loadElection(@PathVariable String electionId,
+                                                 @RequestParam(required = false) String folderName) {
+        Election election = electionService.readResults(electionId, folderName != null ? folderName : electionId);
+        if (election == null) return ResponseEntity.status(500).build();
+        return ResponseEntity.ok(election);
     }
-}
+    }
+
