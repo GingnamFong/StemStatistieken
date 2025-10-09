@@ -1,7 +1,7 @@
 <script setup>
 import TheWelcome from '../components/TheWelcome.vue'
 import YearBanner from '../components/YearBanner.vue'
-import DutchMap from '../components/DutchMap.vue'
+import DutchMapKiesKring from '../components/DutchMapKiesKring.vue'
 </script>
 
 <template>
@@ -11,7 +11,7 @@ import DutchMap from '../components/DutchMap.vue'
     <TheWelcome />
 
 
-      <DutchMap />
+      <DutchMapKiesKring />
 
 
   </main>
