@@ -55,7 +55,7 @@ onMounted(async () => {
     let svg = await response.text()
 
     // Make paths clickable
-    svg = svg.replace(/<path/g, '<path class="kieskring-path" style="cursor:pointer"')
+    svg = svg.replace(/<path/g, '<path class="kieskring-path" style="cursor:pointer; fill:#e0e0e0; stroke:#000000; stroke-width:1"')
     svg = svg.replace(/<text/g, '<text class="kieskring-text" style="pointer-events:none"')
 
     svgContent.value = svg
@@ -83,8 +83,8 @@ const addPathListeners = () => {
 
     path.addEventListener('mouseleave', () => {
       if (selectedKieskring.value?.index !== index) {
-        path.style.fill = ''
-        path.style.fillOpacity = ''
+        path.style.fill = '#e0e0e0'
+        path.style.fillOpacity = '1'
       }
     })
 
@@ -110,8 +110,8 @@ const handlePathClick = (path, index, texts) => {
 
     const allPaths = svgContainer.value.querySelectorAll('path')
     allPaths.forEach(p => {
-      p.style.fill = ''
-      p.style.fillOpacity = ''
+      p.style.fill = '#e0e0e0'
+      p.style.fillOpacity = '1'
     })
 
     // Highlight selected path
