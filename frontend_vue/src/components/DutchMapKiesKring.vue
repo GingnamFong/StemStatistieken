@@ -108,7 +108,6 @@ const addPathListeners = () => {
 
 <style scoped>
 
-
 .map-container {
   width: 100%;
   height: 600px;
