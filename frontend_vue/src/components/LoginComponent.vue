@@ -1,18 +1,21 @@
 <template>
   <section class="login-page">
-    <div class="login-grid">
       <!-- Left message -->
-      <div class="left-panel">
-        <h2>
-          Bekijk snel en gemakkelijk<br />
-          de verkiezingsresultaten!<br />
-        </h2>
-      </div>
+    <section class="login-left">
+      <div class="logo">📊 StemStatistieken</div>
+      <h1>
+        Bekijk snel en gemakkelijk<br />
+        de verkiezingsresultaten<br />
+        en discussieer mee!
+      </h1>
+    </section>
 
-      <!-- Right card -->
-      <div class="card">
-        <h3>Welkom Terug</h3>
-        <p class="sub">Log in</p>
+    <!-- Right card (login) -->
+    <section class="login-right">
+      <div class="login-card">
+        <div class="login-logo">📊</div>
+        <h2>Welkom terug</h2>
+        <p class="subtitle">Log in om verder te gaan!</p>
 
         <form @submit.prevent="onSubmit" class="login-form">
           <label for="email">Email<span class="req">*</span></label>
@@ -30,114 +33,18 @@
             {{ errorMessage }}
           </div>
 
-          <button type="submit" class="primary">Inloggen</button>
+          <button type="submit" class="btn-primary">Inloggen</button>
         </form>
+
+        <p class="register-link">
+          Geen account? <a href="/register">Registreer hier</a>
+        </p>
       </div>
-    </div>
+    </section>
   </section>
+
 </template>
 
-<style scoped>
-.login-page {
-  max-width: 1200px;
-  margin: 60px auto;
-}
-
-.login-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  align-items: start;
-}
-
-.left-panel {
-  background: #f1f2f6;
-  border-radius: 12px;
-  padding: 48px 40px;
-  min-height: 420px;
-  display: flex;
-  align-items: center;
-}
-
-.left-panel h2 {
-  margin: 0;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 32px 28px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  border: 1px solid #eee;
-}
-
-.card h3 {
-  margin: 8px 0 4px 0;
-  font-weight: 600;
-}
-
-.sub {
-  margin: 0 0 16px 0;
-  color: #666;
-  font-size: 0.95rem;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-label {
-  font-size: 0.9rem;
-}
-
-.req { color: #c0392b; margin-left: 4px; }
-
-input {
-  padding: 10px 12px;
-  border: 1px solid #cfd3d7;
-  border-radius: 6px;
-}
-
-.help-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 2px;
-}
-
-.muted { color: #999; font-size: 0.8rem; }
-
-.primary {
-  padding: 12px 14px;
-  border: none;
-  border-radius: 6px;
-  background: #3F4383;
-  color: #fff;
-  cursor: pointer;
-  margin-top: 8px;
-}
-
-.primary:hover { opacity: 0.95; }
-
-.error-message {
-  color: #c0392b;
-  font-size: 0.9rem;
-  margin-top: 8px;
-  padding: 8px;
-  background-color: #fdf2f2;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-}
-
-@media (max-width: 900px) {
-  .login-grid { grid-template-columns: 1fr; }
-  .left-panel { min-height: auto; }
-}
-</style>
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -163,3 +70,157 @@ function onSubmit() {
   }
 }
 </script>
+
+<style scoped>
+.login-page {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: #f4f5f7;
+}
+
+/* LEFT SIDE */
+.login-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px;
+  background-color: #f5f6f7;
+  color: #000;
+}
+
+.login-left .logo {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+}
+
+.login-left h1 {
+  font-size: 2rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* RIGHT SIDE */
+.login-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  border-left: 1px solid #eee;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.login-logo {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #111;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+/* FORM */
+.login-form {
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+input {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  font-size: 1rem;
+  background: transparent;
+  outline: none;
+}
+
+input:focus {
+  border-bottom-color: #000;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+}
+
+/* BUTTON */
+.btn-primary {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background: #222;
+}
+
+/* FOOTER LINK */
+.register-link {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.register-link a {
+  font-weight: 600;
+  color: #000;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 800px) {
+  .login-page {
+    flex-direction: column;
+  }
+  .login-left {
+    padding: 40px 20px;
+    text-align: center;
+    align-items: center;
+  }
+  .login-right {
+    border-left: none;
+  }
+}
+</style>
