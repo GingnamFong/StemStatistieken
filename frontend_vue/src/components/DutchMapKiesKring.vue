@@ -28,35 +28,32 @@ const svgContent = ref('')
 const selectedKieskring = ref(null)
 
 const kieskringenData = {
-  1: { number: 1, name: 'Groningen', province: 'Groningen', stemmen:''},
-  2: { number: 2, name: 'Leeuwarden', province: 'Friesland', stemmen:'' },
-  3: { number: 3, name: 'Assen', province: 'Drenthe', stemmen:'' },
-  4: { number: 4, name: 'Zwolle', province: 'Overijssel', stemmen:'' },
-  5: { number: 5, name: 'Arnhem', province: 'Gelderland', stemmen:'' },
-  6: { number: 6, name: 'Utrecht', province: 'Utrecht', stemmen:'' },
-  7: { number: 7, name: 'Haarlem', province: 'Noord-Holland', stemmen:'' },
-  8: { number: 8, name: 'Amsterdam', province: 'Noord-Holland', stemmen:'' },
-  9: { number: 9, name: 'Den Haag', province: 'Zuid-Holland', stemmen:'' },
-  10: { number: 10, name: 'Leiden', province: 'Zuid-Holland', stemmen:'' },
-  11: { number: 11, name: 'Rotterdam', province: 'Zuid-Holland', stemmen:'' },
-  12: { number: 12, name: 'Dordrecht', province: 'Zuid-Holland', stemmen:'' },
-  13: { number: 13, name: 'Middelburg', province: 'Zeeland', stemmen:'213' },
-  14: { number: 14, name: 'Tilburg', province: 'Noord-Brabant', stemmen:'' },
-  15: { number: 15, name: "'s-Hertogenbosch", province: 'Noord-Brabant', stemmen:'' },
-  16: { number: 16, name: 'Maastricht', province: 'Limburg', stemmen:'' },
-  17: { number: 17, name: 'Almere', province: 'Flevoland', stemmen:'' },
-  18: { number: 18, name: 'Nijmegen', province: 'Gelderland', stemmen:'' },
-  19: { number: 19, name: 'Breda', province: 'Noord-Brabant', stemmen:'' }
+  1: { number: 1, name: 'Groningen', province: 'Groningen', stemmen: '' },
+  2: { number: 2, name: 'Leeuwarden', province: 'Friesland', stemmen: '' },
+  3: { number: 3, name: 'Assen', province: 'Drenthe', stemmen: '' },
+  4: { number: 4, name: 'Zwolle', province: 'Overijssel', stemmen: '' },
+  5: { number: 5, name: 'Lelystad', province: 'Flevoland', stemmen: '' },
+  6: { number: 6, name: 'Nijmegen', province: 'Gelderland', stemmen: '' },
+  7: { number: 7, name: 'Arnhem', province: 'Gelderland', stemmen: '' },
+  8: { number: 8, name: 'Utrecht', province: 'Utrecht', stemmen: '' },
+  9: { number: 9, name: 'Amsterdam', province: 'Noord-Holland', stemmen: '' },
+  10: { number: 10, name: 'Haarlem', province: 'Noord-Holland', stemmen: '' },
+  11: { number: 11, name: 'Den Helder', province: 'Noord-Holland', stemmen: '' },
+  12: { number: 12, name: '’s-Gravenhage', province: 'Zuid-Holland', stemmen: '' },
+  13: { number: 13, name: 'Rotterdam', province: 'Zuid-Holland', stemmen: '' },
+  14: { number: 14, name: 'Dordrecht', province: 'Zuid-Holland', stemmen: '' },
+  15: { number: 15, name: 'Leiden', province: 'Zuid-Holland', stemmen: '' },
+  16: { number: 16, name: 'Middelburg', province: 'Zeeland', stemmen: '' },
+  17: { number: 17, name: 'Tilburg', province: 'Noord-Brabant', stemmen: '' },
+  18: { number: 18, name: '’s-Hertogenbosch', province: 'Noord-Brabant', stemmen: '' },
+  19: { number: 19, name: 'Maastricht', province: 'Limburg', stemmen: '' },
+  20: { number: 20, name: 'Bonaire', province: 'Caribisch Nederland', stemmen: '' }
 }
 
 onMounted(async () => {
   try {
     const response = await fetch('/src/assets/kieskringen.svg')
     let svg = await response.text()
-
-    // Make paths clickable
-    svg = svg.replace(/<path/g, '<path class="kieskring-path" style="cursor:pointer; fill:#e0e0e0; stroke:#000000; stroke-width:1"')
-    svg = svg.replace(/<text/g, '<text class="kieskring-text" style="pointer-events:none"')
 
     svgContent.value = svg
 
@@ -72,57 +69,45 @@ onMounted(async () => {
 const addPathListeners = () => {
   if (!svgContainer.value) return
 
-  const paths = svgContainer.value.querySelectorAll('path')
-  const texts = svgContainer.value.querySelectorAll('text tspan')
+  const paths = svgContainer.value.querySelectorAll('path[id^="kieskring-"]');
 
-  paths.forEach((path, index) => {
+  paths.forEach(path => {
+    const kieskringNumber = parseInt(path.id.split('-')[1]);
+
     path.addEventListener('mouseenter', () => {
-      path.style.fill = 'rgb(103,215,114)'
-      path.style.fillOpacity = '0.7'
-    })
+      path.style.fill = 'rgb(103,215,114)';
+      path.style.fillOpacity = '0.7';
+    });
 
     path.addEventListener('mouseleave', () => {
-      if (selectedKieskring.value?.index !== index) {
-        path.style.fill = '#e0e0e0'
-        path.style.fillOpacity = '1'
+      if (selectedKieskring.value?.number !== kieskringNumber) {
+        path.style.fill = '#e0e0e0';
+        path.style.fillOpacity = '1';
       }
-    })
+    });
 
     path.addEventListener('click', () => {
-      handlePathClick(path, index, texts)
-    })
-  })
+      selectedKieskring.value = { ...kieskringenData[kieskringNumber] };
+
+      // Reset alle andere paths
+      paths.forEach(p => {
+        p.style.fill = '#e0e0e0';
+        p.style.fillOpacity = '1';
+      });
+
+      // Highlight de geklikte path
+      path.style.fill = 'rgb(0,255,3)';
+      path.style.fillOpacity = '0.7';
+    });
+  });
+
+
+
 }
-
-// find the kieskring number from nearby text
-const handlePathClick = (path, index, texts) => {
-  let kieskringNumber = null
-
-  texts.forEach(text => {
-    const number = parseInt(text.textContent.trim())
-    if (number >= 1 && number <= 19) {
-      kieskringNumber = number
-    }
-  })
-
-  if (kieskringNumber && kieskringenData[kieskringNumber]) {
-    selectedKieskring.value = { ...kieskringenData[kieskringNumber], index }
-
-    const allPaths = svgContainer.value.querySelectorAll('path')
-    allPaths.forEach(p => {
-      p.style.fill = '#e0e0e0'
-      p.style.fillOpacity = '1'
-    })
-
-    // Highlight selected path
-    path.style.fill = 'rgb(0,255,3)'
-    path.style.fillOpacity = '0.7'
-  }
-}
-
 </script>
 
 <style scoped>
+
 
 .map-container {
   width: 100%;
