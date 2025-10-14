@@ -41,7 +41,7 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
 
             if (constituency != null) {
                 // Add the municipality — totalVotes is updated automatically
-                constituency.addMunicipality(new Municipality(municipalityName, validVotes));
+                constituency.addMunicipality(new Municipality(municipalityId ,municipalityName, validVotes));
                 System.out.printf("Added municipality: %s with %d votes to constituency %s%n",
                         municipalityName, validVotes, constituency.getName());
                 System.out.printf("Municipality: %s, ContestId: %s\n", municipalityName, contestId);
