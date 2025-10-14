@@ -20,6 +20,14 @@ public class Constituency {
         municipalities.add(m);
         totalVotes += m.getValidVotes(); // sum votes
     }
+    public Municipality getMunicipalityById(String municipalityId) {
+        for (Municipality m : municipalities) {
+            if (m.getId().equals(municipalityId)) {
+                return m;
+            }
+        }
+        return null;
+    }
     public void addToTotalVotes(int votes) {
         this.totalVotes += votes;
     }
