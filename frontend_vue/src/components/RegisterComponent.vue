@@ -2,7 +2,7 @@
   <div class="register-page">
     <!-- Left side -->
     <section class="register-left">
-      <div class="logo">📊 Stemstatestieken</div>
+      <div class="logo">📊 StemStatistieken</div>
       <h1>Bekijk snel en gemakkelijk
         de verkiezingsresultaten
         en discussieer mee!</h1>
