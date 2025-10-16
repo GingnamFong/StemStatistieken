@@ -47,9 +47,22 @@ public class DutchElectionService {
             // Clean and encode the folder name to prevent URI errors
             String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
             System.out.println("Resolved folder name: " + safeFolderName);
-
             // Assuming the election data is somewhere on the class-path it should be found.
             electionParser.parseResults(electionId, PathUtils.getResourcePath("/" + safeFolderName));
+            for (Constituency constituency : election.getConstituencies()) {
+                for (Municipality municipality : constituency.getMunicipalities()) {
+                    for (Map<String, Object> top : municipality.getTopPartiesWithNames(10)) { // 10 om alles te krijgen
+                        String partyId = (String) top.get("id");
+                        String partyName = (String) top.get("name");
+
+                        if (election.getPartyById(partyId) == null) {
+                            election.addParty(new Party(partyId, partyName)); // of gebruik echte naam uit XML
+                        }
+
+                        // stemmen per gemeente zijn al in Municipality.addVotes gezet door de transformer
+                    }
+                }
+            }
 
             electionCache.put(electionId, election);
 

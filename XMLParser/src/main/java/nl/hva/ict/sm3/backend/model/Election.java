@@ -1,7 +1,9 @@
 package nl.hva.ict.sm3.backend.model;
 import java.util.ArrayList;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This will hold the information for one specific election.<br/>
@@ -10,6 +12,8 @@ import java.util.List;
 public class Election {
     private final String id;
     private List<Constituency> constituencies = new ArrayList<>();
+    private Map<String, Party> parties = new HashMap<>();
+
 
     public Election(String id) {
         this.id = id;
@@ -45,5 +49,24 @@ public class Election {
                 .filter(c -> c.getId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+    public List<Party> getParties() {
+        return new ArrayList<>(parties.values());
+    }
+
+    public void addParty(Party party) {
+        parties.put(party.getId(), party);
+    }
+
+    public List<Party> getTopParties(int n) {
+        return parties.values().stream()
+                .sorted((p1, p2) -> Integer.compare(p2.getTotalVotes(), p1.getTotalVotes()))
+                .limit(n)
+                .toList();
+    }
+
+
+    public Party getPartyById(String partyId) {
+        return parties.get(partyId);
     }
 }

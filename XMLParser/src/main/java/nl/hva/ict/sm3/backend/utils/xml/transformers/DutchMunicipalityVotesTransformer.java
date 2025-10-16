@@ -22,22 +22,38 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
             // Extract municipality info
-            String municipalityName = electionData.getOrDefault("ReportingUnitIdentifier", "unknown");
-            int validVotes = Integer.parseInt(electionData.getOrDefault("ValidVotes", "0"));
+            String municipalityName = electionData.getOrDefault("AuthorityIdentifier", "unknown");
             String contestId = electionData.getOrDefault("ContestIdentifier-Id", "unknown");
+            String municipalityId = electionData.getOrDefault("AuthorityIdentifier-Id", "unknown");
+            String validVotesStr = electionData.getOrDefault("ValidVotes", "0");
+            String partyId = electionData.getOrDefault("AffiliationIdentifier-Id", "unknown");
+            String partyName = electionData.getOrDefault("RegisteredName", "unknown");
+
+            int validVotes = 0;
+
+            try {
+                validVotes = Integer.parseInt(validVotesStr);
+            } catch (NumberFormatException e) {
+                System.err.printf("⚠️ Invalid number for ValidVotes '%s' in municipality '%s'%n", validVotesStr, municipalityName);
+            }
+
 
             // Find the constituency
             Constituency constituency = election.getConstituencyById(contestId);
 
+
             if (constituency != null) {
-                // Add the municipality — totalVotes is updated automatically
-                constituency.addMunicipality(new Municipality(municipalityName, validVotes));
+                Municipality municipality = constituency.getMunicipalityById(municipalityId);
+                if (municipality == null) {
+                    municipality = new Municipality(municipalityId, municipalityName, validVotes);
+                    constituency.addMunicipality(municipality);
+                }
+                // Voeg stemmen per partij toe
+                municipality.addVotesForParty(partyId,partyName,validVotes);
+
                 System.out.printf("Added municipality: %s with %d votes to constituency %s%n",
                         municipalityName, validVotes, constituency.getName());
                 System.out.printf("Municipality: %s, ContestId: %s\n", municipalityName, contestId);
-                if (constituency == null) {
-                    System.out.println("No constituency found for ID: " + contestId);
-                }
             } else {
                 System.err.printf("Warning: constituency with id '%s' not found for municipality '%s'%n",
                         contestId, municipalityName);
