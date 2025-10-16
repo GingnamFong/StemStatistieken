@@ -56,7 +56,7 @@ public class DutchElectionService {
                         String partyName = (String) top.get("name");
 
                         if (election.getPartyById(partyId) == null) {
-                            election.addParty(new Party(partyId, partyName)); // of gebruik echte naam uit XML
+                            election.addParty(new Party(partyId, partyName));
                         }
 
                         // stemmen per gemeente zijn al in Municipality.addVotes gezet door de transformer
