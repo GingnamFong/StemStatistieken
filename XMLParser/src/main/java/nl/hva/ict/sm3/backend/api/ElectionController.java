@@ -31,15 +31,17 @@ public class ElectionController {
         }
         return ResponseEntity.ok(election);
     }
- // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
- private Map<String, Object> getMunicipalitySummary(Municipality m) {
-     Map<String, Object> summary = new HashMap<>();
-     summary.put("id", m.getId());
-     summary.put("name", m.getName());
-     summary.put("validVotes", m.getValidVotes());
-     summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
-     return summary;
- }
+
+    // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
+    private Map<String, Object> getMunicipalitySummary(Municipality m) {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("id", m.getId());
+        summary.put("name", m.getName());
+        summary.put("validVotes", m.getValidVotes());
+        summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
+        return summary;
+    }
+
     @GetMapping("{electionId}/municipalities")
     public ResponseEntity<List<Map<String, Object>>> getMunicipalitiesSummary(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
@@ -65,6 +67,7 @@ public class ElectionController {
 
     /**
      * Processes the result for a specific election.
+     *
      * @param electionId the id of the election, e.g. the value of the Id attribute from the ElectionIdentifier tag.
      * @param folderName the name of the folder that contains the XML result files. If none is provided the value from
      *                   the electionId is used.
@@ -79,5 +82,15 @@ public class ElectionController {
         if (election == null) return ResponseEntity.status(500).build();
         return ResponseEntity.ok(election);
     }
-    }
 
+    @PostMapping("{electionId}/Kandidatenlijsten")
+    public ResponseEntity<Election> loadCandidateLists(@PathVariable String electionId,
+                                                       @RequestParam(required = false) String folderName) {
+        Election election = electionService.loadCandidateLists(
+                electionId,
+                folderName != null ? folderName : electionId
+        );
+        if (election == null) return ResponseEntity.status(500).build();
+        return ResponseEntity.ok(election);
+    }
+}
