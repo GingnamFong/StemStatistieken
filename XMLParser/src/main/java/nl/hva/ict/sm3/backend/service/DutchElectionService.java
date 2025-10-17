@@ -110,12 +110,12 @@ public class DutchElectionService {
 
             // Cache and return
             electionCache.put(electionId, election);
-            System.out.println("✅ Candidate lists loaded for election: " + electionId);
+            System.out.println("Candidate lists loaded for election: " + electionId);
             return election;
 
         } catch (IOException | XMLStreamException | ParserConfigurationException |
                  SAXException | NullPointerException e) {
-            System.err.println("❌ Failed to load candidate lists!");
+            System.err.println("Failed to load candidate lists!");
             e.printStackTrace();
             return null;
         }

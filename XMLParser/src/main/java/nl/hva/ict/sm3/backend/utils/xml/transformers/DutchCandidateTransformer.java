@@ -39,5 +39,7 @@ public class DutchCandidateTransformer implements CandidateTransformer {
         Candidate candidate = new Candidate(candidateId, firstName, lastName, initials, residence, partyId, partyName);
 
         System.out.println("Registering candidate: " + candidate);
+
+        election.addCandidate(candidate);
     }
 }
