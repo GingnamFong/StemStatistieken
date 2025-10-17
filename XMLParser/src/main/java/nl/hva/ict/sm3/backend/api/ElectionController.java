@@ -53,6 +53,26 @@ public class ElectionController {
 
         return ResponseEntity.ok(summaries);
     }
+    @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
+    public ResponseEntity<List<Map<String, Object>>> getAllPartiesForMunicipality(
+            @PathVariable String electionId,
+            @PathVariable String municipalityId) {
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) return ResponseEntity.notFound().build();
+
+        Municipality municipality = election.getConstituencies()
+                .stream()
+                .flatMap(c -> c.getMunicipalities().stream())
+                .filter(m -> m.getId().equals(municipalityId))
+                .findFirst()
+                .orElse(null);
+
+        if (municipality == null) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(municipality.getAllPartiesWithNames());
+    }
+
 
     // Optional: endpoint for top parties nationally
     @GetMapping("{electionId}/top-parties")
