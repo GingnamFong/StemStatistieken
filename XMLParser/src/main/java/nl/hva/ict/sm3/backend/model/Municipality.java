@@ -26,11 +26,11 @@ public class Municipality {
         partyNames.put(partyId, partyName);
         validVotes += votes;
     }
-    public List<Map<String, Object>> getTopPartiesWithNames(int n) {
+    private List<Map<String, Object>> getPartiesSortedAndMapped(Integer limit) {
         return partyVotes.entrySet()
                 .stream()
                 .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-                .limit(n)
+                .limit(limit == null ? partyVotes.size() : limit)
                 .map(e -> {
                     Map<String, Object> m = new HashMap<>();
                     m.put("id", e.getKey());
@@ -39,6 +39,14 @@ public class Municipality {
                     return m;
                 })
                 .toList();
+    }
+
+    public List<Map<String, Object>> getTopPartiesWithNames(int n) {
+        return getPartiesSortedAndMapped(n);
+    }
+
+    public List<Map<String, Object>> getAllPartiesWithNames() {
+        return getPartiesSortedAndMapped(null);
     }
 
     public String getName() { return name; }
