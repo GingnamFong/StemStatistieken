@@ -69,7 +69,8 @@ public class DutchElectionService {
 
             System.out.println("Dutch Election results: " + election);
             return election;
-        } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException | SAXException e) {
+        } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException |
+                 SAXException e) {
             System.err.println("Failed to process the election results!");
             e.printStackTrace();
             return null;
@@ -79,64 +80,40 @@ public class DutchElectionService {
     public Election getElectionById(String electionId) {
         return electionCache.get(electionId);
     }
+
     public Election loadCandidateLists(String electionId, String folderName) {
         System.out.println("Loading candidate lists...");
 
         electionId = electionId.trim();
         folderName = folderName.trim();
 
-        // Use cached election if it exists, otherwise create new
+        // Reuse existing election if it’s already cached, otherwise create new
         Election election = electionCache.getOrDefault(electionId, new Election(electionId));
 
-        // Parser with only definition + candidate transformers
         DutchElectionParser electionParser = new DutchElectionParser(
                 new DutchDefinitionTransformer(election),
-                new DutchCandidateTransformer(election) {
-                    @Override
-                    public void registerCandidate(Map<String, String> electionData) {
-                        // Get or create the party
-                        String partyId = electionData.getOrDefault("AffiliationIdentifier.Id", "");
-                        String partyName = electionData.getOrDefault("RegisteredName", "Unknown Party");
-
-                        Party party = election.getPartyById(partyId);
-                        if (party == null) {
-                            party = new Party(partyId, partyName);
-                            election.addParty(party);
-                        }
-
-                        // Build candidate full name
-                        String initials = electionData.getOrDefault("xnl:NameLine", "");
-                        String firstName = electionData.getOrDefault("xnl:FirstName", "");
-                        String lastName = electionData.getOrDefault("xnl:LastName", "");
-                        String fullName = (initials + " " + firstName + " " + lastName).trim();
-
-                        String candidateId = electionData.getOrDefault("CandidateIdentifier.Id", "");
-
-                        Candidate candidate = new Candidate(candidateId, fullName, party);
-
-                        System.out.println("Registered candidate: " + candidate);
-                    }
-                }
+                new DutchCandidateTransformer(election)
         );
 
         try {
-            // Clean and encode folder name to prevent URI issues
+            // Clean and encode folder name to prevent URI errors
             String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
             System.out.println("Resolved folder name: " + safeFolderName);
 
-            // Parse only candidate lists
+            // Parse only the candidate list files
             electionParser.parseResults(electionId,
                     PathUtils.getResourcePath("/" + safeFolderName + "/Kandidatenlijsten"));
 
-            // Cache and return updated election
+            // Cache and return
             electionCache.put(electionId, election);
-            System.out.println("Candidate lists loaded for election: " + electionId);
+            System.out.println("✅ Candidate lists loaded for election: " + electionId);
             return election;
 
-        } catch (IOException | XMLStreamException | NullPointerException |
-                 ParserConfigurationException | SAXException e) {
-            System.err.println("Failed to load candidate lists!");
+        } catch (IOException | XMLStreamException | ParserConfigurationException |
+                 SAXException | NullPointerException e) {
+            System.err.println("❌ Failed to load candidate lists!");
             e.printStackTrace();
             return null;
         }
     }
+}

@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
+import nl.hva.ict.sm3.backend.model.Candidate;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.CandidateTransformer;
 
@@ -23,6 +24,17 @@ public class DutchCandidateTransformer implements CandidateTransformer {
 
     @Override
     public void registerCandidate(Map<String, String> electionData) {
+
+        String candidateId = electionData.getOrDefault("CandidateIdentifier.Id", "");
+        String initials = electionData.getOrDefault("xnl:NameLine", "");
+        String firstName = electionData.getOrDefault("xnl:FirstName", "");
+        String lastName = electionData.getOrDefault("xnl:LastName", "");
+        String residence = electionData.getOrDefault("xal:LocalityName", "");
+        String partyId = electionData.getOrDefault("AffiliationIdentifier.Id", "");
+        String partyName = electionData.getOrDefault("RegisteredName", "Unknown Party");
+
+        Candidate candidate = new Candidate(candidateId, firstName, lastName, initials, residence, partyId, partyName);
+
         System.out.println("Registering candidate: " + electionData);
     }
 }
