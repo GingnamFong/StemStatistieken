@@ -92,7 +92,11 @@ public class DutchElectionService {
 
         DutchElectionParser electionParser = new DutchElectionParser(
                 new DutchDefinitionTransformer(election),
-                new DutchCandidateTransformer(election)
+                new DutchCandidateTransformer(election),
+                new DutchResultTransformer(election),
+                new DutchNationalVotesTransformer(election),
+                new DutchConstituencyVotesTransformer(election),
+                new DutchMunicipalityVotesTransformer(election)
         );
 
         try {

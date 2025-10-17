@@ -25,12 +25,12 @@ public class DutchCandidateTransformer implements CandidateTransformer {
     @Override
     public void registerCandidate(Map<String, String> electionData) {
 
-        String candidateId = electionData.getOrDefault("CandidateIdentifier.Id", "");
-        String initials = electionData.getOrDefault("xnl:NameLine", "");
-        String firstName = electionData.getOrDefault("xnl:FirstName", "");
-        String lastName = electionData.getOrDefault("xnl:LastName", "");
-        String residence = electionData.getOrDefault("xal:LocalityName", "");
-        String partyId = electionData.getOrDefault("AffiliationIdentifier.Id", "");
+        String candidateId = electionData.getOrDefault("CandidateIdentifier-Id", "unknown");
+        String initials = electionData.getOrDefault("NameLine", "unknown");
+        String firstName = electionData.getOrDefault("FirstName", "unknown");
+        String lastName = electionData.getOrDefault("LastName", "unknown");
+        String residence = electionData.getOrDefault("LocalityName", "unknown");
+        String partyId = electionData.getOrDefault("AffiliationIdentifier-Id", "unknown");
         String partyName = electionData.getOrDefault("RegisteredName", "Unknown Party");
 
         Candidate candidate = new Candidate(candidateId, firstName, lastName, initials, residence, partyId, partyName);
