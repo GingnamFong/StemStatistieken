@@ -3,8 +3,11 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Candidate;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.CandidateTransformer;
+import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 
 import java.util.Map;
+
+import static nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames.*;
 
 /**
  * Just prints to content of electionData to the standard output.>br/>
@@ -25,16 +28,16 @@ public class DutchCandidateTransformer implements CandidateTransformer {
     @Override
     public void registerCandidate(Map<String, String> electionData) {
 
-        String candidateId = electionData.getOrDefault("CandidateIdentifier-Id", "unknown");
-        String initials = electionData.getOrDefault("NameLine", "unknown");
-        String firstName = electionData.getOrDefault("FirstName", "unknown");
-        String lastName = electionData.getOrDefault("LastName", "unknown");
-        String residence = electionData.getOrDefault("LocalityName", "unknown");
-        String partyId = electionData.getOrDefault("AffiliationIdentifier-Id", "unknown");
-        String partyName = electionData.getOrDefault("RegisteredName", "Unknown Party");
+        String candidateId = electionData.getOrDefault(CANDIDATE_IDENTIFIER_ID, "unknown");
+        String initials = electionData.getOrDefault(NAME_LINE, "unknown");
+        String firstName = electionData.getOrDefault(FIRST_NAME, "unknown");
+        String lastName = electionData.getOrDefault(LAST_NAME, "unknown");
+        String residence = electionData.getOrDefault(LOCALITY_NAME, "unknown");
+        String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
+        String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
 
         Candidate candidate = new Candidate(candidateId, firstName, lastName, initials, residence, partyId, partyName);
 
-        System.out.println("Registering candidate: " + electionData);
+        System.out.println("Registering candidate: " + candidate);
     }
 }
