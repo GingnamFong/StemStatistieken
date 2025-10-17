@@ -1,44 +1,60 @@
 package nl.hva.ict.sm3.backend.model;
 
 public class Candidate {
-    private String id;
-    private String name;
-    private Party party;
-    private int votes;
+    private final String id;
+    private final String firstName;
+    private final String lastName;
+    private final String initials;
+    private final String residence;
+    private final String partyId;
+    private final String partyName;
 
-    public Candidate(String id, String name, Party party) {
+    public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName) {
         this.id = id;
-        this.name = name;
-        this.party = party;
-        this.votes = 0;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.initials = initials;
+        this.residence = residence;
+        this.partyId = partyId;
+        this.partyName = partyName;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public Party getParty() {
-        return party;
+    public String getLastName() {
+        return lastName;
     }
 
-    public int getVotes() {
-        return votes;
+    public String getInitials() {
+        return initials;
     }
 
-    public void addVotes(int votes) {
-        this.votes += votes;
-        if (party != null) {
-            party.addVotes(votes); // keep total votes in sync with the party
-        }
+    public String getResidence() {
+        return residence;
+    }
+
+    public String getPartyId() {
+        return partyId;
+    }
+
+    public String getPartyName() {
+        return partyName;
     }
 
     @Override
     public String toString() {
-        return "Candidate{id='%s', name='%s', party='%s', votes=%d}"
-                .formatted(id, name, party != null ? party.getName() : "Independent", votes);
+        return "Candidate{" +
+                "id='" + id + '\'' +
+                ", name='" + firstName + " " + lastName + '\'' +
+                ", initials='" + initials + '\'' +
+                ", residence='" + residence + '\'' +
+                ", party='" + partyName + '\'' +
+                '}';
     }
 }

@@ -83,7 +83,7 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
-    @PostMapping("{electionId}/Kandidatenlijsten")
+    @PostMapping("{electionId}/candidatelists")
     public ResponseEntity<Election> loadCandidateLists(@PathVariable String electionId,
                                                        @RequestParam(required = false) String folderName) {
         Election election = electionService.loadCandidateLists(
