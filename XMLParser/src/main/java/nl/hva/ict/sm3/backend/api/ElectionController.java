@@ -1,9 +1,15 @@
 package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.Municipality;
+import nl.hva.ict.sm3.backend.model.Party;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Demo controller for showing how you could load the election data in the backend.
@@ -25,6 +31,58 @@ public class ElectionController {
         }
         return ResponseEntity.ok(election);
     }
+ // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
+ private Map<String, Object> getMunicipalitySummary(Municipality m) {
+     Map<String, Object> summary = new HashMap<>();
+     summary.put("id", m.getId());
+     summary.put("name", m.getName());
+     summary.put("validVotes", m.getValidVotes());
+     summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
+     return summary;
+ }
+    @GetMapping("{electionId}/municipalities")
+    public ResponseEntity<List<Map<String, Object>>> getMunicipalitiesSummary(@PathVariable String electionId) {
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) return ResponseEntity.notFound().build();
+
+        List<Map<String, Object>> summaries = election.getConstituencies()
+                .stream()
+                .flatMap(c -> c.getMunicipalities().stream())
+                .map(this::getMunicipalitySummary)
+                .toList();
+
+        return ResponseEntity.ok(summaries);
+    }
+    @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
+    public ResponseEntity<List<Map<String, Object>>> getAllPartiesForMunicipality(
+            @PathVariable String electionId,
+            @PathVariable String municipalityId) {
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) return ResponseEntity.notFound().build();
+
+        Municipality municipality = election.getConstituencies()
+                .stream()
+                .flatMap(c -> c.getMunicipalities().stream())
+                .filter(m -> m.getId().equals(municipalityId))
+                .findFirst()
+                .orElse(null);
+
+        if (municipality == null) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(municipality.getAllPartiesWithNames());
+    }
+
+
+    // Optional: endpoint for top parties nationally
+    @GetMapping("{electionId}/top-parties")
+    public ResponseEntity<List<Party>> getTopParties(@PathVariable String electionId) {
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(election.getTopParties(3));
+    }
+
+
     /**
      * Processes the result for a specific election.
      * @param electionId the id of the election, e.g. the value of the Id attribute from the ElectionIdentifier tag.
