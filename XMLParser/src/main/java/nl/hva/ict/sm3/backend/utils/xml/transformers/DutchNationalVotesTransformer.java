@@ -23,6 +23,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
 
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
+
         System.out.printf("%s party votes: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
