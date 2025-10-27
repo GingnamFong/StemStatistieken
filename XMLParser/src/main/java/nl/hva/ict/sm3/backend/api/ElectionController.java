@@ -56,7 +56,7 @@ public class ElectionController {
         return ResponseEntity.ok(summaries);
     }
     @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
-    public ResponseEntity<List<Map<String, Object>>> getAllPartiesForMunicipality(
+    public ResponseEntity<Map<String, Object>> getAllPartiesForMunicipality(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
 
@@ -72,7 +72,13 @@ public class ElectionController {
 
         if (municipality == null) return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(municipality.getAllPartiesWithNames());
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", municipality.getId());
+        response.put("name", municipality.getName());
+        response.put("validVotes", municipality.getValidVotes());
+        response.put("parties", municipality.getAllPartiesWithNames());
+
+        return ResponseEntity.ok(response);
     }
 
 
