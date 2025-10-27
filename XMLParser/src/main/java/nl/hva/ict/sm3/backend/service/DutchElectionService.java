@@ -69,7 +69,8 @@ public class DutchElectionService {
 
             System.out.println("Dutch Election results: " + election);
             return election;
-        } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException | SAXException e) {
+        } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException |
+                 SAXException e) {
             System.err.println("Failed to process the election results!");
             e.printStackTrace();
             return null;
@@ -78,5 +79,45 @@ public class DutchElectionService {
 
     public Election getElectionById(String electionId) {
         return electionCache.get(electionId);
+    }
+
+    public Election loadCandidateLists(String electionId, String folderName) {
+        System.out.println("Loading candidate lists...");
+
+        electionId = electionId.trim();
+        folderName = folderName.trim();
+
+        // Reuse existing election if it’s already cached, otherwise create new
+        Election election = electionCache.getOrDefault(electionId, new Election(electionId));
+
+        DutchElectionParser electionParser = new DutchElectionParser(
+                new DutchDefinitionTransformer(election),
+                new DutchCandidateTransformer(election),
+                new DutchResultTransformer(election),
+                new DutchNationalVotesTransformer(election),
+                new DutchConstituencyVotesTransformer(election),
+                new DutchMunicipalityVotesTransformer(election)
+        );
+
+        try {
+            // Clean and encode folder name to prevent URI errors
+            String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
+            System.out.println("Resolved folder name: " + safeFolderName);
+
+            // Parse only the candidate list files
+            electionParser.parseResults(electionId,
+                    PathUtils.getResourcePath("/" + safeFolderName + "/Kandidatenlijsten"));
+
+            // Cache and return
+            electionCache.put(electionId, election);
+            System.out.println("Candidate lists loaded for election: " + electionId);
+            return election;
+
+        } catch (IOException | XMLStreamException | ParserConfigurationException |
+                 SAXException | NullPointerException e) {
+            System.err.println("Failed to load candidate lists!");
+            e.printStackTrace();
+            return null;
+        }
     }
 }
