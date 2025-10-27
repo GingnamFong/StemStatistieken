@@ -6,14 +6,19 @@ import DutchMapKiesKring from '../components/DutchMapKiesKring.vue'
 
 <template>
   <main>
-    <YearBanner background-image-url="/images/banner.png" />
+    <!-- Year banner with properly quoted attribute -->
+    <YearBanner backgroundImageUrl="/images/banner.png" />
 
+    <!-- Welcome component -->
     <TheWelcome />
 
-
-      <DutchMapKiesKring />
-
+    <!-- Interactive map component -->
 
   </main>
 </template>
 
+<style scoped>
+main {
+  padding: 20px;
+}
+</style>

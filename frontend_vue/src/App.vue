@@ -2,24 +2,21 @@
 import { RouterView } from 'vue-router'
 import TopNavbar from './components/TopNavbar.vue'
 import OnboardingGuide from "@/components/OnboardingGuide.vue";
+import HomeView from "@/views/HomeView.vue";
 </script>
 
 <template>
-  <!-- Top Navbar -->
   <TopNavbar />
 
-  <!-- Page content -->
   <main>
+    <HomeView />
     <RouterView />
   </main>
 
-  <!-- Onboarding Modal -->
   <OnboardingGuide />
-
 </template>
 
 <style>
-/* Optional global styles */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
