@@ -48,7 +48,7 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
                     municipality = new Municipality(municipalityId, municipalityName, validVotes);
                     constituency.addMunicipality(municipality);
                 }
-                // Voeg stemmen per partij toe
+                // add votes per party
                 municipality.addVotesForParty(partyId,partyName,validVotes);
 
                 System.out.printf("Added municipality: %s with %d votes to constituency %s%n",
