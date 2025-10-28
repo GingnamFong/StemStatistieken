@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 
-# Serveren fase
+# Run fase
 FROM nginx:alpine
 
 # Statische build naar de Nginx webroot
