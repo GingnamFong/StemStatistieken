@@ -32,7 +32,7 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
-    // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
+
     private Map<String, Object> getMunicipalitySummary(Municipality m) {
         Map<String, Object> summary = new HashMap<>();
         summary.put("id", m.getId());

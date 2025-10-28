@@ -95,7 +95,7 @@ function handleClick(e) {
   if (!path) return
   const m = getMunicipalityByPathId(path.id)
   const name = (m && m.name) || path.dataset.name || path.id
-  // replace alert with whatever behaviour you want
+
   alert(`Clicked on ${name}`)
 }
 </script>
