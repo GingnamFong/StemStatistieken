@@ -10,6 +10,11 @@ RUN npm ci --no-audit --no-fund
 
 # Alle bestanden kopiëren en in de app map bouwen   
 COPY . .
+
+# Zet de backend URL als environment variabele voor Vite
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Bouw de app
 RUN npm run build
 
