@@ -110,13 +110,18 @@ public class ElectionController {
     }
 
     @PostMapping("{electionId}/candidatelists")
-    public ResponseEntity<Election> loadCandidateLists(@PathVariable String electionId,
-                                                       @RequestParam(required = false) String folderName) {
-        Election election = electionService.loadCandidateLists(
-                electionId,
-                folderName != null ? folderName : electionId
-        );
-        if (election == null) return ResponseEntity.status(500).build();
+    public ResponseEntity<Election> loadCandidateLists(
+            @PathVariable String electionId,
+            @RequestParam(required = false) String folderName) {
+
+        String folder = folderName != null ? folderName : electionId;
+
+        Election election = new Election(electionId);
+
+        //  fill this instance
+        electionService.loadCandidateLists(election, folder);
+
         return ResponseEntity.ok(election);
     }
+
 }
