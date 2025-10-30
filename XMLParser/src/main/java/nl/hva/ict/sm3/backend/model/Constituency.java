@@ -10,7 +10,6 @@ public class Constituency {
     private int totalVotes = 0;
 
 
-
     public Constituency(String id, String name) {
         this.id = id;
         this.name = name;

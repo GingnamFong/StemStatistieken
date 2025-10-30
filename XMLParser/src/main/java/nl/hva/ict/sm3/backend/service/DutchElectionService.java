@@ -51,9 +51,9 @@ public class DutchElectionService {
             electionParser.parseResults(electionId, PathUtils.getResourcePath("/" + safeFolderName));
             for (Constituency constituency : election.getConstituencies()) {
                 for (Municipality municipality : constituency.getMunicipalities()) {
-                    for (Map<String, Object> top : municipality.getTopPartiesWithNames(10)) { // 10 om alles te krijgen
-                        String partyId = (String) top.get("id");
-                        String partyName = (String) top.get("name");
+                    for (PartyResult result : municipality.getTopParties(10)) { // 10 om alles te krijgen
+                        String partyId = result.getId();
+                        String partyName = result.getName();
 
                         if (election.getPartyById(partyId) == null) {
                             election.addParty(new Party(partyId, partyName));
