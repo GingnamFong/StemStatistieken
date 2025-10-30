@@ -81,14 +81,11 @@ public class DutchElectionService {
         return electionCache.get(electionId);
     }
 
-    public Election loadCandidateLists(String electionId, String folderName) {
+    public void loadCandidateLists(Election election, String folderName) {
         System.out.println("Loading candidate lists...");
 
-        electionId = electionId.trim();
+        String electionId = election.getId().trim();
         folderName = folderName.trim();
-
-        // Reuse existing election if it’s already cached, otherwise create new
-        Election election = electionCache.getOrDefault(electionId, new Election(electionId));
 
         DutchElectionParser electionParser = new DutchElectionParser(
                 new DutchDefinitionTransformer(election),
@@ -100,24 +97,21 @@ public class DutchElectionService {
         );
 
         try {
-            // Clean and encode folder name to prevent URI errors
             String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
             System.out.println("Resolved folder name: " + safeFolderName);
 
-            // Parse only the candidate list files
+            // parse candidate lists
             electionParser.parseResults(electionId,
                     PathUtils.getResourcePath("/" + safeFolderName + "/Kandidatenlijsten"));
 
-            // Cache and return
+            // Cache the result
             electionCache.put(electionId, election);
             System.out.println("Candidate lists loaded for election: " + electionId);
-            return election;
 
         } catch (IOException | XMLStreamException | ParserConfigurationException |
                  SAXException | NullPointerException e) {
             System.err.println("Failed to load candidate lists!");
             e.printStackTrace();
-            return null;
         }
     }
 }

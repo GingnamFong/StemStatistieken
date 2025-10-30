@@ -40,6 +40,14 @@ public class DutchCandidateTransformer implements CandidateTransformer {
 
         System.out.println("Registering candidate: " + candidate);
 
-        election.addCandidate(candidate);
+        boolean alreadyExists = election.getCandidates().stream()
+                .anyMatch(c -> c.getId().equals(candidateId));
+
+        if (!alreadyExists) {
+            election.addCandidate(candidate);
+            System.out.println("Registered candidate: " + candidate);
+        } else {
+            System.out.println("Skipped duplicate: " + candidate);
+        }
     }
 }
