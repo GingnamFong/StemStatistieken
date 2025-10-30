@@ -13,7 +13,7 @@ public class Election {
     private final String id;
     private List<Constituency> constituencies = new ArrayList<>();
     private Map<String, Party> parties = new HashMap<>();
-
+    private List<Candidate> candidates = new ArrayList<>();
 
     public Election(String id) {
         this.id = id;
@@ -38,6 +38,15 @@ public class Election {
             constituencies.add(newConstituency);
         }
     }
+
+    public List<Candidate> getCandidates() {
+        return candidates;
+    }
+
+    public void addCandidate(Candidate candidate) {
+        candidates.add(candidate);
+    }
+
 
     @Override
     public String toString() {
