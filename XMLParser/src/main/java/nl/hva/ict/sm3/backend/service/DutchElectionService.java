@@ -69,7 +69,8 @@ public class DutchElectionService {
 
             System.out.println("Dutch Election results: " + election);
             return election;
-        } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException | SAXException e) {
+        } catch (IOException | XMLStreamException | NullPointerException | ParserConfigurationException |
+                 SAXException e) {
             System.err.println("Failed to process the election results!");
             e.printStackTrace();
             return null;
@@ -78,5 +79,39 @@ public class DutchElectionService {
 
     public Election getElectionById(String electionId) {
         return electionCache.get(electionId);
+    }
+
+    public void loadCandidateLists(Election election, String folderName) {
+        System.out.println("Loading candidate lists...");
+
+        String electionId = election.getId().trim();
+        folderName = folderName.trim();
+
+        DutchElectionParser electionParser = new DutchElectionParser(
+                new DutchDefinitionTransformer(election),
+                new DutchCandidateTransformer(election),
+                new DutchResultTransformer(election),
+                new DutchNationalVotesTransformer(election),
+                new DutchConstituencyVotesTransformer(election),
+                new DutchMunicipalityVotesTransformer(election)
+        );
+
+        try {
+            String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
+            System.out.println("Resolved folder name: " + safeFolderName);
+
+            // parse candidate lists
+            electionParser.parseResults(electionId,
+                    PathUtils.getResourcePath("/" + safeFolderName + "/Kandidatenlijsten"));
+
+            // Cache the result
+            electionCache.put(electionId, election);
+            System.out.println("Candidate lists loaded for election: " + electionId);
+
+        } catch (IOException | XMLStreamException | ParserConfigurationException |
+                 SAXException | NullPointerException e) {
+            System.err.println("Failed to load candidate lists!");
+            e.printStackTrace();
+        }
     }
 }
