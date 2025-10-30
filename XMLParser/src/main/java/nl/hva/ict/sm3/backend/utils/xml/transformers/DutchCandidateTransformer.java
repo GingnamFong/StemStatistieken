@@ -36,12 +36,14 @@ public class DutchCandidateTransformer implements CandidateTransformer {
         String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
 
-        Candidate candidate = new Candidate(candidateId, firstName, lastName, initials, residence, partyId, partyName);
+        // Ensure uniqueness across parties: ranking numbers repeat per party, so compose a unique id
+        String uniqueId = String.format("%s-%s", partyId, candidateId);
+        Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName);
 
         System.out.println("Registering candidate: " + candidate);
 
         boolean alreadyExists = election.getCandidates().stream()
-                .anyMatch(c -> c.getId().equals(candidateId));
+                .anyMatch(c -> c.getId().equals(uniqueId));
 
         if (!alreadyExists) {
             election.addCandidate(candidate);
