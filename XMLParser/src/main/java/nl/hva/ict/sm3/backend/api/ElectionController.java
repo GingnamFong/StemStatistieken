@@ -1,8 +1,6 @@
 package nl.hva.ict.sm3.backend.api;
 
-import nl.hva.ict.sm3.backend.model.Election;
-import nl.hva.ict.sm3.backend.model.Municipality;
-import nl.hva.ict.sm3.backend.model.Party;
+import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,53 +31,45 @@ public class ElectionController {
     }
 
 
-    private Map<String, Object> getMunicipalitySummary(Municipality m) {
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("id", m.getId());
-        summary.put("name", m.getName());
-        summary.put("validVotes", m.getValidVotes());
-        summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
-        return summary;
-    }
-
     @GetMapping("{electionId}/municipalities")
-    public ResponseEntity<List<Map<String, Object>>> getMunicipalitiesSummary(@PathVariable String electionId) {
+    public ResponseEntity<List<MunicipalitySummary>> getMunicipalitiesSummary(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
         if (election == null) return ResponseEntity.notFound().build();
 
-        List<Map<String, Object>> summaries = election.getConstituencies()
+        List<MunicipalitySummary> summaries = election.getConstituencies()
                 .stream()
                 .flatMap(c -> c.getMunicipalities().stream())
-                .map(this::getMunicipalitySummary)
+                .map(m -> new MunicipalitySummary(
+                        m.getId(),
+                        m.getName(),
+                        m.getValidVotes(),
+                        m.getTopParties(3) // ✅ directly returns List<PartyResult>
+                ))
                 .toList();
 
         return ResponseEntity.ok(summaries);
     }
     @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
-    public ResponseEntity<Map<String, Object>> getAllPartiesForMunicipality(
+    public ResponseEntity<MunicipalitySummary> getAllPartiesForMunicipality(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
 
         Election election = electionService.getElectionById(electionId);
         if (election == null) return ResponseEntity.notFound().build();
 
-        Municipality municipality = election.getConstituencies()
-                .stream()
-                .flatMap(c -> c.getMunicipalities().stream())
-                .filter(m -> m.getId().equals(municipalityId))
-                .findFirst()
-                .orElse(null);
-
+        Municipality municipality = election.getMunicipalityById(municipalityId);
         if (municipality == null) return ResponseEntity.notFound().build();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", municipality.getId());
-        response.put("name", municipality.getName());
-        response.put("validVotes", municipality.getValidVotes());
-        response.put("parties", municipality.getAllPartiesWithNames());
+        MunicipalitySummary summary = new MunicipalitySummary(
+                municipality.getId(),
+                municipality.getName(),
+                municipality.getValidVotes(),
+                municipality.getAllParties()
+        );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(summary);
     }
+
 
 
     // Optional: endpoint for top parties nationally
