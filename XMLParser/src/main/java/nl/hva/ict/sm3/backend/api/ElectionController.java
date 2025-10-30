@@ -31,15 +31,17 @@ public class ElectionController {
         }
         return ResponseEntity.ok(election);
     }
- // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
- private Map<String, Object> getMunicipalitySummary(Municipality m) {
-     Map<String, Object> summary = new HashMap<>();
-     summary.put("id", m.getId());
-     summary.put("name", m.getName());
-     summary.put("validVotes", m.getValidVotes());
-     summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
-     return summary;
- }
+
+    // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
+    private Map<String, Object> getMunicipalitySummary(Municipality m) {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("id", m.getId());
+        summary.put("name", m.getName());
+        summary.put("validVotes", m.getValidVotes());
+        summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
+        return summary;
+    }
+
     @GetMapping("{electionId}/municipalities")
     public ResponseEntity<List<Map<String, Object>>> getMunicipalitiesSummary(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
@@ -54,7 +56,7 @@ public class ElectionController {
         return ResponseEntity.ok(summaries);
     }
     @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
-    public ResponseEntity<List<Map<String, Object>>> getAllPartiesForMunicipality(
+    public ResponseEntity<Map<String, Object>> getAllPartiesForMunicipality(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
 
@@ -70,7 +72,13 @@ public class ElectionController {
 
         if (municipality == null) return ResponseEntity.notFound().build();
 
-        return ResponseEntity.ok(municipality.getAllPartiesWithNames());
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", municipality.getId());
+        response.put("name", municipality.getName());
+        response.put("validVotes", municipality.getValidVotes());
+        response.put("parties", municipality.getAllPartiesWithNames());
+
+        return ResponseEntity.ok(response);
     }
 
 
@@ -85,6 +93,7 @@ public class ElectionController {
 
     /**
      * Processes the result for a specific election.
+     *
      * @param electionId the id of the election, e.g. the value of the Id attribute from the ElectionIdentifier tag.
      * @param folderName the name of the folder that contains the XML result files. If none is provided the value from
      *                   the electionId is used.
@@ -99,5 +108,20 @@ public class ElectionController {
         if (election == null) return ResponseEntity.status(500).build();
         return ResponseEntity.ok(election);
     }
+
+    @PostMapping("{electionId}/candidatelists")
+    public ResponseEntity<Election> loadCandidateLists(
+            @PathVariable String electionId,
+            @RequestParam(required = false) String folderName) {
+
+        String folder = folderName != null ? folderName : electionId;
+
+        Election election = new Election(electionId);
+
+        //  fill this instance
+        electionService.loadCandidateLists(election, folder);
+
+        return ResponseEntity.ok(election);
     }
 
+}
