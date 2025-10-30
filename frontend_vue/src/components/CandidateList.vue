@@ -73,6 +73,7 @@ const filteredCandidates = computed(() => {
         <thead>
         <tr>
           <th>#</th>
+          <th>Identifier</th>
           <th @click="changeSort('lastName')" class="sortable">Name</th>
           <th @click="changeSort('partyName')" class="sortable">Party</th>
           <th @click="changeSort('residence')" class="sortable">Residence</th>
@@ -81,6 +82,7 @@ const filteredCandidates = computed(() => {
         <tbody>
         <tr v-for="(c, index) in filteredCandidates" :key="c.id">
           <td>{{ index + 1 }}</td>
+          <td>{{ c.candidateIdentifier }}</td>
           <td>{{ c.firstName }} {{ c.lastName }}</td>
           <td>{{ c.partyName }}</td>
           <td>{{ c.residence }}</td>
