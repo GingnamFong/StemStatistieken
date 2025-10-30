@@ -29,6 +29,7 @@
 import { ref, onMounted } from 'vue'
 
 const currentStep = ref(0)
+// onboarding guide starts at page 0
 const completed = ref(false)
 
 onMounted(() => {
@@ -45,8 +46,10 @@ function nextStep() {
 
 function finish() {
   completed.value = true
+  // if true, the onboarding guide will not be shown to the user
   document.getElementById("onboarding-modal").style.display = "none"
   localStorage.setItem("onboardingComplete", "true")
+  // Shows the onboarding guide if it's saved in local storage or not
 }
 // test
 </script>
