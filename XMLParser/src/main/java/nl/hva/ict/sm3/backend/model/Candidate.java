@@ -8,10 +8,9 @@ public class Candidate {
     private final String residence;
     private final String partyId;
     private final String partyName;
-	private final int listNumber; // position on the party list (RANKING)
 	private final int candidateIdentifier; // value of <CandidateIdentifier Id="...">
 
-	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int listNumber, int candidateIdentifier) {
+	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int candidateIdentifier) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -19,7 +18,6 @@ public class Candidate {
         this.residence = residence;
         this.partyId = partyId;
         this.partyName = partyName;
-		this.listNumber = listNumber;
 		this.candidateIdentifier = candidateIdentifier;
     }
 
@@ -51,10 +49,6 @@ public class Candidate {
         return partyName;
     }
 
-	public int getListNumber() {
-		return listNumber;
-	}
-
 	public int getCandidateIdentifier() {
 		return candidateIdentifier;
 	}
@@ -67,7 +61,6 @@ public class Candidate {
                 ", initials='" + initials + '\'' +
                 ", residence='" + residence + '\'' +
                 ", party='" + partyName + '\'' +
-				", listNumber=" + listNumber +
 				", candidateIdentifier=" + candidateIdentifier +
                 '}';
     }

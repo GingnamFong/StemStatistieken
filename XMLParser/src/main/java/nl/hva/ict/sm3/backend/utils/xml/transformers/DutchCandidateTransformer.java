@@ -35,13 +35,6 @@ public class DutchCandidateTransformer implements CandidateTransformer {
         String residence = electionData.getOrDefault(LOCALITY_NAME, "unknown");
         String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
-		int listNumber;
-		try {
-			listNumber = Integer.parseInt(electionData.getOrDefault(RANKING, "0"));
-		} catch (NumberFormatException e) {
-			listNumber = 0;
-		}
-
 		int candidateIdentifier;
 		try {
 			candidateIdentifier = Integer.parseInt(candidateId);
@@ -50,7 +43,7 @@ public class DutchCandidateTransformer implements CandidateTransformer {
 		}
         // Ensure uniqueness across parties: ranking numbers repeat per party, so compose a unique id
         String uniqueId = String.format("%s-%s", partyId, candidateId);
-		Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName, listNumber, candidateIdentifier);
+		Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier);
 
         System.out.println("Registering candidate: " + candidate);
 
