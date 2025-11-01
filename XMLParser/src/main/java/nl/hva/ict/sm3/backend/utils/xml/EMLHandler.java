@@ -255,6 +255,20 @@ public class EMLHandler extends DefaultHandler implements TagAndAttributeNames{
                         electionData.put(String.format("%s-%s", localName, reasonCodeKey).intern(), count.intern());
                     }
                     break;
+                case NAME_LINE:
+                    // We need the value of the attribute NameType as part of the actual key
+                    String nameTypeKey = String.format("%s-%s", localName, NAME_TYPE);
+                    String nameTypeValue = electionData.remove(nameTypeKey);
+                    String nameLineValue = text.toString().trim();
+                    if (!nameLineValue.isBlank()) {
+                        if (nameTypeValue != null) {
+                            // Store with NameType as part of the key (e.g., "NameLine-Initials")
+                            electionData.put(String.format("%s-%s", localName, nameTypeValue).intern(), nameLineValue.intern());
+                        }
+                        // Also store as plain NameLine for backwards compatibility
+                        electionData.put(localName.intern(), nameLineValue.intern());
+                    }
+                    break;
                 default:
                     // Add the value using the tag name
                     String value = text.toString().trim();

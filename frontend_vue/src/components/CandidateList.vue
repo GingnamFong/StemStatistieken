@@ -38,9 +38,10 @@ const filteredCandidates = computed(() => {
     const q = search.value.toLowerCase()
     result = result.filter(
       c =>
-        c.firstName.toLowerCase().includes(q) ||
-        c.lastName.toLowerCase().includes(q) ||
-        c.partyName.toLowerCase().includes(q)
+        c.firstName?.toLowerCase().includes(q) ||
+        c.lastName?.toLowerCase().includes(q) ||
+        c.initials?.toLowerCase().includes(q) ||
+        c.partyName?.toLowerCase().includes(q)
     )
   }
 
@@ -83,7 +84,7 @@ const filteredCandidates = computed(() => {
         <tr v-for="(c, index) in filteredCandidates" :key="c.id">
           <td>{{ index + 1 }}</td>
           <td>{{ c.candidateIdentifier }}</td>
-          <td>{{ c.firstName }} {{ c.lastName }}</td>
+          <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
           <td>{{ c.partyName }}</td>
           <td>{{ c.residence }}</td>
         </tr>
