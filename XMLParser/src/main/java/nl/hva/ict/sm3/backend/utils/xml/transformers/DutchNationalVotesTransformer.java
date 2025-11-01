@@ -12,9 +12,9 @@ import java.util.Map;
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
 
-    public static void registerNationalVotes(boolean) {
+    /* public static void registerNationalVotes(boolean) {
         String nationalVoteId = electionData.getOrDefault("AuthorityIdentifier", "unknown");
-    }
+    }*/
 
     /**
      * Creates a new transformer for handling the votes at the national level. It expects an instance of
