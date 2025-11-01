@@ -12,6 +12,9 @@
       <div class="data-section">
         <div v-if="selectedProvincie" class="provincie-info">
           <h3>{{ selectedProvincie.name }}</h3>
+          <p v-if="kieskringen && kieskringen.length > 0" class="kieskringen-text">
+            <strong>Kieskringen:</strong> {{ kieskringen.map(k => cleanKieskringName(k.naam)).join(', ') }}
+          </p>
           <p><strong>Stemmen:</strong> {{ selectedProvincie.stemmen || 'Laden...' }}</p>
           <div v-if="selectedProvincie.resultaten && selectedProvincie.resultaten.length > 0" class="resultaten">
             <h4>Verkiezingsresultaten 2023:</h4>
@@ -46,6 +49,7 @@ const mapContainer = ref(null)
 const svgContainer = ref(null)
 const svgContent = ref('')
 const selectedProvincie = ref(null)
+const kieskringen = ref([])
 const emit = defineEmits(['provincie-selected'])
 
 onMounted(async () => {
@@ -84,10 +88,11 @@ const addPathListeners = () => {
       hideTooltip()
     })
 
-    path.addEventListener('click', async () => {
+      path.addEventListener('click', async () => {
       const provincieNaam = getProvincieNameFromPath(path)
       if (provincieNaam) {
         selectedProvincie.value = { name: provincieNaam, stemmen: 'Laden...', resultaten: [] }
+        kieskringen.value = []
         paths.forEach(p => { p.style.fill = '#ffffff'; p.style.fillOpacity = '1' })
         path.style.fill = '#1a237e'
         path.style.fillOpacity = '0.8'
@@ -116,6 +121,24 @@ const getProvincieNameFromPath = (path) => {
   return provincieMapping[cleanName] || cleanName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
+const cleanKieskringName = (name) => {
+  if (!name) return name
+
+  // Vervang underscores met spaties
+  let cleaned = name.replace(/_/g, ' ')
+
+  cleaned = cleaned.split(' ').map(word => {
+    if (word.includes('-')) {
+      // Voor namen met streepjes zoals "s-Gravenhage"
+      const parts = word.split('-')
+      return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join('-')
+    }
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  }).join(' ')
+
+  return cleaned
+}
+
 const loadProvincieData = async (provincieNaam) => {
   try {
     const provincieData = await ProvincieService.getProvincieData(provincieNaam)
@@ -124,12 +147,21 @@ const loadProvincieData = async (provincieNaam) => {
       stemmen: provincieData.resultaten?.totaalStemmen?.toLocaleString() || '0',
       resultaten: provincieData.resultaten?.partijen || []
     }
+
+    // Haal ook de kieskringen op voor deze provincie
+    try {
+      const kieskringenData = await ProvincieService.getKieskringenInProvincie(provincieNaam)
+      kieskringen.value = kieskringenData || []
+    } catch {
+      kieskringen.value = []
+    }
   } catch {
     selectedProvincie.value = {
       ...selectedProvincie.value,
       stemmen: 'Error',
       resultaten: []
     }
+    kieskringen.value = []
   }
 }
 
@@ -290,6 +322,12 @@ const hideTooltip = () => {
 .partij-stemmen {
   color: #666;
   font-size: 0.9rem;
+}
+
+.kieskringen-text {
+  color: #424242;
+  font-size: 1rem;
+  margin: 0.25rem 0;
 }
 
 @keyframes slideIn {
