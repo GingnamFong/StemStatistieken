@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { ElectionService } from '@/services/ElectionService'
 
 const candidates = ref([])
 const error = ref(null)
@@ -9,14 +10,7 @@ const sortDir = ref('asc')
 
 onMounted(async () => {
   try {
-    const response = await fetch('http://localhost:8081/elections/TK2023/candidatelists', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to load candidate data')
-    const data = await response.json()
+    const data = await ElectionService.loadCandidateLists('TK2023')
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message
@@ -30,11 +24,6 @@ function changeSort(key) {
     sortKey.value = key
     sortDir.value = 'asc'
   }
-}
-
-function getSortIcon(key) {
-  if (sortKey.value !== key) return ''
-  return sortDir.value === 'asc' ? '↑' : '↓'
 }
 
 const filteredCandidates = computed(() => {
@@ -52,7 +41,6 @@ const filteredCandidates = computed(() => {
 
   return [...result].sort((a, b) => {
     const dir = sortDir.value === 'asc' ? 1 : -1
-    if (sortKey.value === 'candidateIdentifier') return (a.candidateIdentifier - b.candidateIdentifier) * dir
     if (sortKey.value === 'partyName') return a.partyName.localeCompare(b.partyName) * dir
     if (sortKey.value === 'residence') return a.residence.localeCompare(b.residence) * dir
     return a.lastName.localeCompare(b.lastName) * dir
@@ -80,18 +68,10 @@ const filteredCandidates = computed(() => {
         <thead>
         <tr>
           <th>#</th>
-          <th @click="changeSort('candidateIdentifier')" class="sortable">
-            Identifier <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
-          </th>
-          <th @click="changeSort('lastName')" class="sortable">
-            Name <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
-          </th>
-          <th @click="changeSort('partyName')" class="sortable">
-            Party <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
-          </th>
-          <th @click="changeSort('residence')" class="sortable">
-            Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
-          </th>
+          <th>Identifier</th>
+          <th @click="changeSort('lastName')" class="sortable">Name</th>
+          <th @click="changeSort('partyName')" class="sortable">Party</th>
+          <th @click="changeSort('residence')" class="sortable">Residence</th>
         </tr>
         </thead>
         <tbody>
@@ -175,20 +155,6 @@ th:first-child, td:first-child {
 .sortable {
   cursor: pointer;
   user-select: none;
-  position: relative;
-  white-space: nowrap;
-}
-
-.sortable:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.sort-icon {
-  margin-left: 0.5rem;
-  font-size: 0.9em;
-  opacity: 0.8;
-  display: inline;
-  vertical-align: middle;
 }
 
 .toolbar {
