@@ -10,7 +10,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ConstituencyVotesParserTests extends AbstractParserTests {
+class rConstituencyVotesParserTests extends AbstractParserTests {
 
     @Test
     void testTotal2023() throws IOException, XMLStreamException, ParserConfigurationException, SAXException {

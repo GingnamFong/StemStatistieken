@@ -19,8 +19,10 @@ const handleProvincieSelected = (provincieNaam) => {
 
 <template>
   <main>
-    <YearBanner background-image-url="/images/banner.png" />
+    <!-- Year banner with properly quoted attribute -->
+    <YearBanner backgroundImageUrl="/images/banner.png" />
 
+    <!-- Welcome component -->
     <TheWelcome />
 
     <MapToggle @view-changed="handleViewChange" />
@@ -31,3 +33,8 @@ const handleProvincieSelected = (provincieNaam) => {
   </main>
 </template>
 
+<style scoped>
+main {
+  padding: 20px;
+}
+</style>
