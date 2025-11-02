@@ -3,7 +3,6 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Candidate;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.CandidateTransformer;
-import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 
 import java.util.Map;
 
@@ -29,7 +28,9 @@ public class DutchCandidateTransformer implements CandidateTransformer {
     public void registerCandidate(Map<String, String> electionData) {
 
         String candidateId = electionData.getOrDefault(CANDIDATE_IDENTIFIER_ID, "unknown");
-        String initials = electionData.getOrDefault(NAME_LINE, "unknown");
+        // Prefer NameLine with NameType="Initials", fall back to plain NameLine
+        String initials = electionData.getOrDefault(String.format("%s-%s", NAME_LINE, "Initials"), 
+                                                     electionData.getOrDefault(NAME_LINE, "unknown"));
         String firstName = electionData.getOrDefault(FIRST_NAME, "unknown");
         String lastName = electionData.getOrDefault(LAST_NAME, "unknown");
         String residence = electionData.getOrDefault(LOCALITY_NAME, "unknown");
