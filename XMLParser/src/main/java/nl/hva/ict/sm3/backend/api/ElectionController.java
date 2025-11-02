@@ -5,9 +5,7 @@ import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Demo controller for showing how you could load the election data in the backend.
@@ -30,27 +28,17 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
-
     @GetMapping("{electionId}/municipalities")
-    public ResponseEntity<List<MunicipalitySummary>> getMunicipalitiesSummary(@PathVariable String electionId) {
+    public ResponseEntity<List<Municipality>> getMunicipalities(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
         if (election == null) return ResponseEntity.notFound().build();
 
-        List<MunicipalitySummary> summaries = election.getConstituencies()
-                .stream()
-                .flatMap(c -> c.getMunicipalities().stream())
-                .map(m -> new MunicipalitySummary(
-                        m.getId(),
-                        m.getName(),
-                        m.getValidVotes(),
-                        m.getTopParties(3) // ✅ directly returns List<PartyResult>
-                ))
-                .toList();
-
-        return ResponseEntity.ok(summaries);
+        List<Municipality> municipalities = election.getAllMunicipalities();
+        return ResponseEntity.ok(municipalities);
     }
-    @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
-    public ResponseEntity<MunicipalitySummary> getAllPartiesForMunicipality(
+
+    @GetMapping("{electionId}/municipalities/{municipalityId}")
+    public ResponseEntity<Municipality> getMunicipalityById(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
 
@@ -60,14 +48,7 @@ public class ElectionController {
         Municipality municipality = election.getMunicipalityById(municipalityId);
         if (municipality == null) return ResponseEntity.notFound().build();
 
-        MunicipalitySummary summary = new MunicipalitySummary(
-                municipality.getId(),
-                municipality.getName(),
-                municipality.getValidVotes(),
-                municipality.getAllParties()
-        );
-
-        return ResponseEntity.ok(summary);
+        return ResponseEntity.ok(municipality);
     }
 
 
