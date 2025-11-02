@@ -8,9 +8,14 @@ public class Candidate {
     private final String residence;
     private final String partyId;
     private final String partyName;
-	private final int candidateIdentifier; // value of <CandidateIdentifier Id="...">
+	private final int candidateIdentifier;
+    private int votes;
 
 	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int candidateIdentifier) {
+        this(id, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, 0);
+    }
+
+	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int candidateIdentifier, int votes) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -19,6 +24,7 @@ public class Candidate {
         this.partyId = partyId;
         this.partyName = partyName;
 		this.candidateIdentifier = candidateIdentifier;
+        this.votes = votes;
     }
 
     public String getId() {
@@ -53,6 +59,18 @@ public class Candidate {
 		return candidateIdentifier;
 	}
 
+    public int getVotes() {
+        return votes;
+    }
+
+    public void setVotes(int votes) {
+        this.votes = votes;
+    }
+
+    public void addVotes(int votes) {
+        this.votes += votes;
+    }
+
     @Override
     public String toString() {
         return "Candidate{" +
@@ -62,6 +80,7 @@ public class Candidate {
                 ", residence='" + residence + '\'' +
                 ", party='" + partyName + '\'' +
 				", candidateIdentifier=" + candidateIdentifier +
+                ", votes=" + votes +
                 '}';
     }
 }
