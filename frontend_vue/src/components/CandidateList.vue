@@ -7,9 +7,14 @@ const search = ref('')
 const sortKey = ref('lastName')
 const sortDir = ref('asc')
 
+const API_BASE_URL =
+  (location.origin === 'https://hva-frontend.onrender.com')
+    ? 'https://hva-backend-c647.onrender.com'
+    : 'http://localhost:8081'
+
 onMounted(async () => {
   try {
-    const response = await fetch('http://localhost:8081/elections/TK2023/candidatelists', {
+    const response = await fetch(`${API_BASE_URL}/elections/TK2023/candidatelists`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
