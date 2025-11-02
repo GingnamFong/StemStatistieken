@@ -1,14 +1,10 @@
 package nl.hva.ict.sm3.backend.model;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * This will hold the information for one specific election.<br/>
- * <b>This class is by no means production ready! You need to alter it extensively!</b>
- */
 public class Election {
     private final String id;
     private List<Constituency> constituencies = new ArrayList<>();
@@ -19,18 +15,14 @@ public class Election {
         this.id = id;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public List<Constituency> getConstituencies() {
-        return constituencies;
-    }
+    public String getId() { return id; }
+    public List<Constituency> getConstituencies() { return constituencies; }
+    public List<Candidate> getCandidates() { return candidates; }
+    public List<Party> getParties() { return new ArrayList<>(parties.values()); }
 
     public void addConstituency(Constituency newConstituency) {
         Constituency existing = getConstituencyById(newConstituency.getId());
         if (existing != null) {
-            // merge municipalities — totalVotes updates automatically
             for (Municipality m : newConstituency.getMunicipalities()) {
                 existing.addMunicipality(m);
             }
@@ -39,18 +31,12 @@ public class Election {
         }
     }
 
-    public List<Candidate> getCandidates() {
-        return candidates;
-    }
-
     public void addCandidate(Candidate candidate) {
         candidates.add(candidate);
     }
 
-
-    @Override
-    public String toString() {
-        return "Election{id='%s', constituencies=%s}".formatted(id, constituencies);
+    public void addParty(Party party) {
+        parties.put(party.getId(), party);
     }
 
     public Constituency getConstituencyById(String id) {
@@ -59,23 +45,34 @@ public class Election {
                 .findFirst()
                 .orElse(null);
     }
-    public List<Party> getParties() {
-        return new ArrayList<>(parties.values());
-    }
 
-    public void addParty(Party party) {
-        parties.put(party.getId(), party);
+    public Party getPartyById(String partyId) {
+        return parties.get(partyId);
     }
 
     public List<Party> getTopParties(int n) {
         return parties.values().stream()
-                .sorted((p1, p2) -> Integer.compare(p2.getTotalVotes(), p1.getTotalVotes()))
+                .sorted((p1, p2) -> Integer.compare(p2.getVotes(), p1.getVotes()))
                 .limit(n)
                 .toList();
     }
 
+    public List<Municipality> getAllMunicipalities() {
+        return constituencies.stream()
+                .flatMap(c -> c.getMunicipalities().stream())
+                .toList();
+    }
 
-    public Party getPartyById(String partyId) {
-        return parties.get(partyId);
+    public Municipality getMunicipalityById(String municipalityId) {
+        return getAllMunicipalities().stream()
+                .filter(m -> m.getId().equals(municipalityId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public String toString() {
+        return "Election{id='%s', constituencies=%d, parties=%d, candidates=%d}"
+                .formatted(id, constituencies.size(), parties.size(), candidates.size());
     }
 }

@@ -51,15 +51,10 @@ public class DutchElectionService {
             electionParser.parseResults(electionId, PathUtils.getResourcePath("/" + safeFolderName));
             for (Constituency constituency : election.getConstituencies()) {
                 for (Municipality municipality : constituency.getMunicipalities()) {
-                    for (Map<String, Object> top : municipality.getTopPartiesWithNames(10)) { // 10 om alles te krijgen
-                        String partyId = (String) top.get("id");
-                        String partyName = (String) top.get("name");
-
-                        if (election.getPartyById(partyId) == null) {
-                            election.addParty(new Party(partyId, partyName));
+                    for (Party party : municipality.getAllParties()) { // ✅ now Party instead of PartyResult
+                        if (election.getPartyById(party.getId()) == null) {
+                            election.addParty(new Party(party.getId(), party.getName()));
                         }
-
-                        // stemmen per gemeente zijn al in Municipality.addVotes gezet door de transformer
                     }
                 }
             }
