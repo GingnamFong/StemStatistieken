@@ -26,14 +26,10 @@ public class Municipality {
         validVotes += votes;
     }
 
-    /**
-     * Returns all parties in this municipality, sorted by votes (descending).
-     */
-    public List<PartyResult> getAllParties() {
-        return partyVotes.entrySet()
-                .stream()
+    public List<Party> getAllParties() {
+        return partyVotes.entrySet().stream()
                 .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-                .map(e -> new PartyResult(
+                .map(e -> new Party(
                         e.getKey(),
                         partyNames.get(e.getKey()),
                         e.getValue()
@@ -41,25 +37,14 @@ public class Municipality {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns only the top N parties in this municipality.
-     */
-    public List<PartyResult> getTopParties(int n) {
-        return partyVotes.entrySet()
-                .stream()
-                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+    public List<Party> getTopParties(int n) {
+        return getAllParties().stream()
                 .limit(n)
-                .map(e -> new PartyResult(
-                        e.getKey(),
-                        partyNames.get(e.getKey()),
-                        e.getValue()
-                ))
                 .collect(Collectors.toList());
     }
 
     @Override
     public String toString() {
-        return "Municipality{id='%s', name='%s', validVotes=%d, parties=%d}"
-                .formatted(id, name, validVotes, partyVotes.size());
+        return "Municipality{id='%s', name='%s', validVotes=%d}".formatted(id, name, validVotes);
     }
 }
