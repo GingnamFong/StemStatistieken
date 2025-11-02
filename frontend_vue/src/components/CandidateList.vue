@@ -17,6 +17,11 @@ onMounted(async () => {
   }
 })
 
+function getSortIcon(key) {
+  if (sortKey.value !== key) return ''
+  return sortDir.value === 'asc' ? '↑' : '↓'
+}
+
 function changeSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -41,6 +46,7 @@ const filteredCandidates = computed(() => {
 
   return [...result].sort((a, b) => {
     const dir = sortDir.value === 'asc' ? 1 : -1
+    if (sortKey.value === 'candidateIdentifier') return (a.candidateIdentifier - b.candidateIdentifier) * dir
     if (sortKey.value === 'partyName') return a.partyName.localeCompare(b.partyName) * dir
     if (sortKey.value === 'residence') return a.residence.localeCompare(b.residence) * dir
     return a.lastName.localeCompare(b.lastName) * dir
@@ -68,10 +74,18 @@ const filteredCandidates = computed(() => {
         <thead>
         <tr>
           <th>#</th>
-          <th>Identifier</th>
-          <th @click="changeSort('lastName')" class="sortable">Name</th>
-          <th @click="changeSort('partyName')" class="sortable">Party</th>
-          <th @click="changeSort('residence')" class="sortable">Residence</th>
+          <th @click="changeSort('candidateIdentifier')" class="sortable">
+            Identifier <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
+          </th>
+          <th @click="changeSort('lastName')" class="sortable">
+            Name <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
+          </th>
+          <th @click="changeSort('partyName')" class="sortable">
+            Party <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
+          </th>
+          <th @click="changeSort('residence')" class="sortable">
+            Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
+          </th>
         </tr>
         </thead>
         <tbody>
@@ -155,6 +169,20 @@ th:first-child, td:first-child {
 .sortable {
   cursor: pointer;
   user-select: none;
+  position: relative;
+  white-space: nowrap;
+}
+
+.sortable:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sort-icon {
+  margin-left: 0.5rem;
+  font-size: 0.9em;
+  opacity: 0.8;
+  display: inline;
+  vertical-align: middle;
 }
 
 .toolbar {
