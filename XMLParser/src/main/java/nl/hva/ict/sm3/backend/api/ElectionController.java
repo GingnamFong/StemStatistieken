@@ -46,6 +46,13 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
+    @GetMapping("{electionId}/constituencies")
+    public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(election.getConstituencies());
+    }
 
     @GetMapping("/{electionId}/municipalities/{municipalityId}")
     public ResponseEntity<Municipality> getMunicipalityById(
