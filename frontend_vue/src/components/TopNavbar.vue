@@ -10,7 +10,7 @@
     <div :class="['navbar-collapse', { active: menuOpen }]">
       <div class="nav-links">
         <router-link to="/" class="nav-link" @click="closeMenu">Home</router-link>
-        <router-link to="/uitslagen" class="nav-link" @click="closeMenu">Uitslagen</router-link>
+        <router-link to="/dashboard" class="nav-link" @click="closeMenu">Uitslagen</router-link>
         <router-link to="/Candidate" class="nav-link" @click="closeMenu">kandidaten</router-link>
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
