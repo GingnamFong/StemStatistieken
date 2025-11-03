@@ -196,7 +196,7 @@ const missingMapMessage = computed(() => {
 
 /* --- Map Section --- */
 .map-section {
-  flex: 1.5;
+  flex: 1.3;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -232,7 +232,7 @@ const missingMapMessage = computed(() => {
 
 /* --- Charts Section --- */
 .charts-section {
-  flex: 1;
+  flex: 1.2;
   display: flex;
   flex-direction: column;
   align-items: center;

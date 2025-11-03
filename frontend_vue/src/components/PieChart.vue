@@ -8,6 +8,7 @@
 import { computed } from 'vue'
 import { Pie } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import {partyColors} from "@/utils/chartColors.js";
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const props = defineProps({
@@ -21,7 +22,7 @@ const chartConfig = computed(() => ({
     datasets: [
       {
         data: props.data.map(p => p.votes),
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+        backgroundColor: partyColors.slice(0, props.data.length),
       },
     ],
   },
@@ -29,6 +30,11 @@ const chartConfig = computed(() => ({
     responsive: true,
     plugins: {
       legend: { position: 'bottom' },
+      labels: {
+        boxWidth: 14,
+        font: {size: 11},
+        padding: 8,
+      },
     },
   },
 }))
