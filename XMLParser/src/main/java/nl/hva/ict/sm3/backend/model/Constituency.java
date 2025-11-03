@@ -9,7 +9,6 @@ public class Constituency {
     private List<Municipality> municipalities = new ArrayList<>();
     private int totalVotes = 0;
 
-    // You can add more attributes later, such as total votes, party results, etc.
 
     public Constituency(String id, String name) {
         this.id = id;

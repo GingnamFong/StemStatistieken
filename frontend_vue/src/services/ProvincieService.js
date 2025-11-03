@@ -1,7 +1,7 @@
 const API_BASE_URL =
   (location.origin === 'https://hva-frontend.onrender.com')
     ? 'https://hva-backend-c647.onrender.com/api'
-    : 'http://localhost:8080/api'
+    : 'http://localhost:8081/api'
 
 export const ProvincieService = {
   async getAllProvincies() {
