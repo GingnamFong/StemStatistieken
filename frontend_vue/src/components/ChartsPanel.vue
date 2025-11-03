@@ -33,4 +33,13 @@ const chartData = computed(() => {
   text-align: center;
   margin-top: 2rem;
 }
+/* Chart sizing */
+canvas {
+  max-width: 350px;
+  margin-top: 1rem;
+  background-color: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
 </style>
