@@ -111,24 +111,31 @@ function handleClick(e) {
 <style scoped>
 .map-container {
   position: relative;
-  max-width: 1000px;
+  width: 100%;
+  height: 100%;
   margin: 0 auto;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Ensure the SVG scales but keep pointer events */
 .dutch-map {
-  width: 100%;
+  width: 80%;
+  max-width: 600px; /* prevents the SVG from being huge */
   height: auto;
-  display: block;
   cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
 /* base path styles (these target all paths in the injected SVG) */
 path {
-  fill: #ccc;
-  stroke: #6e6e6e;
-  stroke-width: 0.5;
+  fill: #e0e0e0;
+  stroke: #777;
+  stroke-width: 0.4;
   transition: fill 0.12s;
+}
+.dutch-map:hover {
+  transform: scale(1.02);
 }
 
 path:hover {
@@ -147,6 +154,12 @@ path:hover {
   font-size: 0.85rem;
   min-width: 160px;
   z-index: 50;
+  line-height: 1.3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.tooltip strong {
+  font-size: 0.9rem;
+  color: #ffd24d;
 }
 
 .tooltip ul {
