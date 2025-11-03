@@ -9,13 +9,18 @@ public class Candidate {
     private final String partyId;
     private final String partyName;
 	private final int candidateIdentifier;
+    private String shortCode; // ("YeşilgözD")
     private int votes;
 
 	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int candidateIdentifier) {
-        this(id, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, 0);
+        this(id, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, null, 0);
     }
 
 	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int candidateIdentifier, int votes) {
+        this(id, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, null, votes);
+    }
+
+	public Candidate(String id, String firstName, String lastName, String initials, String residence, String partyId, String partyName, int candidateIdentifier, String shortCode, int votes) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -24,6 +29,7 @@ public class Candidate {
         this.partyId = partyId;
         this.partyName = partyName;
 		this.candidateIdentifier = candidateIdentifier;
+        this.shortCode = shortCode;
         this.votes = votes;
     }
 
@@ -58,6 +64,14 @@ public class Candidate {
 	public int getCandidateIdentifier() {
 		return candidateIdentifier;
 	}
+
+    public String getShortCode() {
+        return shortCode;
+    }
+
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
+    }
 
     public int getVotes() {
         return votes;
