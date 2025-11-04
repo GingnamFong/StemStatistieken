@@ -49,6 +49,7 @@ const filteredCandidates = computed(() => {
     if (sortKey.value === 'candidateIdentifier') return (a.candidateIdentifier - b.candidateIdentifier) * dir
     if (sortKey.value === 'partyName') return a.partyName.localeCompare(b.partyName) * dir
     if (sortKey.value === 'residence') return a.residence.localeCompare(b.residence) * dir
+    if (sortKey.value === 'votes') return (a.votes - b.votes) * dir
     return a.lastName.localeCompare(b.lastName) * dir
   })
 })
@@ -86,6 +87,9 @@ const filteredCandidates = computed(() => {
           <th @click="changeSort('residence')" class="sortable">
             Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
           </th>
+          <th @click="changeSort('votes')" class="sortable">
+            Votes <span class="sort-icon">{{ getSortIcon('votes') }}</span>
+          </th>
         </tr>
         </thead>
         <tbody>
@@ -95,6 +99,7 @@ const filteredCandidates = computed(() => {
           <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
           <td>{{ c.partyName }}</td>
           <td>{{ c.residence }}</td>
+          <td>{{ c.votes ? c.votes.toLocaleString() : '0' }}</td>
         </tr>
         </tbody>
       </table>

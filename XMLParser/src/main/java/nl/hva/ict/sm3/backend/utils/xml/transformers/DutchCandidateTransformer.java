@@ -28,6 +28,7 @@ public class DutchCandidateTransformer implements CandidateTransformer {
     public void registerCandidate(Map<String, String> electionData) {
 
         String candidateId = electionData.getOrDefault(CANDIDATE_IDENTIFIER_ID, "unknown");
+        String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null);
         // Prefer NameLine with NameType="Initials", fall back to plain NameLine
         String initials = electionData.getOrDefault(String.format("%s-%s", NAME_LINE, "Initials"), 
                                                      electionData.getOrDefault(NAME_LINE, "unknown"));
@@ -44,7 +45,7 @@ public class DutchCandidateTransformer implements CandidateTransformer {
 		}
         // Ensure uniqueness across parties: ranking numbers repeat per party, so compose a unique id
         String uniqueId = String.format("%s-%s", partyId, candidateId);
-		Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier);
+		Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, shortCode, 0);
 
         System.out.println("Registering candidate: " + candidate);
 
