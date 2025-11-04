@@ -1,6 +1,6 @@
 <template>
   <div class="dutch-map-wrapper">
-    <div class="map-layout">
+    <div class="map-layout" :class="{ 'no-data-section': !showDataSection }">
       <!-- Kaart sectie -->
       <div class="map-section">
         <div class="map-container" ref="mapContainer">
@@ -9,7 +9,7 @@
       </div>
 
       <!-- Data sectie naast de kaart -->
-      <div class="data-section">
+      <div v-if="showDataSection" class="data-section">
         <div v-if="selectedProvincie" class="provincie-info">
           <h3>{{ selectedProvincie.name }}</h3>
           <p v-if="kieskringen && kieskringen.length > 0" class="kieskringen-text">
@@ -50,7 +50,14 @@ const svgContainer = ref(null)
 const svgContent = ref('')
 const selectedProvincie = ref(null)
 const kieskringen = ref([])
-const emit = defineEmits(['provincie-selected'])
+const props = defineProps({
+  showDataSection: {
+    type: Boolean,
+    default: true
+  }
+})
+
+const emit = defineEmits(['provincie-selected', 'provincieDataForChart'])
 
 onMounted(async () => {
   try {
@@ -98,6 +105,21 @@ const addPathListeners = () => {
         path.style.fillOpacity = '0.8'
         emit('provincie-selected', provincieNaam)
         await loadProvincieData(provincieNaam)
+        
+        // Emit data in format voor ChartsPanel
+        if (selectedProvincie.value.resultaten && selectedProvincie.value.resultaten.length > 0) {
+          const chartData = {
+            name: provincieNaam,
+            id: provincieNaam.toLowerCase().replace(/\s+/g, '_'),
+            validVotes: selectedProvincie.value.stemmen || 0,
+            allParties: selectedProvincie.value.resultaten.map(partij => ({
+              id: partij.naam.toLowerCase().replace(/\s+/g, '_'),
+              name: partij.naam,
+              votes: partij.stemmen || 0
+            }))
+          }
+          emit('provincieDataForChart', chartData)
+        }
       }
     })
   })
@@ -196,30 +218,48 @@ const hideTooltip = () => {
 </script>
 
 <style scoped>
+/* Wrapper transparant maken */
+.dutch-map-wrapper {
+  background: transparent;
+}
+
 /* Layout voor kaart en data naast elkaar */
 .map-layout {
   display: flex;
   gap: 2rem;
   align-items: flex-start;
+  background: transparent;
+}
+
+.map-layout.no-data-section {
+  display: block; /* Geen flex wanneer data-sectie verborgen is */
+  background: transparent;
 }
 
 .map-section {
   flex: 1;
   min-width: 0; /* Voorkom overflow */
+  background: transparent;
+}
+
+.map-layout.no-data-section .map-section {
+  width: 100%;
+  background: transparent;
 }
 
 .map-container {
   width: 100%;
-  height: 600px; /* Kleinere kaart voor naast data */
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f8f9fa;
+  height: 100%;
+  min-height: 500px;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  cursor: default; /* Normale cursor voor hele container */
+  cursor: default;
 }
 
 .data-section {
