@@ -24,6 +24,6 @@ public class APIConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(origins.length == 0 ? new String[] {"*"} : new String[] {})
                 .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
                 .allowedHeaders("Authorization","Cache-Control","Content-Type")
-                .allowCredentials(true);
+                .allowCredentials(origins.length > 0); // Only allow set origin
     }
 }
