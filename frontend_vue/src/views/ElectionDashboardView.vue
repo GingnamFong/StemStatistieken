@@ -23,6 +23,7 @@
               id="dataType"
               v-model="selectedType"
               class="data-dropdown"
+              @change="handleTypeChange"
             >
               <option value="municipality">Municipalities</option>
               <option value="province">Provinces</option>
@@ -35,7 +36,9 @@
         <div class="map-container">
           <component
             :is="currentMapComponent"
+            :showDataSection="false"
             @municipalitySelected="handleMunicipalitySelected"
+            @provincieDataForChart="handleProvincieSelected"
           />
         </div>
 
@@ -54,16 +57,25 @@
 <script setup>
 import {computed, ref} from 'vue'
 import DutchMapGemeente2024 from '@/components/DutchMapGemeente2024.vue'
-
+import DutchMapProvincie from '@/components/DutchMapProvincie.vue'
 import ChartsPanel from '@/components/ChartsPanel.vue'
 
 /* --- Reactive state --- */
 const selectedType = ref('municipality') // Dropdown selection
-const selectedRegion = ref(null) // Any clicked region (municipality or kieskring)
+const selectedRegion = ref(null) // Any clicked region (municipality or province)
 
 /* --- Handlers --- */
 function handleMunicipalitySelected(m) {
   selectedRegion.value = m
+}
+
+function handleProvincieSelected(p) {
+  selectedRegion.value = p
+}
+
+function handleTypeChange() {
+  // Reset selected region when switching map types
+  selectedRegion.value = null
 }
 
 /* --- Computed values --- */
@@ -82,7 +94,7 @@ const currentMapComponent = computed(() => {
     case 'municipality':
       return DutchMapGemeente2024
     case 'province':
-      return null // Placeholder until province map exists
+      return DutchMapProvincie
     default:
       return DutchMapGemeente2024
   }
@@ -90,8 +102,6 @@ const currentMapComponent = computed(() => {
 
 /* --- Info message for missing maps --- */
 const missingMapMessage = computed(() => {
-  if (selectedType.value === 'province')
-    return 'The province map will be available soon.'
   return null
 })
 </script>

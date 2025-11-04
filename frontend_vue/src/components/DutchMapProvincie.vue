@@ -1,6 +1,6 @@
 <template>
   <div class="dutch-map-wrapper">
-    <div class="map-layout">
+    <div class="map-layout" :class="{ 'no-data-section': !showDataSection }">
       <!-- Kaart sectie -->
       <div class="map-section">
         <div class="map-container" ref="mapContainer">
@@ -9,9 +9,12 @@
       </div>
 
       <!-- Data sectie naast de kaart -->
-      <div class="data-section">
+      <div v-if="showDataSection" class="data-section">
         <div v-if="selectedProvincie" class="provincie-info">
           <h3>{{ selectedProvincie.name }}</h3>
+          <p v-if="kieskringen && kieskringen.length > 0" class="kieskringen-text">
+            <strong>Kieskringen:</strong> {{ kieskringen.map(k => cleanKieskringName(k.naam)).join(', ') }}
+          </p>
           <p><strong>Stemmen:</strong> {{ selectedProvincie.stemmen || 'Laden...' }}</p>
           <div v-if="selectedProvincie.resultaten && selectedProvincie.resultaten.length > 0" class="resultaten">
             <h4>Verkiezingsresultaten 2023:</h4>
@@ -46,7 +49,15 @@ const mapContainer = ref(null)
 const svgContainer = ref(null)
 const svgContent = ref('')
 const selectedProvincie = ref(null)
-const emit = defineEmits(['provincie-selected'])
+const kieskringen = ref([])
+const props = defineProps({
+  showDataSection: {
+    type: Boolean,
+    default: true
+  }
+})
+
+const emit = defineEmits(['provincie-selected', 'provincieDataForChart'])
 
 onMounted(async () => {
   try {
@@ -84,15 +95,31 @@ const addPathListeners = () => {
       hideTooltip()
     })
 
-    path.addEventListener('click', async () => {
+      path.addEventListener('click', async () => {
       const provincieNaam = getProvincieNameFromPath(path)
       if (provincieNaam) {
         selectedProvincie.value = { name: provincieNaam, stemmen: 'Laden...', resultaten: [] }
+        kieskringen.value = []
         paths.forEach(p => { p.style.fill = '#ffffff'; p.style.fillOpacity = '1' })
         path.style.fill = '#1a237e'
         path.style.fillOpacity = '0.8'
         emit('provincie-selected', provincieNaam)
         await loadProvincieData(provincieNaam)
+        
+        // Emit data in format voor ChartsPanel
+        if (selectedProvincie.value.resultaten && selectedProvincie.value.resultaten.length > 0) {
+          const chartData = {
+            name: provincieNaam,
+            id: provincieNaam.toLowerCase().replace(/\s+/g, '_'),
+            validVotes: selectedProvincie.value.stemmen || 0,
+            allParties: selectedProvincie.value.resultaten.map(partij => ({
+              id: partij.naam.toLowerCase().replace(/\s+/g, '_'),
+              name: partij.naam,
+              votes: partij.stemmen || 0
+            }))
+          }
+          emit('provincieDataForChart', chartData)
+        }
       }
     })
   })
@@ -116,6 +143,24 @@ const getProvincieNameFromPath = (path) => {
   return provincieMapping[cleanName] || cleanName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
 }
 
+const cleanKieskringName = (name) => {
+  if (!name) return name
+
+  // Vervang underscores met spaties
+  let cleaned = name.replace(/_/g, ' ')
+
+  cleaned = cleaned.split(' ').map(word => {
+    if (word.includes('-')) {
+      // Voor namen met streepjes zoals "s-Gravenhage"
+      const parts = word.split('-')
+      return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join('-')
+    }
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  }).join(' ')
+
+  return cleaned
+}
+
 const loadProvincieData = async (provincieNaam) => {
   try {
     const provincieData = await ProvincieService.getProvincieData(provincieNaam)
@@ -124,12 +169,21 @@ const loadProvincieData = async (provincieNaam) => {
       stemmen: provincieData.resultaten?.totaalStemmen?.toLocaleString() || '0',
       resultaten: provincieData.resultaten?.partijen || []
     }
+
+    // Haal ook de kieskringen op voor deze provincie
+    try {
+      const kieskringenData = await ProvincieService.getKieskringenInProvincie(provincieNaam)
+      kieskringen.value = kieskringenData || []
+    } catch {
+      kieskringen.value = []
+    }
   } catch {
     selectedProvincie.value = {
       ...selectedProvincie.value,
       stemmen: 'Error',
       resultaten: []
     }
+    kieskringen.value = []
   }
 }
 
@@ -164,30 +218,48 @@ const hideTooltip = () => {
 </script>
 
 <style scoped>
+/* Wrapper transparant maken */
+.dutch-map-wrapper {
+  background: transparent;
+}
+
 /* Layout voor kaart en data naast elkaar */
 .map-layout {
   display: flex;
   gap: 2rem;
   align-items: flex-start;
+  background: transparent;
+}
+
+.map-layout.no-data-section {
+  display: block; /* Geen flex wanneer data-sectie verborgen is */
+  background: transparent;
 }
 
 .map-section {
   flex: 1;
   min-width: 0; /* Voorkom overflow */
+  background: transparent;
+}
+
+.map-layout.no-data-section .map-section {
+  width: 100%;
+  background: transparent;
 }
 
 .map-container {
   width: 100%;
-  height: 600px; /* Kleinere kaart voor naast data */
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f8f9fa;
+  height: 100%;
+  min-height: 500px;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  cursor: default; /* Normale cursor voor hele container */
+  cursor: default;
 }
 
 .data-section {
@@ -290,6 +362,12 @@ const hideTooltip = () => {
 .partij-stemmen {
   color: #666;
   font-size: 0.9rem;
+}
+
+.kieskringen-text {
+  color: #424242;
+  font-size: 1rem;
+  margin: 0.25rem 0;
 }
 
 @keyframes slideIn {

@@ -1,4 +1,4 @@
-package hva.nlelections.backend_springboot.service;
+package nl.hva.ict.sm3.backend.service;
 
 import org.springframework.stereotype.Service;
 
@@ -180,3 +180,4 @@ public class ProvincieService {
         return partijStemmen;
     }
 }
+

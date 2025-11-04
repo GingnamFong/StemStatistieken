@@ -18,7 +18,7 @@ const handleProvincieSelected = (provincieNaam) => {
 </script>
 
 <template>
-  <main>
+  <div class="home-view">
     <!-- Year banner with properly quoted attribute -->
     <YearBanner backgroundImageUrl="/images/banner.png" />
 
@@ -30,11 +30,11 @@ const handleProvincieSelected = (provincieNaam) => {
     <DutchMapKiesKring v-if="currentView === 'kieskringen'" />
     <DutchMapProvincie v-if="currentView === 'provincies'" @provincie-selected="handleProvincieSelected" />
 
-  </main>
+  </div>
 </template>
 
 <style scoped>
-main {
+.home-view {
   padding: 20px;
 }
 </style>

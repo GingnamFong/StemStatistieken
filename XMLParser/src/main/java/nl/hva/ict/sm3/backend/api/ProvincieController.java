@@ -1,6 +1,6 @@
-package hva.nlelections.backend_springboot.controller;
+package nl.hva.ict.sm3.backend.api;
 
-import hva.nlelections.backend_springboot.service.ProvincieService;
+import nl.hva.ict.sm3.backend.service.ProvincieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/provincies")
-
+@RequestMapping("/provincies")
 public class ProvincieController {
 
     @Autowired

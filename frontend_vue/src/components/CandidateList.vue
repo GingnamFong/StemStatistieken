@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { ElectionService } from '@/services/ElectionService'
 
 const candidates = ref([])
 const error = ref(null)
@@ -8,19 +7,26 @@ const search = ref('')
 const sortKey = ref('lastName')
 const sortDir = ref('asc')
 
+const API_BASE_URL =
+  (location.origin === 'https://hva-frontend.onrender.com')
+    ? 'https://hva-backend-c647.onrender.com'
+    : 'http://localhost:8081'
+
 onMounted(async () => {
   try {
-    const data = await ElectionService.loadCandidateLists('TK2023')
+    const response = await fetch(`${API_BASE_URL}/elections/TK2023/candidatelists`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error('Failed to load candidate data')
+    const data = await response.json()
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message
   }
 })
-
-function getSortIcon(key) {
-  if (sortKey.value !== key) return ''
-  return sortDir.value === 'asc' ? '↑' : '↓'
-}
 
 function changeSort(key) {
   if (sortKey.value === key) {
@@ -29,6 +35,11 @@ function changeSort(key) {
     sortKey.value = key
     sortDir.value = 'asc'
   }
+}
+
+function getSortIcon(key) {
+  if (sortKey.value !== key) return ''
+  return sortDir.value === 'asc' ? '↑' : '↓'
 }
 
 const filteredCandidates = computed(() => {

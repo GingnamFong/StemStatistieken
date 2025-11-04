@@ -49,9 +49,14 @@ const tooltip = ref({
 
 const municipalities = ref([])
 
+const API_BASE_URL =
+  (location.origin === 'https://hva-frontend.onrender.com')
+    ? 'https://hva-backend-c647.onrender.com'
+    : 'http://localhost:8081'
+
 onMounted(async () => {
   try {
-    const res = await fetch('http://localhost:8081/elections/TK2023/municipalities')
+    const res = await fetch(`${API_BASE_URL}/elections/TK2023/municipalities`)
     if (!res.ok) throw new Error('Network error')
     municipalities.value = await res.json()
     console.log('Loaded municipalities:', municipalities.value)
