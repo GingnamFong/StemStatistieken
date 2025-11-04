@@ -127,9 +127,8 @@ const filteredCandidates = computed(() => {
           <h4 class="party-name">{{ partyName }}</h4>
           <div class="top3-list">
             <div v-for="c in candidates" :key="c.id" class="top3-item">
-              <span class="top3-badge">{{ c.candidateIdentifier }}</span>
               <span class="candidate-name">
-                {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
+                {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
               </span>
             </div>
           </div>
@@ -176,16 +175,21 @@ const filteredCandidates = computed(() => {
   </div>
 </template>
 
-
 <style scoped>
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 1rem 2rem;
   background: #fdfdfd;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   font-family: 'Inter', system-ui, sans-serif;
+}
+
+.content-wrapper {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
 }
 
 .title {
@@ -207,6 +211,7 @@ const filteredCandidates = computed(() => {
 
 .table-wrapper {
   overflow-x: auto;
+  flex: 1;
 }
 
 table {
@@ -234,7 +239,7 @@ tbody tr:hover {
   transition: background-color 0.2s ease;
 }
 
-th:first-child, td:first-child {
+.index-col {
   text-align: center;
   width: 50px;
 }
@@ -277,4 +282,59 @@ th:first-child, td:first-child {
   color: #888;
   margin-top: 1rem;
 }
+
+.top3-sidebar {
+  min-width: 250px;
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 100px;
+}
+
+.top3-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #2c3e50;
+}
+
+.party-section {
+  margin-bottom: 1.5rem;
+}
+
+.party-section:last-child {
+  margin-bottom: 0;
+}
+
+.party-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3F4383;
+  margin-bottom: 0.5rem;
+}
+
+.top3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.top3-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: #f5f6fa;
+  transition: background-color 0.2s ease;
+}
+
+.top3-item:hover {
+  background-color: #eaf1ff;
+}
+
 </style>
