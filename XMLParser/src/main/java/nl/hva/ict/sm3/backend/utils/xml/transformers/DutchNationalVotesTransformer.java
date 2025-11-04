@@ -1,6 +1,7 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
 import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 
 import java.util.Map;
@@ -11,6 +12,8 @@ import java.util.Map;
  */
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
+
+    //public List<National> readFromXml(StringfilePath) (not done)
 
 
     /**

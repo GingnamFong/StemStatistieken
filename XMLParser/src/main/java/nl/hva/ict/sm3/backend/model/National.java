@@ -15,4 +15,8 @@ public class National {
     public String getParty() { return party; }
     public String getNational() { return national; }
 
+    @Override
+    public String toString() {
+        return String.format("National[id=%s, party=%s, national=%s]", id, party, national);
+    }
 }
