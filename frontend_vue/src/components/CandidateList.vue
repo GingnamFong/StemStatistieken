@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 
 const candidates = ref([])
 const error = ref(null)
+const loading = ref(true)
 const search = ref('')
 const sortKey = ref('lastName')
 const sortDir = ref('asc')
@@ -13,6 +14,7 @@ const API_BASE_URL =
     : 'http://localhost:8081'
 
 onMounted(async () => {
+  loading.value = true
   try {
     const response = await fetch(`${API_BASE_URL}/elections/TK2023/candidatelists`, {
       method: 'POST',
@@ -25,6 +27,8 @@ onMounted(async () => {
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message
+  } finally {
+    loading.value = false
   }
 })
 
@@ -152,9 +156,12 @@ const filteredCandidates = computed(() => {
 
     <div class="page-container">
       <p v-if="error" class="error">⚠️ {{ error }}</p>
-      <p v-if="!candidates.length && !error" class="loading">Loading candidates...</p>
+      <div v-if="loading && !error" class="loading-container">
+        <div class="spinner"></div>
+        <p class="loading-text">Kandidaten laden...</p>
+      </div>
 
-    <div class="content-wrapper" v-if="filteredCandidates.length">
+    <div class="content-wrapper" v-if="!loading && filteredCandidates.length">
       <div v-if="isFilteringByParty" class="top3-sidebar">
         <h3 class="top3-title">Top 3 Kandidaten</h3>
         <div v-for="(candidates, partyName) in top3Candidates" :key="partyName" class="party-section">
@@ -205,7 +212,7 @@ const filteredCandidates = computed(() => {
       </div>
     </div>
 
-      <p v-else-if="!error" class="empty">No candidates found.</p>
+      <p v-else-if="!loading && !error" class="empty">Geen kandidaten gevonden.</p>
     </div>
   </div>
 </template>
@@ -356,14 +363,41 @@ const filteredCandidates = computed(() => {
   margin-top: 24px;
 }
 
-.loading {
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   text-align: center;
   color: #64748b;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 24px;
+  padding: 48px 24px;
   margin-top: 24px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .table-wrapper {
