@@ -2,7 +2,7 @@
   <nav class="navbar">
     <!-- Left side -->
     <div class="navbar-left">
-      <router-link to="/" class="brand">MyApp</router-link>
+      <router-link to="/" class="brand">My App</router-link>
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
 
@@ -11,7 +11,7 @@
       <div class="nav-links">
         <router-link to="/" class="nav-link" @click="closeMenu">Home</router-link>
         <router-link to="/dashboard" class="nav-link" @click="closeMenu">Uitslagen</router-link>
-        <router-link to="/Candidate" class="nav-link" @click="closeMenu">kandidaten</router-link>
+        <router-link to="/Candidate" class="nav-link" @click="closeMenu">Kandidaten</router-link>
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
       </div>
@@ -21,12 +21,18 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search..."
+            placeholder="Zoeken..."
             class="search-input"
             @keyup.enter="performSearch"
+            aria-label="Zoeken"
           />
-          <span class="search-icon">🔍</span>
-          <button @click="performSearch" class="search-btn">Zoek</button>
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
+          <button @click="performSearch" class="search-btn" aria-label="Zoek">Zoek</button>
         </div>
       </div>
 
@@ -101,37 +107,39 @@ function performSearch() {
 .search-btn {
   font-family: 'Nunito', sans-serif;
 }
+
 /* Navbar container */
 .navbar {
   display: flex;
-  left: 50%; /* center horizontally */
-  transform: translateX(-50%);
   justify-content: space-between;
-  width: 100%;
-  max-width: 1650px;
   align-items: center;
-  background-color: #3F4383;
-  color: white;
-  padding: 10px 20px;
+  background-color: #1e293b; /* same as banner */
+  color: #ffffff;
+  padding: 0;
   position: fixed;
-  flex-wrap: wrap;
-  border-bottom-left-radius: 15px; /* rounded bottom corners */
-  border-bottom-right-radius: 15px;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 
-}
-main {
-  margin-top: 80px;
-}
+
 
 /* Brand */
 .brand {
-  font-weight: bold;
-  font-size: 1.2em;
+  font-weight: 700;
+  font-size: 1.3em;
   text-decoration: none;
-  color: white;
+  color: #ffffff;
+  padding: 18px 24px;
+  transition: color 0.2s;
+}
+
+.brand:hover {
+  color: #3b82f6;
 }
 
 /* Hamburger button */
@@ -141,7 +149,8 @@ main {
   border: none;
   font-size: 1.8em;
   cursor: pointer;
-  color: white;
+  color: #ffffff;
+  padding: 18px 24px;
 }
 
 /* Collapsible menu */
@@ -149,112 +158,131 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
+  flex: 1;
   transition: max-height 0.4s ease, opacity 0.4s ease;
-  width: 100%;
   overflow: hidden;
 }
+
 .navbar-collapse.active {
   opacity: 1;
-  max-height: 500px; /* enough to show all links */
+  max-height: 500px;
 }
-
 
 .nav-links {
   display: flex;
-  gap: 15px;
+  gap: 4px;
+  align-items: center;
 }
 
 .nav-link {
   text-decoration: none;
-  color: white;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 18px 16px;
+  font-weight: 500;
+  font-size: 15px;
+  transition: all 0.2s;
+  position: relative;
+  border-bottom: 2px solid transparent;
 }
 
 .nav-link:hover {
-  color: #3498db;
-  position: relative;
-  padding: 5px 0
-}
-.nav-link::after {
-  content: '';
-  display: block;
-  height: 2px;
-  width: 0;
-  background: #ffcc00;
-  transition: width 0.3s;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.nav-link:hover::after {
-  width: 100%;
+.nav-link.router-link-active {
+  color: #ffffff;
+  border-bottom-color: #3b82f6;
 }
 .nav-register {
   display: flex;
   align-items: center;
-  margin-left: auto; /* pushes it to the far right */
+  padding: 0 24px;
 }
 
 .user-icon {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  transition: transform 0.2s;
+  transition: opacity 0.2s;
   cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .user-icon:hover {
-  transform: scale(1.1);
+  opacity: 0.8;
 }
 
 .nav-actions {
-  flex: 1;
   display: flex;
-  justify-content: center; /* center the wrapper */
   align-items: center;
+  padding: 0 16px;
 }
+
 .search-wrapper {
   position: relative;
-  width: 220px; /* smaller width */
-  min-width: 150px;
+  width: 260px;
+  min-width: 200px;
 }
 
 .search-input {
   width: 100%;
-  padding: 5px 10px 5px 35px;;
-  border-radius: 25px;
-  border: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  font-size: 0.9em;
-}
-.search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #555;
-  pointer-events: none; /* click passes through */
+  padding: 8px 80px 8px 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 14px;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
 }
 
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+.search-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
 
 .search-btn {
   position: absolute;
-  right: 5px;
+  right: 4px;
   top: 50%;
   transform: translateY(-50%);
-  border: none;
-  background-color: #3498db;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-color: transparent;
+  color: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.85em;
+  font-size: 13px;
+  font-weight: 600;
   font-family: 'Nunito', sans-serif;
-  transition: background 0.3s;
+  transition: all 0.2s;
 }
 
 .search-btn:hover {
-  background-color: #2980b9;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .profile-icon {
@@ -270,16 +298,19 @@ main {
     display: block;
   }
 
+  .navbar {
+    flex-wrap: wrap;
+  }
+
   .navbar-collapse {
     display: none;
     flex-direction: column;
     width: 100%;
-    background-color: #3F4383;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    padding: 10px 0;
+    background-color: #1e293b;
+    padding: 0;
     opacity: 0;
     max-height: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .navbar-collapse.active {
@@ -288,19 +319,53 @@ main {
 
   .nav-links {
     flex-direction: column;
-    gap: 10px;
-    padding: 0 20px;
+    width: 100%;
+    gap: 0;
+  }
+
+  .nav-link {
+    width: 100%;
+    padding: 16px 24px;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-link:hover,
+  .nav-link.router-link-active {
+    background: rgba(255, 255, 255, 0.06);
+    border-left-color: #3b82f6;
+    color: #ffffff;
   }
 
   .nav-actions {
-    flex-direction: column;
-    gap: 10px;
-    padding: 0 20px;
-    margin-top: 10px;
+    width: 100%;
+    padding: 16px 24px;
+    justify-content: stretch;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  .nav-register {
+    width: 100%;
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+@media (max-width: 480px) {
+  .brand {
+    font-size: 1.1em;
+    padding: 16px 20px;
+  }
+
+  .search-wrapper {
+    width: 100%;
   }
 
   .search-input {
-    width: 100%;
+    font-size: 14px;
   }
 }
 </style>
