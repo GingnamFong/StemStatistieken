@@ -22,12 +22,33 @@ public class National {
         this.totalVotes = totalVotes;
     }
 
-    @Override
-    public String toString() {
-        return "You have to create a proper election model yourself!";
-    }
-
     public String getId() {
         return id;
+    }
+
+    public String getVotingMethod() {
+        return votingMethod;
+    }
+
+    public int getMaxVotes() {
+        return maxVotes;
+    }
+
+    public int getUncountedVotes() {
+        return uncountedVotes;
+    }
+
+    public int getValidVotes() {
+        return validVotes;
+    }
+
+    public int getTotalVotes() {
+        return totalVotes;
+    }
+
+    @Override
+    public String toString() {
+
+        return "You have to create a proper election model yourself!";
     }
 }
