@@ -61,16 +61,16 @@ const isFilteringByParty = computed(() => {
   return matchingParties.size > 0
 })
 
-// Get top 3 candidates
+// Get top 3 candidates by votes
 const top3Candidates = computed(() => {
   if (!isFilteringByParty.value) return {}
   const q = search.value.toLowerCase()
 
   const partyTop3 = {}
 
+  // Group candidates by party
   candidates.value.forEach(c => {
-    if (c.partyName?.toLowerCase().includes(q) &&
-        (c.candidateIdentifier === 1 || c.candidateIdentifier === 2 || c.candidateIdentifier === 3)) {
+    if (c.partyName?.toLowerCase().includes(q)) {
       if (!partyTop3[c.partyName]) {
         partyTop3[c.partyName] = []
       }
@@ -78,8 +78,11 @@ const top3Candidates = computed(() => {
     }
   })
 
+  // For each party, sort by votes (descending) and take top 3
   Object.keys(partyTop3).forEach(party => {
-    partyTop3[party].sort((a, b) => a.candidateIdentifier - b.candidateIdentifier)
+    partyTop3[party] = partyTop3[party]
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+      .slice(0, 3)
   })
 
   return partyTop3
@@ -181,7 +184,8 @@ const filteredCandidates = computed(() => {
         </div>
       </div>
 
-      <div class="table-wrapper">
+      <!-- Desktop Table -->
+      <div class="table-wrapper desktop-table">
         <table>
           <thead>
           <tr>
@@ -214,6 +218,58 @@ const filteredCandidates = computed(() => {
           </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Card Layout -->
+      <div class="mobile-cards">
+        <!-- Mobile Sort Indicator -->
+        <div class="mobile-sort-indicator">
+          <span class="sort-label">Gesorteerd op:</span>
+          <div class="sort-buttons">
+            <button
+              @click="changeSort('candidateIdentifier')"
+              :class="['sort-btn', { active: sortKey === 'candidateIdentifier' }]"
+            >
+              Identificatie {{ sortKey === 'candidateIdentifier' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}
+            </button>
+            <button
+              @click="changeSort('lastName')"
+              :class="['sort-btn', { active: sortKey === 'lastName' }]"
+            >
+              Naam {{ sortKey === 'lastName' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}
+            </button>
+            <button
+              @click="changeSort('votes')"
+              :class="['sort-btn', { active: sortKey === 'votes' }]"
+            >
+              Stemmen {{ sortKey === 'votes' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}
+            </button>
+          </div>
+        </div>
+
+        <div v-for="(c, index) in filteredCandidates" :key="c.id" class="candidate-card">
+          <div class="card-header">
+            <span class="card-number">{{ index + 1 }}</span>
+            <div class="card-name-section">
+              <h3 class="card-name">{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</h3>
+              <span class="card-party">{{ c.partyName }}</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <span class="card-label">Identificatie:</span>
+              <span class="card-value">{{ c.candidateIdentifier }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Woonplaats:</span>
+              <span class="card-value">{{ c.residence }}</span>
+            </div>
+            <div class="card-row votes-row">
+              <span class="card-label">Stemmen:</span>
+              <span class="card-votes">{{ c.votes ? c.votes.toLocaleString('nl-NL') : '0' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -408,6 +464,11 @@ const filteredCandidates = computed(() => {
 .table-wrapper {
   overflow-x: auto;
   flex: 1;
+}
+
+/* Hide mobile cards on desktop */
+.mobile-cards {
+  display: none;
 }
 
 table {
@@ -650,12 +711,157 @@ tbody tr:hover {
     width: 100%;
   }
 
-  table {
+  /* Hide desktop table on mobile */
+  .desktop-table {
+    display: none;
+  }
+
+  /* Show mobile cards */
+  .mobile-cards {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-sort-indicator {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+  }
+
+  .sort-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+
+  .sort-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sort-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 16px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .sort-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #f8fafc;
+  }
+
+  .sort-btn.active {
+    border-color: #3b82f6;
+    background: #3b82f6;
+    color: white;
+    font-weight: 600;
+  }
+
+  .candidate-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .card-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    background: #1e293b;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
     font-size: 14px;
   }
 
-  th, td {
-    padding: 0.5rem;
+  .card-name-section {
+    flex: 1;
+  }
+
+  .card-name {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.3;
+  }
+
+  .card-party {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .card-label {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .card-value {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .votes-row {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .card-votes {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
   }
 }
 
@@ -672,16 +878,35 @@ tbody tr:hover {
     padding: 0 16px 32px;
   }
 
-  .toolbar {
+  .content-wrapper {
+    padding: 16px;
+  }
+
+  .mobile-sort-indicator {
     padding: 12px;
   }
 
-  table {
-    font-size: 12px;
+  .sort-btn {
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 13px;
   }
 
-  th, td {
-    padding: 0.4rem;
+  .candidate-card {
+    padding: 12px;
+  }
+
+  .card-name {
+    font-size: 16px;
+  }
+
+  .card-label,
+  .card-value {
+    font-size: 13px;
+  }
+
+  .card-votes {
+    font-size: 16px;
   }
 }
 
