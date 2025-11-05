@@ -107,17 +107,35 @@ const filteredCandidates = computed(() => {
 
 <template>
   <div class="container">
-    <h1 class="title">👤 Kandidaten Lijst</h1>
+    <h1 class="title">
+      <span class="title-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </span>
+      Kandidaten Lijst
+    </h1>
 
     <p v-if="error" class="error">⚠️ {{ error }}</p>
     <p v-if="!candidates.length && !error" class="loading">Loading candidates...</p>
 
     <div class="toolbar" v-if="candidates.length">
-      <input
-        v-model="search"
-        placeholder="🔍 Search by name or party..."
-        class="search"
-      />
+      <div class="search-wrapper">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Zoeken op naam of partij..."
+          class="search-input"
+          aria-label="Zoeken"
+        />
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+      </div>
     </div>
 
     <div class="content-wrapper" v-if="filteredCandidates.length">
@@ -141,19 +159,19 @@ const filteredCandidates = computed(() => {
           <tr>
             <th class="index-col">#</th>
             <th @click="changeSort('candidateIdentifier')" class="sortable">
-              Identifier <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
+              Identificatie <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
             </th>
             <th @click="changeSort('lastName')" class="sortable">
-              Name <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
+              Naam <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
             </th>
             <th @click="changeSort('partyName')" class="sortable">
-              Party <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
+              Partij <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
             </th>
             <th @click="changeSort('residence')" class="sortable">
-              Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
+              Woonplaats <span class="sort-icon">{{ getSortIcon('residence') }}</span>
             </th>
             <th @click="changeSort('votes')" class="sortable">
-              Votes <span class="sort-icon">{{ getSortIcon('votes') }}</span>
+              Stemmen <span class="sort-icon">{{ getSortIcon('votes') }}</span>
             </th>
           </tr>
           </thead>
@@ -180,10 +198,10 @@ const filteredCandidates = computed(() => {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 1rem 2rem;
-  background: #fdfdfd;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .content-wrapper {
@@ -193,10 +211,27 @@ const filteredCandidates = computed(() => {
 }
 
 .title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   text-align: center;
   margin-bottom: 1rem;
   font-size: 1.8rem;
-  color: #2c3e50;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+}
+
+.title-icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 .error {
@@ -206,7 +241,7 @@ const filteredCandidates = computed(() => {
 
 .loading {
   text-align: center;
-  color: #555;
+  color: #64748b;
 }
 
 .table-wrapper {
@@ -221,7 +256,7 @@ table {
 }
 
 thead {
-  background-color: #2c3e50;
+  background-color: #1e293b;
   color: white;
 }
 
@@ -231,11 +266,11 @@ th, td {
 }
 
 tbody tr:nth-child(odd) {
-  background-color: #f5f6fa;
+  background-color: #f8fafc;
 }
 
 tbody tr:hover {
-  background-color: #eaf1ff;
+  background-color: #f1f5f9;
   transition: background-color 0.2s ease;
 }
 
@@ -249,6 +284,7 @@ tbody tr:hover {
   user-select: none;
   position: relative;
   white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .sortable:hover {
@@ -266,20 +302,56 @@ tbody tr:hover {
 .toolbar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.search {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
+.search-wrapper {
+  position: relative;
+  width: 300px;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 36px 8px 36px;
   border-radius: 8px;
-  font-size: 1rem;
-  width: 250px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  font-size: 14px;
+  transition: all 0.2s;
+  background: rgba(0, 0, 0, 0.02);
+  color: #1e293b;
+  font-family: 'Nunito', sans-serif;
+}
+
+.search-input::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.search-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .empty {
   text-align: center;
-  color: #888;
+  color: #64748b;
   margin-top: 1rem;
 }
 
@@ -288,18 +360,19 @@ tbody tr:hover {
   background: white;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 100px;
 }
 
 .top3-title {
   font-size: 1.2rem;
-  font-weight: bold;
-  color: #2c3e50;
+  font-weight: 700;
+  color: #1e293b;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #2c3e50;
+  border-bottom: 2px solid #1e293b;
 }
 
 .party-section {
@@ -313,7 +386,7 @@ tbody tr:hover {
 .party-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #3F4383;
+  color: #3b82f6;
   margin-bottom: 0.5rem;
 }
 
@@ -329,12 +402,12 @@ tbody tr:hover {
   gap: 0.75rem;
   padding: 0.5rem;
   border-radius: 6px;
-  background-color: #f5f6fa;
+  background-color: #f8fafc;
   transition: background-color 0.2s ease;
 }
 
 .top3-item:hover {
-  background-color: #eaf1ff;
+  background-color: #f1f5f9;
 }
 
 </style>
