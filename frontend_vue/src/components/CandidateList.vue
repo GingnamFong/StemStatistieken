@@ -106,22 +106,30 @@ const filteredCandidates = computed(() => {
 </script>
 
 <template>
-  <div class="container">
-    <h1 class="title">
-      <span class="title-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      </span>
-      Kandidaten Lijst
-    </h1>
-
-    <p v-if="error" class="error">⚠️ {{ error }}</p>
-    <p v-if="!candidates.length && !error" class="loading">Loading candidates...</p>
-
-    <div class="toolbar" v-if="candidates.length">
-      <div class="search-wrapper">
+  <div class="candidates-page">
+    <!-- Header with breadcrumb -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="breadcrumb">
+          <router-link to="/" class="breadcrumb-item">Home</router-link>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-item active">Kandidaten</span>
+        </div>
+        <div class="header-info">
+          <div class="header-top-row">
+            <div class="header-left">
+              <div class="election-badge">
+                <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Tweede Kamer 2023</span>
+              </div>
+              <h1 class="page-title">Kandidaten Lijst</h1>
+              <p class="page-description">Bekijk alle kandidaten en hun verkiezingsresultaten</p>
+            </div>
+            <div class="header-right" v-if="candidates.length">
+              <div class="search-wrapper">
         <input
           v-model="search"
           type="text"
@@ -135,8 +143,16 @@ const filteredCandidates = computed(() => {
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
+
+    <div class="page-container">
+      <p v-if="error" class="error">⚠️ {{ error }}</p>
+      <p v-if="!candidates.length && !error" class="loading">Loading candidates...</p>
 
     <div class="content-wrapper" v-if="filteredCandidates.length">
       <div v-if="isFilteringByParty" class="top3-sidebar">
@@ -189,59 +205,165 @@ const filteredCandidates = computed(() => {
       </div>
     </div>
 
-    <p v-else-if="!error" class="empty">No candidates found.</p>
+      <p v-else-if="!error" class="empty">No candidates found.</p>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 1rem 2rem;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+.candidates-page {
+  min-height: 100vh;
+  background: #f8fafc;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Header */
+.page-header {
+  background: #1e293b;
+  padding: 40px 32px 60px;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  margin-top: -1px;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/images/banner.png') center/cover;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.breadcrumb-item {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-item:hover {
+  color: white;
+}
+
+.breadcrumb-item.active {
+  color: white;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.header-info {
+  color: white;
+}
+
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.election-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.page-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.page-description {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Page Container */
+.page-container {
+  max-width: 1400px;
+  margin: -40px auto 0;
+  padding: 0 32px 40px;
+  position: relative;
+  z-index: 2;
 }
 
 .content-wrapper {
   display: flex;
   gap: 2rem;
   align-items: flex-start;
-}
-
-.title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
-  color: #1e293b;
-  font-weight: 700;
-}
-
-.title-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #1e293b;
-}
-
-.title-icon svg {
-  width: 28px;
-  height: 28px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 24px;
 }
 
 .error {
   color: #e74c3c;
   text-align: center;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 24px;
 }
 
 .loading {
   text-align: center;
   color: #64748b;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 24px;
 }
 
 .table-wrapper {
@@ -299,53 +421,59 @@ tbody tr:hover {
   vertical-align: middle;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-}
-
 .search-wrapper {
   position: relative;
-  width: 300px;
-  min-width: 250px;
+  width: 350px;
+  min-width: 280px;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 36px 8px 36px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  font-size: 14px;
+  padding: 12px 16px 12px 44px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 15px;
   transition: all 0.2s;
-  background: rgba(0, 0, 0, 0.02);
-  color: #1e293b;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
   font-family: 'Nunito', sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-input::placeholder {
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.search-input:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .search-input:focus {
   outline: none;
   border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.05);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.8);
   pointer-events: none;
+  transition: color 0.2s;
+}
+
+.search-wrapper:focus-within .search-icon {
+  color: #3b82f6;
 }
 
 .search-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
@@ -353,6 +481,10 @@ tbody tr:hover {
   text-align: center;
   color: #64748b;
   margin-top: 1rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
 }
 
 .top3-sidebar {
@@ -408,6 +540,91 @@ tbody tr:hover {
 
 .top3-item:hover {
   background-color: #f1f5f9;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .page-container {
+    padding: 0 20px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 32px 20px 48px;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .page-description {
+    font-size: 16px;
+  }
+
+  .content-wrapper {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .top3-sidebar {
+    min-width: 100%;
+    position: static;
+    margin-bottom: 1rem;
+  }
+
+  .header-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .header-right {
+    width: 100%;
+    padding-bottom: 0;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 24px 16px 40px;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+
+  .page-container {
+    padding: 0 16px 32px;
+  }
+
+  .toolbar {
+    padding: 12px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 0.4rem;
+  }
 }
 
 </style>
