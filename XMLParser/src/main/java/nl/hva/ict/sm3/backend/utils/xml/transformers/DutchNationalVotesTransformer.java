@@ -1,8 +1,8 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
 import nl.hva.ict.sm3.backend.model.Election;
-import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
+import nl.hva.ict.sm3.backend.model.National;
 
 import java.util.Map;
 
@@ -12,9 +12,6 @@ import java.util.Map;
  */
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
-
-    //public List<National> readFromXml(StringfilePath) (not done)
-
 
     /**
      * Creates a new transformer for handling the votes at the national level. It expects an instance of
@@ -27,19 +24,30 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
 
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
-        /// String regionId =
 
+        String maxVotes = electionData.getOrDefault("max_votes", "");
+
+        String ID = "Id";
+        String MAX_VOTES = "MaxVotes";
+        String UNCOUNTED_VOTES = "UncountedVotes";
+        String VALID_VOTES = "ValidVotes";
+        String VOTING_METHOD = "VotingMethod";
+        String TOTAL_VOTES = "TotalVotes";
 
         System.out.printf("%s party votes: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
+
+
         System.out.printf("%s candidate votes: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
     @Override
     public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
+
+
         System.out.printf("%s meta data: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 }

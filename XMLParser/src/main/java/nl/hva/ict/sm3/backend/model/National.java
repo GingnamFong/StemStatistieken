@@ -1,22 +1,33 @@
 package nl.hva.ict.sm3.backend.model;
 
+/**
+ * This will hold the information for one specific election.<br/>
+ * <b>This class is by no means production ready! You need to alter it extensively!</b>
+ */
 public class National {
-    private String id;
-    private String party;
-    private String national;
+    private final String id;
+    private final String votingMethod;
+    private final int maxVotes;
+    private final int uncountedVotes;
+    private final int validVotes;
+    private final int totalVotes;
 
-    public National (String id,String name, String national) {
+
+    public National(String id, String votingMethod, int maxVotes, int uncountedVotes, int validVotes, int totalVotes ) {
         this.id = id;
-        this.party = name;
-        this.national = national;
+        this.votingMethod = votingMethod;
+        this.maxVotes = maxVotes;
+        this.uncountedVotes = uncountedVotes;
+        this.validVotes = validVotes;
+        this.totalVotes = totalVotes;
     }
-
-    public String getId() { return id; }
-    public String getParty() { return party; }
-    public String getNational() { return national; }
 
     @Override
     public String toString() {
-        return String.format("National[id=%s, party=%s, national=%s]", id, party, national);
+        return "You have to create a proper election model yourself!";
+    }
+
+    public String getId() {
+        return id;
     }
 }
