@@ -164,13 +164,18 @@ const filteredCandidates = computed(() => {
     <div class="content-wrapper" v-if="!loading && filteredCandidates.length">
       <div v-if="isFilteringByParty" class="top3-sidebar">
         <h3 class="top3-title">Top 3 Kandidaten</h3>
-        <div v-for="(candidates, partyName) in top3Candidates" :key="partyName" class="party-section">
+          <div v-for="(candidates, partyName) in top3Candidates" :key="partyName" class="party-section">
           <h4 class="party-name">{{ partyName }}</h4>
           <div class="top3-list">
             <div v-for="c in candidates" :key="c.id" class="top3-item">
-              <span class="candidate-name">
-                {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
-              </span>
+              <div class="candidate-info">
+                <span class="candidate-name">
+                  {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
+                </span>
+                <span class="candidate-votes">
+                  {{ c.votes ? c.votes.toLocaleString() : '0' }} stemmen
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -205,7 +210,7 @@ const filteredCandidates = computed(() => {
             <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
             <td>{{ c.partyName }}</td>
             <td>{{ c.residence }}</td>
-            <td>{{ c.votes ? c.votes.toLocaleString() : '0' }}</td>
+            <td class="votes-cell">{{ c.votes ? c.votes.toLocaleString('nl-NL') : '0' }}</td>
           </tr>
           </tbody>
         </table>
@@ -435,6 +440,12 @@ tbody tr:hover {
   width: 50px;
 }
 
+.votes-cell {
+  text-align: right;
+  font-weight: 600;
+  color: #1e293b;
+}
+
 .sortable {
   cursor: pointer;
   user-select: none;
@@ -574,6 +585,19 @@ tbody tr:hover {
 
 .top3-item:hover {
   background-color: #f1f5f9;
+}
+
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.candidate-votes {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 /* Responsive Design */

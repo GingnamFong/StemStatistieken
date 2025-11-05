@@ -28,7 +28,9 @@ public class DutchCandidateTransformer implements CandidateTransformer {
     public void registerCandidate(Map<String, String> electionData) {
 
         String candidateId = electionData.getOrDefault(CANDIDATE_IDENTIFIER_ID, "unknown");
+        // Note: shortCode is not present in kandidatenlijsten files, only in votes files
         String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null);
+        
         // Prefer NameLine with NameType="Initials", fall back to plain NameLine
         String initials = electionData.getOrDefault(String.format("%s-%s", NAME_LINE, "Initials"), 
                                                      electionData.getOrDefault(NAME_LINE, "unknown"));
@@ -47,14 +49,13 @@ public class DutchCandidateTransformer implements CandidateTransformer {
         String uniqueId = String.format("%s-%s", partyId, candidateId);
 		Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, shortCode, 0);
 
-        System.out.println("Registering candidate: " + candidate);
-
         boolean alreadyExists = election.getCandidates().stream()
                 .anyMatch(c -> c.getId().equals(uniqueId));
 
         if (!alreadyExists) {
             election.addCandidate(candidate);
-            System.out.println("Registered candidate: " + candidate);
+            System.out.println("Registered candidate: " + candidate.getLastName() + " " + candidate.getFirstName() + 
+                " (ID: " + candidateId + ", Party: " + partyName + ")");
         } else {
             System.out.println("Skipped duplicate: " + candidate);
         }

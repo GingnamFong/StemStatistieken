@@ -97,8 +97,20 @@ public class DutchElectionService {
 
             // Parse only candidate lists (from Kandidatenlijsten folder) and Totaaltelling
             // This will load both candidates and their vote counts without loading all other data
+            System.out.println("Step 1: Loading candidate lists...");
             electionParser.parseCandidateListsAndTotalVotes(electionId,
                     PathUtils.getResourcePath("/" + safeFolderName));
+            
+            // Debug: Print summary of loaded candidates
+            System.out.println("Step 2: Summary - Loaded " + election.getCandidates().size() + " candidates");
+            long candidatesWithShortCode = election.getCandidates().stream()
+                    .filter(c -> c.getShortCode() != null && !c.getShortCode().trim().isEmpty())
+                    .count();
+            System.out.println("  - Candidates with shortCode: " + candidatesWithShortCode);
+            long candidatesWithVotes = election.getCandidates().stream()
+                    .filter(c -> c.getVotes() > 0)
+                    .count();
+            System.out.println("  - Candidates with votes > 0: " + candidatesWithVotes);
 
             // Cache the result
             electionCache.put(electionId, election);

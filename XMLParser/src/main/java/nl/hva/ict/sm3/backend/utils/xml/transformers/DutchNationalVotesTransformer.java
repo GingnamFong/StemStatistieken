@@ -42,17 +42,11 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
                     
                     if (candidate != null) {
                         candidate.addVotes(votes);
-                        System.out.printf("Added %d votes to candidate %s (ShortCode: %s)\n", 
-                                votes, candidate.getLastName(), shortCode);
-                    } else {
-                        System.out.printf("Warning: Candidate with ShortCode '%s' not found in candidate list\n", shortCode);
                     }
                 } catch (NumberFormatException e) {
                     System.err.printf("Invalid vote count '%s' for candidate with ShortCode '%s'\n", 
                             validVotesStr, shortCode);
                 }
-            } else {
-                System.out.printf("National candidate votes (no ShortCode): %s\n", electionData);
             }
         }
     }
@@ -62,5 +56,3 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
         System.out.printf("%s meta data: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 }
-
-///  comment test

@@ -70,11 +70,40 @@ public class Election {
                 .orElse(null);
     }
 
+    /**
+     * Finds a candidate by matching shortCode from votes file with lastName + first letter of initial.
+     * Format: lastName + first letter of initial (e.g. "YeşilgözD")
+     */
     public Candidate getCandidateByShortCode(String shortCode) {
-        return candidates.stream()
-                .filter(c -> shortCode != null && shortCode.equals(c.getShortCode()))
-                .findFirst()
-                .orElse(null);
+        if (shortCode == null || shortCode.trim().isEmpty()) {
+            return null;
+        }
+        
+        String trimmedShortCode = shortCode.trim();
+        
+        for (Candidate candidate : candidates) {
+            String lastName = candidate.getLastName();
+            String initials = candidate.getInitials();
+            
+            if (lastName == null || lastName.trim().isEmpty()) {
+                continue;
+            }
+            
+            // Get first letter from initials
+            String initial = null;
+            if (initials != null && !initials.trim().isEmpty()) {
+                initial = String.valueOf(initials.trim().charAt(0));
+            }
+            
+            if (initial != null) {
+                String constructedCode = lastName.trim() + initial;
+                if (trimmedShortCode.equalsIgnoreCase(constructedCode)) {
+                    return candidate;
+                }
+            }
+        }
+        
+        return null;
     }
 
     @Override
