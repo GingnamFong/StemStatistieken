@@ -42,6 +42,45 @@ function getSortIcon(key) {
   return sortDir.value === 'asc' ? '↑' : '↓'
 }
 
+// filtering by party name
+const isFilteringByParty = computed(() => {
+  if (!search.value.trim()) return false
+  const q = search.value.toLowerCase()
+
+  const matchingParties = new Set()
+  candidates.value.forEach(c => {
+    if (c.partyName?.toLowerCase().includes(q)) {
+      matchingParties.add(c.partyName)
+    }
+  })
+
+  return matchingParties.size > 0
+})
+
+// Get top 3 candidates
+const top3Candidates = computed(() => {
+  if (!isFilteringByParty.value) return {}
+  const q = search.value.toLowerCase()
+
+  const partyTop3 = {}
+
+  candidates.value.forEach(c => {
+    if (c.partyName?.toLowerCase().includes(q) &&
+        (c.candidateIdentifier === 1 || c.candidateIdentifier === 2 || c.candidateIdentifier === 3)) {
+      if (!partyTop3[c.partyName]) {
+        partyTop3[c.partyName] = []
+      }
+      partyTop3[c.partyName].push(c)
+    }
+  })
+
+  Object.keys(partyTop3).forEach(party => {
+    partyTop3[party].sort((a, b) => a.candidateIdentifier - b.candidateIdentifier)
+  })
+
+  return partyTop3
+})
+
 const filteredCandidates = computed(() => {
   let result = candidates.value
   if (search.value.trim()) {
@@ -81,39 +120,55 @@ const filteredCandidates = computed(() => {
       />
     </div>
 
-    <div class="table-wrapper" v-if="filteredCandidates.length">
-      <table>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th @click="changeSort('candidateIdentifier')" class="sortable">
-            Identifier <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
-          </th>
-          <th @click="changeSort('lastName')" class="sortable">
-            Name <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
-          </th>
-          <th @click="changeSort('partyName')" class="sortable">
-            Party <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
-          </th>
-          <th @click="changeSort('residence')" class="sortable">
-            Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
-          </th>
-          <th @click="changeSort('votes')" class="sortable">
-            Votes <span class="sort-icon">{{ getSortIcon('votes') }}</span>
-          </th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(c, index) in filteredCandidates" :key="c.id">
-          <td>{{ index + 1 }}</td>
-          <td>{{ c.candidateIdentifier }}</td>
-          <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
-          <td>{{ c.partyName }}</td>
-          <td>{{ c.residence }}</td>
-          <td>{{ c.votes ? c.votes.toLocaleString() : '0' }}</td>
-        </tr>
-        </tbody>
-      </table>
+    <div class="content-wrapper" v-if="filteredCandidates.length">
+      <div v-if="isFilteringByParty" class="top3-sidebar">
+        <h3 class="top3-title">Top 3 Kandidaten</h3>
+        <div v-for="(candidates, partyName) in top3Candidates" :key="partyName" class="party-section">
+          <h4 class="party-name">{{ partyName }}</h4>
+          <div class="top3-list">
+            <div v-for="c in candidates" :key="c.id" class="top3-item">
+              <span class="candidate-name">
+                {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+          <tr>
+            <th class="index-col">#</th>
+            <th @click="changeSort('candidateIdentifier')" class="sortable">
+              Identifier <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
+            </th>
+            <th @click="changeSort('lastName')" class="sortable">
+              Name <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
+            </th>
+            <th @click="changeSort('partyName')" class="sortable">
+              Party <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
+            </th>
+            <th @click="changeSort('residence')" class="sortable">
+              Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
+            </th>
+            <th @click="changeSort('votes')" class="sortable">
+              Votes <span class="sort-icon">{{ getSortIcon('votes') }}</span>
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(c, index) in filteredCandidates" :key="c.id">
+            <td class="index-col">{{ index + 1 }}</td>
+            <td>{{ c.candidateIdentifier }}</td>
+            <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
+            <td>{{ c.partyName }}</td>
+            <td>{{ c.residence }}</td>
+            <td>{{ c.votes ? c.votes.toLocaleString() : '0' }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <p v-else-if="!error" class="empty">No candidates found.</p>
@@ -122,13 +177,19 @@ const filteredCandidates = computed(() => {
 
 <style scoped>
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 1rem 2rem;
   background: #fdfdfd;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   font-family: 'Inter', system-ui, sans-serif;
+}
+
+.content-wrapper {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
 }
 
 .title {
@@ -150,6 +211,7 @@ const filteredCandidates = computed(() => {
 
 .table-wrapper {
   overflow-x: auto;
+  flex: 1;
 }
 
 table {
@@ -177,7 +239,7 @@ tbody tr:hover {
   transition: background-color 0.2s ease;
 }
 
-th:first-child, td:first-child {
+.index-col {
   text-align: center;
   width: 50px;
 }
@@ -220,4 +282,59 @@ th:first-child, td:first-child {
   color: #888;
   margin-top: 1rem;
 }
+
+.top3-sidebar {
+  min-width: 250px;
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 100px;
+}
+
+.top3-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #2c3e50;
+}
+
+.party-section {
+  margin-bottom: 1.5rem;
+}
+
+.party-section:last-child {
+  margin-bottom: 0;
+}
+
+.party-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3F4383;
+  margin-bottom: 0.5rem;
+}
+
+.top3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.top3-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: #f5f6fa;
+  transition: background-color 0.2s ease;
+}
+
+.top3-item:hover {
+  background-color: #eaf1ff;
+}
+
 </style>
