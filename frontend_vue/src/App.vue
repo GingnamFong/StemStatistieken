@@ -1,31 +1,32 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import TopNavbar from './components/TopNavbar.vue'
-import OnboardingGuide from "@/components/OnboardingGuide.vue";
+import OnboardingGuide from "@/components/OnboardingGuide.vue"
 </script>
 
 <template>
-  <!-- Top Navbar -->
   <TopNavbar />
 
-  <!-- Page content -->
-  <main>
+  <!-- wrapper for page content -->
+  <main class="page-content">
     <RouterView />
   </main>
 
-  <!-- Onboarding Modal -->
   <OnboardingGuide />
-
 </template>
 
 <style>
-/* Optional global styles */
+/* --- Global page layout --- */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #ffffff;
 }
 
-main {
-  padding: 20px;
+/* Push page content below the fixed navbar */
+.page-content {
+  padding-top: 64px;
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
 }
 </style>

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import ElectionDashboardView from "@/views/ElectionDashboardView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,12 +27,22 @@ const router = createRouter({
       path: '/Register',
       name: 'Register',
       component: () => import('../views/RegisterView.vue'),
+    }, {
+      path: '/MapTest',
+      name: 'Maptest',
+      component: () => import('../views/MapTestView.vue'),
     },
     {
       path: '/Candidate',
       name: 'Candidate',
       component: () => import('../views/CandidateView.vue'),
     },
+    {
+      path: '/dashboard',
+      name: 'ElectionDashboard',
+      component: () => import('../views/ElectionDashboardView.vue'),
+    },
+
   ],
 })
 

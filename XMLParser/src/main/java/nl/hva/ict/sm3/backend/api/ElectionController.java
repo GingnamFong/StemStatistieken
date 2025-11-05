@@ -1,21 +1,17 @@
 package nl.hva.ict.sm3.backend.api;
 
-import nl.hva.ict.sm3.backend.model.Election;
-import nl.hva.ict.sm3.backend.model.Municipality;
-import nl.hva.ict.sm3.backend.model.Party;
+import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Demo controller for showing how you could load the election data in the backend.
  */
 @RestController
-@RequestMapping("elections")
+@RequestMapping("/elections")
 public class ElectionController {
     private final DutchElectionService electionService;
 
@@ -23,70 +19,74 @@ public class ElectionController {
         this.electionService = electionService;
     }
 
-    @GetMapping("{electionId}")
+    @GetMapping("/{electionId}")
     public ResponseEntity<Election> getElection(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
-            return ResponseEntity.notFound().build();
+            // Automatically load the election if it doesn't exist in cache
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
         }
         return ResponseEntity.ok(election);
     }
 
-    // DIT IS ALLEEN OM DE TOP 3 PARTIJEN TE LADEN IN POSTMAN OMDAT HET ZO LANG DUURT OM ALLES TE LADEN
-    private Map<String, Object> getMunicipalitySummary(Municipality m) {
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("id", m.getId());
-        summary.put("name", m.getName());
-        summary.put("validVotes", m.getValidVotes());
-        summary.put("topParties", m.getTopPartiesWithNames(3)); // top 3 partijen
-        return summary;
-    }
+    @GetMapping("/{electionId}/municipalities")
+    public ResponseEntity<List<Municipality>> getMunicipalities(@PathVariable String electionId) {
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            // Automatically load the election if it doesn't exist in cache
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
 
-    @GetMapping("{electionId}/municipalities")
-    public ResponseEntity<List<Map<String, Object>>> getMunicipalitiesSummary(@PathVariable String electionId) {
+        List<Municipality> municipalities = election.getAllMunicipalities();
+        return ResponseEntity.ok(municipalities);
+    }
+    @GetMapping("{electionId}/constituencies")
+    public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
         if (election == null) return ResponseEntity.notFound().build();
 
-        List<Map<String, Object>> summaries = election.getConstituencies()
-                .stream()
-                .flatMap(c -> c.getMunicipalities().stream())
-                .map(this::getMunicipalitySummary)
-                .toList();
-
-        return ResponseEntity.ok(summaries);
+        return ResponseEntity.ok(election.getConstituencies());
     }
-    @GetMapping("{electionId}/municipalities/{municipalityId}/parties")
-    public ResponseEntity<Map<String, Object>> getAllPartiesForMunicipality(
+
+    @GetMapping("/{electionId}/municipalities/{municipalityId}")
+    public ResponseEntity<Municipality> getMunicipalityById(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
 
         Election election = electionService.getElectionById(electionId);
-        if (election == null) return ResponseEntity.notFound().build();
+        if (election == null) {
+            // Automatically load the election if it doesn't exist in cache
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
 
-        Municipality municipality = election.getConstituencies()
-                .stream()
-                .flatMap(c -> c.getMunicipalities().stream())
-                .filter(m -> m.getId().equals(municipalityId))
-                .findFirst()
-                .orElse(null);
-
+        Municipality municipality = election.getMunicipalityById(municipalityId);
         if (municipality == null) return ResponseEntity.notFound().build();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", municipality.getId());
-        response.put("name", municipality.getName());
-        response.put("validVotes", municipality.getValidVotes());
-        response.put("parties", municipality.getAllPartiesWithNames());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(municipality);
     }
 
 
+
     // Optional: endpoint for top parties nationally
-    @GetMapping("{electionId}/top-parties")
+    @GetMapping("/{electionId}/top-parties")
     public ResponseEntity<List<Party>> getTopParties(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
-        if (election == null) return ResponseEntity.notFound().build();
+        if (election == null) {
+            // Automatically load the election if it doesn't exist in cache
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
         return ResponseEntity.ok(election.getTopParties(3));
     }
 
@@ -101,7 +101,7 @@ public class ElectionController {
      * Just the general data about the election should be sent back to the front-end!<br/>
      * <i>If you want to return something else please feel free to do so!</i>
      */
-    @PostMapping("{electionId}")
+    @PostMapping("/{electionId}")
     public ResponseEntity<Election> loadElection(@PathVariable String electionId,
                                                  @RequestParam(required = false) String folderName) {
         Election election = electionService.readResults(electionId, folderName != null ? folderName : electionId);
@@ -109,7 +109,7 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
-    @PostMapping("{electionId}/candidatelists")
+    @PostMapping("/{electionId}/candidatelists")
     public ResponseEntity<Election> loadCandidateLists(
             @PathVariable String electionId,
             @RequestParam(required = false) String folderName) {
