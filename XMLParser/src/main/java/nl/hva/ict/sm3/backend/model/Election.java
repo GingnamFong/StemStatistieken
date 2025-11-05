@@ -70,6 +70,13 @@ public class Election {
                 .orElse(null);
     }
 
+    public Candidate getCandidateByShortCode(String shortCode) {
+        return candidates.stream()
+                .filter(c -> shortCode != null && shortCode.equals(c.getShortCode()))
+                .findFirst()
+                .orElse(null);
+    }
+
     @Override
     public String toString() {
         return "Election{id='%s', constituencies=%d, parties=%d, candidates=%d}"
