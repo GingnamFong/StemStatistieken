@@ -1,199 +1,217 @@
-
 <template>
-  <div class="dutch-map-wrapper">
-    <section class="map-section">
-      <h2>Interactieve Nederlandse kieskringkaart</h2>
-      <p>Klik op een kieskring om verkiezingsgegevens te bekijken</p>
+  <div class="map-container" ref="container">
+    <!-- injected SVG -->
+    <div ref="svgContainer" v-html="svgContent"></div>
 
-      <div v-if="selectedKieskring" class="kieskring-info">
-        <h3>Kieskring {{ selectedKieskring.number }}</h3>
-        <p>{{ selectedKieskring.name }}</p>
-        <p>Provincie: {{ selectedKieskring.province }}</p>
-        <p>Stemmen: {{ selectedKieskring.stemmen }}</p>
-      </div>
-    </section>
-
-    <div class="map-container" ref="mapContainer">
-      <div ref="svgContainer" v-html="svgContent"></div>
+    <!-- Tooltip -->
+    <div
+      v-if="tooltip.visible"
+      class="tooltip"
+      :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }"
+    >
+      <strong>{{ tooltip.name }}</strong>
+      <ul v-if="tooltip.topParties.length">
+        <li v-for="p in tooltip.topParties" :key="p.id">
+          {{ p.name }} — {{ p.votes.toLocaleString() }}
+          <span v-if="tooltip.validVotes && p.votes">
+            ({{ ((p.votes / tooltip.validVotes) * 100).toFixed(1) }}%)
+          </span>
+        </li>
+      </ul>
+      <div v-else class="no-data">No data</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 
-const mapContainer = ref(null)
+const emit = defineEmits(['regionSelected'])
+const container = ref(null)
 const svgContainer = ref(null)
 const svgContent = ref('')
-const selectedKieskring = ref(null)
 
-const kieskringenData = {
-  1: { number: 1, name: 'Groningen', province: 'Groningen', stemmen: '' },
-  2: { number: 2, name: 'Leeuwarden', province: 'Friesland', stemmen: '' },
-  3: { number: 3, name: 'Assen', province: 'Drenthe', stemmen: '' },
-  4: { number: 4, name: 'Zwolle', province: 'Overijssel', stemmen: '' },
-  5: { number: 5, name: 'Lelystad', province: 'Flevoland', stemmen: '' },
-  6: { number: 6, name: 'Nijmegen', province: 'Gelderland', stemmen: '' },
-  7: { number: 7, name: 'Arnhem', province: 'Gelderland', stemmen: '' },
-  8: { number: 8, name: 'Utrecht', province: 'Utrecht', stemmen: '' },
-  9: { number: 9, name: 'Amsterdam', province: 'Noord-Holland', stemmen: '' },
-  10: { number: 10, name: 'Haarlem', province: 'Noord-Holland', stemmen: '' },
-  11: { number: 11, name: 'Den Helder', province: 'Noord-Holland', stemmen: '' },
-  12: { number: 12, name: '’s-Gravenhage', province: 'Zuid-Holland', stemmen: '' },
-  13: { number: 13, name: 'Rotterdam', province: 'Zuid-Holland', stemmen: '' },
-  14: { number: 14, name: 'Dordrecht', province: 'Zuid-Holland', stemmen: '' },
-  15: { number: 15, name: 'Leiden', province: 'Zuid-Holland', stemmen: '' },
-  16: { number: 16, name: 'Middelburg', province: 'Zeeland', stemmen: '' },
-  17: { number: 17, name: 'Tilburg', province: 'Noord-Brabant', stemmen: '' },
-  18: { number: 18, name: '’s-Hertogenbosch', province: 'Noord-Brabant', stemmen: '' },
-  19: { number: 19, name: 'Maastricht', province: 'Limburg', stemmen: '' },
-  20: { number: 20, name: 'Bonaire', province: 'Caribisch Nederland', stemmen: '' }
+const constituencies = ref([])
+
+const tooltip = ref({
+  visible: false,
+  name: '',
+  topParties: [],
+  validVotes: 0,
+  x: 0,
+  y: 0,
+})
+
+// normalize names so "’s-Gravenhage" ~= "s-gravenhage"
+function norm(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[’'`´]/g, '')      // quotes
+    .replace(/\s+/g, ' ')        // collapse spaces
+    .trim()
+}
+
+// sum parties across all municipalities in a constituency
+function aggregateParties(c) {
+  const map = new Map()
+  let total = 0
+  for (const m of c?.municipalities || []) {
+    total += m.validVotes || 0
+    for (const p of m.allParties || []) {
+      const cur = map.get(p.id) || { id: p.id, name: p.name, votes: 0 }
+      cur.votes += p.votes || 0
+      map.set(p.id, cur)
+    }
+  }
+  const sorted = [...map.values()].sort((a, b) => b.votes - a.votes)
+  return { totalVotes: total, sorted }
+}
+
+function attachInteractivity() {
+  const svgEl = svgContainer.value?.querySelector('svg')
+  if (!svgEl) return
+
+  // style fallback if the file had inline fills
+  svgEl.querySelectorAll('path').forEach((p) => {
+    // Use dataset.cid to cache the matched constituency id
+    // Try match by id number first (kieskring-19 -> 19)
+    const idText = p.getAttribute('id') || ''
+    const numeric = idText.match(/\d+/)?.[0]
+    let match =
+      constituencies.value.find((c) => String(c.id) === String(numeric)) || null
+
+    // If no match by number, try by <title> text (e.g., "Groningen")
+    if (!match) {
+      const titleText = p.querySelector('title')?.textContent || ''
+      const byName = constituencies.value.find(
+        (c) => norm(c.name) === norm(titleText)
+      )
+      if (byName) match = byName
+    }
+
+    if (match) {
+      console.log('Path ID:', idText, '→ Matched:', match?.name || '❌ none')
+      p.dataset.cid = match.id // stash for quick lookup
+    }
+
+    // Mouse events
+    p.addEventListener('mousemove', (e) => {
+      const cid = p.dataset.cid
+      const c = constituencies.value.find((x) => String(x.id) === String(cid))
+      const name =
+        c?.name ||
+        p.querySelector('title')?.textContent ||
+        idText ||
+        'Unknown region'
+
+      const rect = container.value?.getBoundingClientRect?.() || {
+        left: 0,
+        top: 0,
+      }
+      const offsetX = e.clientX - rect.left
+      const offsetY = e.clientY - rect.top
+
+      const { totalVotes, sorted } = aggregateParties(c)
+
+      tooltip.value = {
+        visible: true,
+        name,
+        validVotes: totalVotes,
+        topParties: sorted.slice(0, 3),
+        x: offsetX + 12,
+        y: offsetY + 12,
+      }
+    })
+
+    p.addEventListener('mouseleave', () => {
+      tooltip.value.visible = false
+    })
+
+    p.addEventListener('click', () => {
+      const cid = p.dataset.cid
+      const c = constituencies.value.find((x) => String(x.id) === String(cid))
+      if (c) emit('regionSelected', c)
+    })
+  })
 }
 
 onMounted(async () => {
+  // 1) load backend data
   try {
-    const response = await fetch('/src/assets/kieskringen.svg')
-    let svg = await response.text()
-
-    svgContent.value = svg
-
-    // Add event listeners after SVG is rendered
-    setTimeout(() => {
-      addPathListeners()
-    }, 100)
-  } catch (error) {
-    console.error('Error loading SVG:', error)
+    const res = await fetch('http://localhost:8081/elections/TK2023/constituencies')
+    if (!res.ok) throw new Error('Network error')
+    constituencies.value = await res.json()
+  } catch (err) {
+    console.error('Failed to load constituencies:', err)
   }
+
+  // 2) load raw SVG & inject
+  try {
+    const file = await fetch('/src/assets/kieskringen2023.svg')
+    svgContent.value = await file.text()
+  } catch (e) {
+    console.error('Failed to load kieskringen SVG:', e)
+    return
+  }
+
+  // 3) after injection, attach logic
+  await nextTick()
+  attachInteractivity()
 })
-
-const addPathListeners = () => {
-  if (!svgContainer.value) return
-
-  const paths = svgContainer.value.querySelectorAll('path[id^="kieskring-"]');
-
-  paths.forEach(path => {
-    const kieskringNumber = parseInt(path.id.split('-')[1]);
-
-    path.addEventListener('mouseenter', () => {
-      path.style.fill = 'rgb(103,215,114)';
-      path.style.fillOpacity = '0.7';
-    });
-
-    path.addEventListener('mouseleave', () => {
-      if (selectedKieskring.value?.number !== kieskringNumber) {
-        path.style.fill = '#e0e0e0';
-        path.style.fillOpacity = '1';
-      }
-    });
-
-    path.addEventListener('click', () => {
-      selectedKieskring.value = { ...kieskringenData[kieskringNumber] };
-
-      // Reset alle andere paths
-      paths.forEach(p => {
-        p.style.fill = '#e0e0e0';
-        p.style.fillOpacity = '1';
-      });
-
-      // Highlight de geklikte path
-      path.style.fill = 'rgb(0,255,3)';
-      path.style.fillOpacity = '0.7';
-    });
-  });
-
-
-
-}
 </script>
 
 <style scoped>
-
 .map-container {
-  width: 100%;
-  height: 600px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f8f9fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.map-container > div {
+  position: relative;
   width: 100%;
   height: 100%;
+  min-height: 520px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
-.map-section {
-  margin: 2rem 0;
-  padding: 1rem;
-}
-
-.map-section h2 {
-  text-align: center;
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
-}
-
-.map-section p {
-  text-align: center;
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.kieskring-info {
-  background: #e8f5e9;
-  border: 2px solid #4CAF50;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin: 1rem auto;
-  max-width: 500px;
-  text-align: center;
-  animation: slideIn 0.3s ease-out;
-}
-
-.kieskring-info h3 {
-  color: #2e7d32;
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-}
-
-.kieskring-info p {
-  color: #424242;
-  margin: 0.25rem 0;
-  font-size: 1.1rem;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .map-container {
-    height: 400px;
-  }
-}
-
-:deep(.kieskring-path) {
-  transition: fill 0.2s ease, fill-opacity 0.2s ease;
-}
-
+/* IMPORTANT: styles must pierce the injected SVG */
 :deep(svg) {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
+  width: 85%;
+  max-width: 650px;
   height: auto;
 }
+
+/* default path look (overrides “fully black”) */
+:deep(svg path) {
+  fill: #e6e6e6 !important;
+  stroke: #777 !important;
+  stroke-width: 0.5;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+  cursor: pointer;
+}
+:deep(svg path:hover) {
+  fill: #ffd24d !important;
+  stroke: #555 !important;
+}
+
+.tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.92);
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  font-size: 0.85rem;
+  min-width: 180px;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.tooltip strong {
+  color: #ffd24d;
+}
+.tooltip ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tooltip li { margin: 3px 0; font-size: 0.82rem; }
+.no-data { font-size: 0.8rem; opacity: 0.8; }
 </style>

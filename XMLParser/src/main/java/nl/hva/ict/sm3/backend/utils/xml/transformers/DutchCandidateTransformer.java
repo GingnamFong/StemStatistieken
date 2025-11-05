@@ -3,7 +3,6 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Candidate;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.CandidateTransformer;
-import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 
 import java.util.Map;
 
@@ -29,23 +28,34 @@ public class DutchCandidateTransformer implements CandidateTransformer {
     public void registerCandidate(Map<String, String> electionData) {
 
         String candidateId = electionData.getOrDefault(CANDIDATE_IDENTIFIER_ID, "unknown");
-        String initials = electionData.getOrDefault(NAME_LINE, "unknown");
+        // Note: shortCode is not present in kandidatenlijsten files, only in votes files
+        String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null);
+        
+        // Prefer NameLine with NameType="Initials", fall back to plain NameLine
+        String initials = electionData.getOrDefault(String.format("%s-%s", NAME_LINE, "Initials"), 
+                                                     electionData.getOrDefault(NAME_LINE, "unknown"));
         String firstName = electionData.getOrDefault(FIRST_NAME, "unknown");
         String lastName = electionData.getOrDefault(LAST_NAME, "unknown");
         String residence = electionData.getOrDefault(LOCALITY_NAME, "unknown");
         String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
-
-        Candidate candidate = new Candidate(candidateId, firstName, lastName, initials, residence, partyId, partyName);
-
-        System.out.println("Registering candidate: " + candidate);
+		int candidateIdentifier;
+		try {
+			candidateIdentifier = Integer.parseInt(candidateId);
+		} catch (NumberFormatException e) {
+			candidateIdentifier = 0;
+		}
+        // Ensure uniqueness across parties: ranking numbers repeat per party, so compose a unique id
+        String uniqueId = String.format("%s-%s", partyId, candidateId);
+		Candidate candidate = new Candidate(uniqueId, firstName, lastName, initials, residence, partyId, partyName, candidateIdentifier, shortCode, 0);
 
         boolean alreadyExists = election.getCandidates().stream()
-                .anyMatch(c -> c.getId().equals(candidateId));
+                .anyMatch(c -> c.getId().equals(uniqueId));
 
         if (!alreadyExists) {
             election.addCandidate(candidate);
-            System.out.println("Registered candidate: " + candidate);
+            System.out.println("Registered candidate: " + candidate.getLastName() + " " + candidate.getFirstName() + 
+                " (ID: " + candidateId + ", Party: " + partyName + ")");
         } else {
             System.out.println("Skipped duplicate: " + candidate);
         }
