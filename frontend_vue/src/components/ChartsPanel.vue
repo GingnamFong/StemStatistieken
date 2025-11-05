@@ -1,18 +1,18 @@
 <template>
   <div v-if="selectedMunicipality" class="charts-panel">
-    <h2 class="region-title">{{ selectedMunicipality.name }}</h2>
-
     <div class="chart-block">
+      <h3 class="chart-title">{{ selectedMunicipality.name }}</h3>
       <PieChart :data="chartData" />
     </div>
 
     <div class="chart-block scrollable">
+      <h3 class="chart-title">Stemverdeling</h3>
       <StaffDiagram :data="chartData" />
     </div>
   </div>
 
   <div v-else class="placeholder">
-    <p>Select a municipality on the map</p>
+    <p>Selecteer een regio op de kaart</p>
   </div>
 </template>
 
@@ -43,44 +43,84 @@ const chartData = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.2rem;
+  gap: 24px;
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  padding: 1rem;
-}
-
-.region-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
+  padding: 0;
+  font-family: 'Nunito', sans-serif;
 }
 
 .chart-block {
-  background: #fafafa;
+  background: #ffffff;
   border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
   width: 100%;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 95%;
-  max-height: 420px;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.chart-block:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 /* De staafdiagram kan veel labels bevatten → horizontaal scrollen */
 .scrollable {
   overflow-x: auto;
-  max-height: 360px;
+  max-height: 500px;
 }
 
 /* Placeholder voor geen selectie */
 .placeholder {
-  color: #888;
-  font-style: italic;
+  color: #64748b;
+  font-size: 16px;
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 3rem;
+  font-weight: 500;
+}
+
+/* Scrollbar styling voor de charts-panel */
+.charts-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.charts-panel::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.charts-panel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.charts-panel::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-block {
+    padding: 16px;
+  }
+
+  .chart-title {
+    font-size: 16px;
+  }
 }
 </style>
