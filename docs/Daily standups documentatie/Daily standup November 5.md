@@ -24,7 +24,7 @@
 ## Loop je ergens tegenaan?
 - **Kevin Koudhoofd:** We hebben veel gecommit in persoonlijke branches, mergen moet vandaag.
 - **Ging Nam Fong:** Votes voor candidaten lijst
-- **Jonathan Roemers:** transformer proces verloopt nogal traag
+- **Jonathan Roemers:** transformer proces verloopt nogal traag.
 - **Jerrico Garcia:** ...
 
 ---
