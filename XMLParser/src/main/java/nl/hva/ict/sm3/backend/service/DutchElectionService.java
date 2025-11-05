@@ -77,7 +77,7 @@ public class DutchElectionService {
     }
 
     public void loadCandidateLists(Election election, String folderName) {
-        System.out.println("Loading candidate lists and votes...");
+        System.out.println("Loading candidate lists and total votes...");
 
         String electionId = election.getId().trim();
         folderName = folderName.trim();
@@ -95,14 +95,14 @@ public class DutchElectionService {
             String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
             System.out.println("Resolved folder name: " + safeFolderName);
 
-            // Parse candidate lists and national votes (Totaaltelling)
-            // This will load both candidates and their vote counts
-            electionParser.parseResults(electionId,
+            // Parse only candidate lists (from Kandidatenlijsten folder) and Totaaltelling
+            // This will load both candidates and their vote counts without loading all other data
+            electionParser.parseCandidateListsAndTotalVotes(electionId,
                     PathUtils.getResourcePath("/" + safeFolderName));
 
             // Cache the result
             electionCache.put(electionId, election);
-            System.out.println("Candidate lists and votes loaded for election: " + electionId);
+            System.out.println("Candidate lists and total votes loaded for election: " + electionId);
 
         } catch (IOException | XMLStreamException | ParserConfigurationException |
                  SAXException | NullPointerException e) {
