@@ -1,15 +1,6 @@
 <template>
   <div class="register-page">
-    <!-- Left side -->
-    <section class="register-left">
-      <div class="logo">📊 StemStatistieken</div>
-      <h1>Bekijk snel en gemakkelijk
-        de verkiezingsresultaten
-        en discussieer mee!</h1>
-
-    </section>
-
-    <!-- Right side (form) -->
+    <!-- ...unchanged UI... -->
     <section class="register-right">
       <div class="register-card">
         <div class="register-logo">📊</div>
@@ -42,12 +33,17 @@
           </div>
 
           <div class="form-check">
-            <input type="checkbox" id="terms" />
+            <input type="checkbox" id="terms" v-model="acceptedTerms" />
             <label for="terms">Ik ga akkoord met de <a href="#">Algemene Voorwaarden</a></label>
           </div>
 
-          <button type="submit" class="btn-primary">Registreren</button>
+          <div v-if="serverError" style="color:red; font-size:0.9rem; margin-bottom:8px;">
+            {{ serverError }}
+          </div>
 
+          <button type="submit" class="btn-primary" :disabled="submitting">
+            {{ submitting ? 'Bezig...' : 'Registreren' }}
+          </button>
         </form>
 
         <p class="login-link">
@@ -74,13 +70,19 @@ const errors = reactive({
   password: ''
 })
 
-const submitted = ref(false)
+const acceptedTerms = ref(false)
+const submitting = ref(false)
+const serverError = ref('')
+
+// Must match backend: at least 8 chars, one lowercase, one uppercase, one digit
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
 
 function validateForm() {
   let valid = true
   errors.name = ''
   errors.email = ''
   errors.password = ''
+  serverError.value = ''
 
   if (!form.name.trim()) {
     errors.name = 'Naam is verplicht'
@@ -98,19 +100,51 @@ function validateForm() {
   if (!form.password.trim()) {
     errors.password = 'Wachtwoord is verplicht'
     valid = false
-  } else if (form.password.length < 6) {
-    errors.password = 'Minimaal 6 tekens'
+  } else if (!PASSWORD_REGEX.test(form.password)) {
+    errors.password = 'Minimaal 8 tekens, met hoofdletter, kleine letter en cijfer'
+    valid = false
+  }
+
+  if (!acceptedTerms.value) {
+    serverError.value = 'Accepteer de voorwaarden om door te gaan'
     valid = false
   }
 
   return valid
 }
 
-function handleSubmit() {
-  submitted.value = false
-  if (validateForm()) {
-    submitted.value = true
-    console.log('Form data:', form)
+async function handleSubmit() {
+  if (!validateForm()) return
+
+  submitting.value = true
+  serverError.value = ''
+  try {
+    const res = await fetch('http://localhost:8080/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password
+      })
+    })
+
+    if (res.ok) {
+      alert('Registratie geslaagd')
+      form.name = ''
+      form.lastName = ''
+      form.email = ''
+      form.password = ''
+      acceptedTerms.value = false
+    } else {
+      const text = await res.text()
+      serverError.value = text || 'Registratie mislukt'
+    }
+  } catch {
+    serverError.value = 'Netwerkfout. Probeer later opnieuw.'
+  } finally {
+    submitting.value = false
   }
 }
 </script>
@@ -118,43 +152,12 @@ function handleSubmit() {
 <style scoped>
 .register-page {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
-  background-color: #f4f5f7;
   font-family: 'Inter', sans-serif;
+  background-color: #f4f5f7;
 }
 
-/* LEFT SIDE */
-.register-left {
-  min-width: 50%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 80px;
-  background-color: #f5f6f7;
-  color: #000;
-}
-
-.register-left .logo {
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin-bottom: 40px;
-}
-
-.register-left h1 {
-  font-size: 2rem;
-  line-height: 1.3;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-.register-left p {
-  color: #555;
-  max-width: 380px;
-}
-
-/* RIGHT SIDE */
 .register-right {
   flex: 1;
   display: flex;
@@ -165,9 +168,11 @@ function handleSubmit() {
 }
 
 .register-card {
-  width: auto;
+  width: 100%;
+  max-width: 420px;
   text-align: center;
   padding: 40px 20px;
+  background: #fff;
 }
 
 .register-logo {
@@ -188,14 +193,13 @@ h2 {
   font-size: 0.95rem;
 }
 
-/* FORM */
 .register-form {
   text-align: left;
 }
 
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-group {
@@ -224,27 +228,14 @@ input:focus {
   border-bottom-color: #000;
 }
 
-span {
-  color: red;
-  font-size: 0.8rem;
-}
-
-/* CHECKBOX */
 .form-check {
-  margin: 12px 0 24px;
-  font-size: 0.85rem;
-  color: #444;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 12px 0 20px;
+  font-size: 0.9rem;
 }
 
-.form-check a {
-  color: #000;
-  text-decoration: underline;
-}
-
-/* BUTTONS */
 .btn-primary {
   width: 100%;
   background: #000;
@@ -262,19 +253,8 @@ span {
   background: #222;
 }
 
-.btn-google {
-  width: 100%;
-  background: #e5e7eb;
-  border: none;
-  border-radius: 999px;
-  padding: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* FOOTER LINK */
 .login-link {
-  margin-top: 24px;
+  margin-top: 12px;
   font-size: 0.9rem;
   color: #555;
 }
@@ -289,18 +269,15 @@ span {
   text-decoration: underline;
 }
 
-/* RESPONSIVE FIXES */
 @media (max-width: 800px) {
   .register-page {
     flex-direction: column;
   }
-  .register-left {
-    padding: 40px 20px;
-    text-align: center;
-    align-items: center;
-  }
   .register-right {
     border-left: none;
+  }
+  .form-row {
+    flex-direction: column;
   }
 }
 </style>
