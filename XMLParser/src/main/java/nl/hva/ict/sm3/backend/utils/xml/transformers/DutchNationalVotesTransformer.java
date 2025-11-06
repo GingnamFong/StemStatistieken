@@ -24,32 +24,48 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
 
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
+        if (aggregated) {
 
-        String maxVotes = electionData.getOrDefault("max_votes", "");
+            String Id = electionData.get("id");
+            String votingMethod = electionData.getOrDefault("voting_method", "unknown");
+            int maxVotes = Integer.parseInt(electionData.getOrDefault("max_votes", ""));
+            int uncountedVotes = Integer.parseInt(electionData.getOrDefault("uncounted_votes", ""));
+            int validVotes = Integer.parseInt(electionData.getOrDefault("valid_votes", ""));
+            int totalVotes = Integer.parseInt(electionData.getOrDefault("total_votes", ""));
 
-        String ID = "Id";
-        String MAX_VOTES = "MaxVotes";
-        String UNCOUNTED_VOTES = "UncountedVotes";
-        String VALID_VOTES = "ValidVotes";
-        String VOTING_METHOD = "VotingMethod";
-        String TOTAL_VOTES = "TotalVotes";
+            /*
+            String ID = "Id";
+            String MAX_VOTES = "MaxVotes";
+            String UNCOUNTED_VOTES = "UncountedVotes";
+            String VALID_VOTES = "ValidVotes";
+            String VOTING_METHOD = "VotingMethod";
+            String TOTAL_VOTES = "TotalVotes";
+             */
 
+            try {
+                maxVotes = Math.max(maxVotes, maxVotes);
+            } catch (Exception e) {
+                System.err.printf("maxVotes = %d\n", maxVotes);
+            }
+
+            National national = new National(Id, votingMethod,  maxVotes, uncountedVotes, validVotes, totalVotes);
+
+            System.out.println("Registering candidate: " + national);
+
+
+        }
         System.out.printf("%s party votes: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
-
-
         System.out.printf("%s candidate votes: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
     @Override
     public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
-
-
         System.out.printf("%s meta data: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 }
 
-///  comment test
+
