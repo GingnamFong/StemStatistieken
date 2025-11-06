@@ -3,6 +3,7 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 import nl.hva.ict.sm3.backend.model.National;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import java.util.Map;
  * Just prints to content of electionData to the standard output.>br/>
  * <b>This class needs heavy modification!</b>
  */
+@SpringBootApplication
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
 
