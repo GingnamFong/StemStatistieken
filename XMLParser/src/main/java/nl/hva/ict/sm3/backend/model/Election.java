@@ -71,8 +71,8 @@ public class Election {
     }
 
     /**
-     * Finds a candidate by matching shortCode from votes file with lastName + first letter of initial.
-     * Format: lastName + first letter of initial (e.g. "YeşilgözD")
+     * Finds a candidate by matching shortCode from votes file with lastName + all initials.
+     * Format: lastName + all initials without dots (e.g. "YeşilgözD" or "JettenRAA" for "R.A.A.")
      */
     public Candidate getCandidateByShortCode(String shortCode) {
         if (shortCode == null || shortCode.trim().isEmpty()) {
@@ -89,14 +89,15 @@ public class Election {
                 continue;
             }
             
-            // Get first letter from initials
-            String initial = null;
+            // Extract all letters from initials (remove dots, spaces, etc.)
+            String allInitials = null;
             if (initials != null && !initials.trim().isEmpty()) {
-                initial = String.valueOf(initials.trim().charAt(0));
+                // Remove all non-letter characters (dots, spaces, etc.) and keep only letters
+                allInitials = initials.replaceAll("[^A-Za-z]", "");
             }
             
-            if (initial != null) {
-                String constructedCode = lastName.trim() + initial;
+            if (allInitials != null && !allInitials.isEmpty()) {
+                String constructedCode = lastName.trim() + allInitials;
                 if (trimmedShortCode.equalsIgnoreCase(constructedCode)) {
                     return candidate;
                 }
