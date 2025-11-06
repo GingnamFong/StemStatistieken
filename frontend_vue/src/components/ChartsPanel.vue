@@ -28,13 +28,37 @@ const props = defineProps({
 
 
 const chartData = computed(() => {
-  if (!props.selectedMunicipality?.allParties) return []
-  return [...props.selectedMunicipality.allParties]
-    .sort((a, b) => b.votes - a.votes)
-    .map((p, i) => ({
+  // Check if it's a municipality/province with direct allParties
+  if (props.selectedMunicipality?.allParties) {
+    return [...props.selectedMunicipality.allParties]
+      .sort((a, b) => b.votes - a.votes)
+      .map((p, i) => ({
+        ...p,
+        color: partyColors[i % partyColors.length],
+      }))
+  }
+
+  // Check if it's a constituency (kieskring) with municipalities
+  if (props.selectedMunicipality?.municipalities) {
+    const map = new Map()
+
+    // Aggregate parties from all municipalities in the constituency
+    for (const m of props.selectedMunicipality.municipalities || []) {
+      for (const p of m.allParties || []) {
+        const cur = map.get(p.id) || { id: p.id, name: p.name, votes: 0 }
+        cur.votes += p.votes || 0
+        map.set(p.id, cur)
+      }
+    }
+
+    const sorted = [...map.values()].sort((a, b) => b.votes - a.votes)
+    return sorted.map((p, i) => ({
       ...p,
-      color: partyColors[i % partyColors.length], // matchende kleuren
+      color: partyColors[i % partyColors.length],
     }))
+  }
+
+  return []
 })
 </script>
 
