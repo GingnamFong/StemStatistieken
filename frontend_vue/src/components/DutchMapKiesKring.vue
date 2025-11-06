@@ -148,7 +148,7 @@ onMounted(async () => {
 
   // 2) load raw SVG & inject
   try {
-    const file = await fetch('/src/assets/kieskringen2023.svg')
+    const file = await fetch('/src/assets/kieskringen.svg')
     svgContent.value = await file.text()
   } catch (e) {
     console.error('Failed to load kieskringen SVG:', e)
@@ -179,17 +179,10 @@ onMounted(async () => {
   height: auto;
 }
 
-/* default path look (overrides “fully black”) */
-:deep(svg path) {
-  fill: #e6e6e6 !important;
-  stroke: #777 !important;
-  stroke-width: 0.5;
-  transition: fill 0.15s ease, stroke 0.15s ease;
-  cursor: pointer;
-}
 :deep(svg path:hover) {
   fill: #ffd24d !important;
   stroke: #555 !important;
+  stroke-width: 1.1 !important;
 }
 
 .tooltip {
