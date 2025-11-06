@@ -49,6 +49,13 @@ public class National {
     @Override
     public String toString() {
 
-        return "You have to create a proper election model yourself!";
+        return "Votes{" +
+                "id='" + id + '\'' +
+                ", votingMethod='" + votingMethod + '\'' +
+                ", maxVotes=" + maxVotes +
+                ", uncountedVotes=" + uncountedVotes +
+                ", validVotes=" + validVotes +
+                ", totalVotes=" + totalVotes +
+                '}';
     }
 }
