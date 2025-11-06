@@ -1,13 +1,18 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElectionService } from '@/services/ElectionService'
+const API_BASE_URL =
+  (location.origin === 'https://hva-frontend.onrender.com')
+    ? 'https://hva-backend-c647.onrender.com'
+    : 'http://localhost:8081'
 
 const election = ref(null)
 const error = ref(null)
 
 onMounted(async () => {
   try {
-    election.value = await ElectionService.getElection('TK2023')
+    const response = await fetch(`${API_BASE_URL}/elections/TK2023`)
+    if (!response.ok) throw new Error('Failed to load election data')
+    election.value = await response.json()
   } catch (err) {
     error.value = err.message
   }

@@ -70,6 +70,43 @@ public class Election {
                 .orElse(null);
     }
 
+    /**
+     * Finds a candidate by matching shortCode from votes file with lastName + all initials.
+     * Format: lastName + all initials without dots (e.g. "YeşilgözD" or "JettenRAA" for "R.A.A.")
+     */
+    public Candidate getCandidateByShortCode(String shortCode) {
+        if (shortCode == null || shortCode.trim().isEmpty()) {
+            return null;
+        }
+        
+        String trimmedShortCode = shortCode.trim();
+        
+        for (Candidate candidate : candidates) {
+            String lastName = candidate.getLastName();
+            String initials = candidate.getInitials();
+            
+            if (lastName == null || lastName.trim().isEmpty()) {
+                continue;
+            }
+            
+            // Extract all letters from initials (remove dots, spaces, etc.)
+            String allInitials = null;
+            if (initials != null && !initials.trim().isEmpty()) {
+                // Remove all non-letter characters (dots, spaces, etc.) and keep only letters
+                allInitials = initials.replaceAll("[^A-Za-z]", "");
+            }
+            
+            if (allInitials != null && !allInitials.isEmpty()) {
+                String constructedCode = lastName.trim() + allInitials;
+                if (trimmedShortCode.equalsIgnoreCase(constructedCode)) {
+                    return candidate;
+                }
+            }
+        }
+        
+        return null;
+    }
+
     @Override
     public String toString() {
         return "Election{id='%s', constituencies=%d, parties=%d, candidates=%d}"

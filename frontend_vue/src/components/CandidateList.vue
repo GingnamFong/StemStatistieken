@@ -1,26 +1,36 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { ElectionService } from '@/services/ElectionService'
 
 const candidates = ref([])
 const error = ref(null)
+const loading = ref(true)
 const search = ref('')
 const sortKey = ref('lastName')
 const sortDir = ref('asc')
 
+const API_BASE_URL =
+  (location.origin === 'https://hva-frontend.onrender.com')
+    ? 'https://hva-backend-c647.onrender.com'
+    : 'http://localhost:8081'
+
 onMounted(async () => {
+  loading.value = true
   try {
-    const data = await ElectionService.loadCandidateLists('TK2023')
+    const response = await fetch(`${API_BASE_URL}/elections/TK2023/candidatelists`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) throw new Error('Failed to load candidate data')
+    const data = await response.json()
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message
+  } finally {
+    loading.value = false
   }
 })
-
-function getSortIcon(key) {
-  if (sortKey.value !== key) return ''
-  return sortDir.value === 'asc' ? '↑' : '↓'
-}
 
 function changeSort(key) {
   if (sortKey.value === key) {
@@ -30,6 +40,53 @@ function changeSort(key) {
     sortDir.value = 'asc'
   }
 }
+
+function getSortIcon(key) {
+  if (sortKey.value !== key) return ''
+  return sortDir.value === 'asc' ? '↑' : '↓'
+}
+
+// filtering by party name
+const isFilteringByParty = computed(() => {
+  if (!search.value.trim()) return false
+  const q = search.value.toLowerCase()
+
+  const matchingParties = new Set()
+  candidates.value.forEach(c => {
+    if (c.partyName?.toLowerCase().includes(q)) {
+      matchingParties.add(c.partyName)
+    }
+  })
+
+  return matchingParties.size > 0
+})
+
+// Get top 3 candidates by votes
+const top3Candidates = computed(() => {
+  if (!isFilteringByParty.value) return {}
+  const q = search.value.toLowerCase()
+
+  const partyTop3 = {}
+
+  // Group candidates by party
+  candidates.value.forEach(c => {
+    if (c.partyName?.toLowerCase().includes(q)) {
+      if (!partyTop3[c.partyName]) {
+        partyTop3[c.partyName] = []
+      }
+      partyTop3[c.partyName].push(c)
+    }
+  })
+
+  // For each party, sort by votes (descending) and take top 3
+  Object.keys(partyTop3).forEach(party => {
+    partyTop3[party] = partyTop3[party]
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+      .slice(0, 3)
+  })
+
+  return partyTop3
+})
 
 const filteredCandidates = computed(() => {
   let result = candidates.value
@@ -49,91 +106,369 @@ const filteredCandidates = computed(() => {
     if (sortKey.value === 'candidateIdentifier') return (a.candidateIdentifier - b.candidateIdentifier) * dir
     if (sortKey.value === 'partyName') return a.partyName.localeCompare(b.partyName) * dir
     if (sortKey.value === 'residence') return a.residence.localeCompare(b.residence) * dir
+    if (sortKey.value === 'votes') return (a.votes - b.votes) * dir
     return a.lastName.localeCompare(b.lastName) * dir
   })
 })
 </script>
 
 <template>
-  <div class="container">
-    <h1 class="title">👤 Kandidaten Lijst</h1>
+  <div class="candidates-page">
+    <!-- Header with breadcrumb -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="breadcrumb">
+          <router-link to="/" class="breadcrumb-item">Home</router-link>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-item active">Kandidaten</span>
+        </div>
+        <div class="header-info">
+          <div class="header-top-row">
+            <div class="header-left">
+              <div class="election-badge">
+                <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Tweede Kamer 2023</span>
+              </div>
+              <h1 class="page-title">Kandidaten Lijst</h1>
+              <p class="page-description">Bekijk alle kandidaten en hun verkiezingsresultaten</p>
+            </div>
+            <div class="header-right" v-if="candidates.length">
+              <div class="search-wrapper">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Zoeken op naam of partij..."
+          class="search-input"
+          aria-label="Zoeken"
+        />
+        <span class="search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
 
-    <p v-if="error" class="error">⚠️ {{ error }}</p>
-    <p v-if="!candidates.length && !error" class="loading">Loading candidates...</p>
+    <div class="page-container">
+      <p v-if="error" class="error">⚠️ {{ error }}</p>
+      <div v-if="loading && !error" class="loading-container">
+        <div class="spinner"></div>
+        <p class="loading-text">Kandidaten laden...</p>
+      </div>
 
-    <div class="toolbar" v-if="candidates.length">
-      <input
-        v-model="search"
-        placeholder="🔍 Search by name or party..."
-        class="search"
-      />
+    <div class="content-wrapper" v-if="!loading && filteredCandidates.length">
+      <div v-if="isFilteringByParty" class="top3-sidebar">
+        <h3 class="top3-title">Top 3 Kandidaten</h3>
+          <div v-for="(candidates, partyName) in top3Candidates" :key="partyName" class="party-section">
+          <h4 class="party-name">{{ partyName }}</h4>
+          <div class="top3-list">
+            <div v-for="c in candidates" :key="c.id" class="top3-item">
+              <div class="candidate-info">
+                <span class="candidate-name">
+                  {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
+                </span>
+                <span class="candidate-votes">
+                  {{ c.votes ? c.votes.toLocaleString() : '0' }} stemmen
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Table -->
+      <div class="table-wrapper desktop-table">
+        <table>
+          <thead>
+          <tr>
+            <th class="index-col">#</th>
+            <th @click="changeSort('candidateIdentifier')" class="sortable">
+              Identificatie <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
+            </th>
+            <th @click="changeSort('lastName')" class="sortable">
+              Naam <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
+            </th>
+            <th @click="changeSort('partyName')" class="sortable">
+              Partij <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
+            </th>
+            <th @click="changeSort('residence')" class="sortable">
+              Woonplaats <span class="sort-icon">{{ getSortIcon('residence') }}</span>
+            </th>
+            <th @click="changeSort('votes')" class="sortable">
+              Stemmen <span class="sort-icon">{{ getSortIcon('votes') }}</span>
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(c, index) in filteredCandidates" :key="c.id">
+            <td class="index-col">{{ index + 1 }}</td>
+            <td>{{ c.candidateIdentifier }}</td>
+            <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
+            <td>{{ c.partyName }}</td>
+            <td>{{ c.residence }}</td>
+            <td class="votes-cell">{{ c.votes ? c.votes.toLocaleString('nl-NL') : '0' }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card Layout -->
+      <div class="mobile-cards">
+        <!-- Mobile Sort Indicator -->
+        <div class="mobile-sort-indicator">
+          <span class="sort-label">Gesorteerd op:</span>
+          <div class="sort-buttons">
+            <button
+              @click="changeSort('candidateIdentifier')"
+              :class="['sort-btn', { active: sortKey === 'candidateIdentifier' }]"
+            >
+              Identificatie {{ sortKey === 'candidateIdentifier' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}
+            </button>
+            <button
+              @click="changeSort('lastName')"
+              :class="['sort-btn', { active: sortKey === 'lastName' }]"
+            >
+              Naam {{ sortKey === 'lastName' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}
+            </button>
+            <button
+              @click="changeSort('votes')"
+              :class="['sort-btn', { active: sortKey === 'votes' }]"
+            >
+              Stemmen {{ sortKey === 'votes' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}
+            </button>
+          </div>
+        </div>
+
+        <div v-for="(c, index) in filteredCandidates" :key="c.id" class="candidate-card">
+          <div class="card-header">
+            <span class="card-number">{{ index + 1 }}</span>
+            <div class="card-name-section">
+              <h3 class="card-name">{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</h3>
+              <span class="card-party">{{ c.partyName }}</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <span class="card-label">Identificatie:</span>
+              <span class="card-value">{{ c.candidateIdentifier }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Woonplaats:</span>
+              <span class="card-value">{{ c.residence }}</span>
+            </div>
+            <div class="card-row votes-row">
+              <span class="card-label">Stemmen:</span>
+              <span class="card-votes">{{ c.votes ? c.votes.toLocaleString('nl-NL') : '0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="table-wrapper" v-if="filteredCandidates.length">
-      <table>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th @click="changeSort('candidateIdentifier')" class="sortable">
-            Identifier <span class="sort-icon">{{ getSortIcon('candidateIdentifier') }}</span>
-          </th>
-          <th @click="changeSort('lastName')" class="sortable">
-            Name <span class="sort-icon">{{ getSortIcon('lastName') }}</span>
-          </th>
-          <th @click="changeSort('partyName')" class="sortable">
-            Party <span class="sort-icon">{{ getSortIcon('partyName') }}</span>
-          </th>
-          <th @click="changeSort('residence')" class="sortable">
-            Residence <span class="sort-icon">{{ getSortIcon('residence') }}</span>
-          </th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(c, index) in filteredCandidates" :key="c.id">
-          <td>{{ index + 1 }}</td>
-          <td>{{ c.candidateIdentifier }}</td>
-          <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
-          <td>{{ c.partyName }}</td>
-          <td>{{ c.residence }}</td>
-        </tr>
-        </tbody>
-      </table>
+      <p v-else-if="!loading && !error" class="empty">Geen kandidaten gevonden.</p>
     </div>
-
-    <p v-else-if="!error" class="empty">No candidates found.</p>
   </div>
 </template>
 
 <style scoped>
-.container {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 1rem 2rem;
-  background: #fdfdfd;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  font-family: 'Inter', system-ui, sans-serif;
+.candidates-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.title {
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: 1.8rem;
-  color: #2c3e50;
+/* Header */
+.page-header {
+  background: #1e293b;
+  padding: 40px 32px 60px;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  margin-top: -1px;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/images/banner.png') center/cover;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.breadcrumb-item {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-item:hover {
+  color: white;
+}
+
+.breadcrumb-item.active {
+  color: white;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.header-info {
+  color: white;
+}
+
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
+.election-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.page-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.page-description {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Page Container */
+.page-container {
+  max-width: 1400px;
+  margin: -40px auto 0;
+  padding: 0 32px 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.content-wrapper {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 24px;
 }
 
 .error {
   color: #e74c3c;
   text-align: center;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-top: 24px;
 }
 
-.loading {
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   text-align: center;
-  color: #555;
+  color: #64748b;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 48px 24px;
+  margin-top: 24px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .table-wrapper {
   overflow-x: auto;
+  flex: 1;
+}
+
+/* Hide mobile cards on desktop */
+.mobile-cards {
+  display: none;
 }
 
 table {
@@ -143,7 +478,7 @@ table {
 }
 
 thead {
-  background-color: #2c3e50;
+  background-color: #1e293b;
   color: white;
 }
 
@@ -153,17 +488,23 @@ th, td {
 }
 
 tbody tr:nth-child(odd) {
-  background-color: #f5f6fa;
+  background-color: #f8fafc;
 }
 
 tbody tr:hover {
-  background-color: #eaf1ff;
+  background-color: #f1f5f9;
   transition: background-color 0.2s ease;
 }
 
-th:first-child, td:first-child {
+.index-col {
   text-align: center;
   width: 50px;
+}
+
+.votes-cell {
+  text-align: right;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .sortable {
@@ -171,6 +512,7 @@ th:first-child, td:first-child {
   user-select: none;
   position: relative;
   white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .sortable:hover {
@@ -185,23 +527,387 @@ th:first-child, td:first-child {
   vertical-align: middle;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.5rem;
+.search-wrapper {
+  position: relative;
+  width: 350px;
+  min-width: 280px;
 }
 
-.search {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-  width: 250px;
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  font-size: 15px;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.search-input:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.search-wrapper:focus-within .search-icon {
+  color: #3b82f6;
+}
+
+.search-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .empty {
   text-align: center;
-  color: #888;
+  color: #64748b;
   margin-top: 1rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
 }
+
+.top3-sidebar {
+  min-width: 250px;
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 100px;
+}
+
+.top3-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #1e293b;
+}
+
+.party-section {
+  margin-bottom: 1.5rem;
+}
+
+.party-section:last-child {
+  margin-bottom: 0;
+}
+
+.party-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.top3-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.top3-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  transition: background-color 0.2s ease;
+}
+
+.top3-item:hover {
+  background-color: #f1f5f9;
+}
+
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.candidate-votes {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .page-container {
+    padding: 0 20px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 32px 20px 48px;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .page-description {
+    font-size: 16px;
+  }
+
+  .content-wrapper {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .top3-sidebar {
+    min-width: 100%;
+    position: static;
+    margin-bottom: 1rem;
+  }
+
+  .header-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .header-right {
+    width: 100%;
+    padding-bottom: 0;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  /* Hide desktop table on mobile */
+  .desktop-table {
+    display: none;
+  }
+
+  /* Show mobile cards */
+  .mobile-cards {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-sort-indicator {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+  }
+
+  .sort-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 12px;
+  }
+
+  .sort-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sort-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 16px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .sort-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #f8fafc;
+  }
+
+  .sort-btn.active {
+    border-color: #3b82f6;
+    background: #3b82f6;
+    color: white;
+    font-weight: 600;
+  }
+
+  .candidate-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .card-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    background: #1e293b;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .card-name-section {
+    flex: 1;
+  }
+
+  .card-name {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.3;
+  }
+
+  .card-party {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+
+  .card-label {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .card-value {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .votes-row {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .card-votes {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 24px 16px 40px;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+
+  .page-container {
+    padding: 0 16px 32px;
+  }
+
+  .content-wrapper {
+    padding: 16px;
+  }
+
+  .mobile-sort-indicator {
+    padding: 12px;
+  }
+
+  .sort-btn {
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .candidate-card {
+    padding: 12px;
+  }
+
+  .card-name {
+    font-size: 16px;
+  }
+
+  .card-label,
+  .card-value {
+    font-size: 13px;
+  }
+
+  .card-votes {
+    font-size: 16px;
+  }
+}
+
 </style>
