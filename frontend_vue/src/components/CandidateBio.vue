@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElectionService } from '@/services/ElectionService'
 
 const route = useRoute()
 const router = useRouter()
@@ -9,11 +10,6 @@ const candidate = ref(null)
 const error = ref(null)
 const loading = ref(true)
 
-const API_BASE_URL =
-  (location.origin === 'https://hva-frontend.onrender.com')
-    ? 'https://hva-backend-c647.onrender.com'
-    : 'http://localhost:8081'
-
 const electionId = computed(() => route.params.electionId || 'TK2023')
 const candidateId = computed(() => route.params.candidateId)
 
@@ -21,14 +17,7 @@ onMounted(async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch(`${API_BASE_URL}/elections/${electionId.value}/candidates/${candidateId.value}`)
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('Kandidaat niet gevonden')
-      }
-      throw new Error('Failed to load candidate data')
-    }
-    candidate.value = await response.json()
+    candidate.value = await ElectionService.getCandidate(electionId.value, candidateId.value)
   } catch (err) {
     error.value = err.message
   } finally {
@@ -91,6 +80,7 @@ function goBack() {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
+
                 <span>Tweede Kamer 2023</span>
               </div>
               <h1 class="page-title" v-if="candidate">{{ fullName }}</h1>
@@ -131,6 +121,7 @@ function goBack() {
                 <circle cx="12" cy="7" r="4" />
               </svg>
             </div>
+
             <div class="candidate-title">
               <h2>{{ fullName }}</h2>
               <div class="party-badge" v-if="candidate.partyName">
