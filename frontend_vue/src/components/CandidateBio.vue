@@ -38,7 +38,7 @@ const bio = computed(() => {
   if (!candidate.value) return ''
 
   const parts = []
-  parts.push(`${fullName.value} is kandidaat voor de ${candidate.value.partyName || 'onbekende partij'}.`)
+  parts.push(`${fullName.value} is kandidaat voor ${candidate.value.partyName || 'onbekende partij'}.`)
 
   if (candidate.value.residence) {
     parts.push(`De kandidaat woont in ${candidate.value.residence}.`)
@@ -49,7 +49,7 @@ const bio = computed(() => {
   }
 
   if (candidate.value.candidateIdentifier) {
-    parts.push(`De kandidaat heeft het kandidaatnummer ${candidate.value.candidateIdentifier}.`)
+    parts.push(`De kandidaat heeft kandidaatnummer: ${candidate.value.candidateIdentifier}.`)
   }
 
   return parts.join(' ')
