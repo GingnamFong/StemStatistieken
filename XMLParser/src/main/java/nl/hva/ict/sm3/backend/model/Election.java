@@ -71,6 +71,19 @@ public class Election {
     }
 
     /**
+     * Finds a candidate by their ID.
+     */
+    public Candidate getCandidateById(String candidateId) {
+        if (candidateId == null || candidateId.trim().isEmpty()) {
+            return null;
+        }
+        return candidates.stream()
+                .filter(c -> c.getId() != null && c.getId().equals(candidateId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Finds a candidate by matching shortCode from votes file with lastName + all initials.
      * Format: lastName + all initials without dots (e.g. "YeşilgözD" or "JettenRAA" for "R.A.A.")
      */
