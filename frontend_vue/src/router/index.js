@@ -38,6 +38,11 @@ const router = createRouter({
       component: () => import('../views/CandidateView.vue'),
     },
     {
+      path: '/Candidate/:candidateId',
+      name: 'CandidateDetail',
+      component: () => import('../views/CandidateDetailView.vue'),
+    },
+    {
       path: '/dashboard',
       name: 'ElectionDashboard',
       component: () => import('../views/ElectionDashboardView.vue'),
