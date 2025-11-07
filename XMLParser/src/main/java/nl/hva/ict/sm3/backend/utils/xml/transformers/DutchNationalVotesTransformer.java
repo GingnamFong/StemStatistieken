@@ -7,10 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Map;
 
+
 /**
  * Just prints to content of electionData to the standard output.>br/>
  * <b>This class needs heavy modification!</b>
  */
+
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
 
@@ -29,10 +31,10 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
 
             String Id = electionData.get("id");
             String votingMethod = electionData.getOrDefault("voting_method", "unknown");
-            int maxVotes = Integer.parseInt(electionData.getOrDefault("max_votes", ""));
-            int uncountedVotes = Integer.parseInt(electionData.getOrDefault("uncounted_votes", ""));
-            int validVotes = Integer.parseInt(electionData.getOrDefault("valid_votes", ""));
-            int totalVotes = Integer.parseInt(electionData.getOrDefault("total_votes", ""));
+            int maxVotes = Integer.parseInt(electionData.getOrDefault("max_votes", "0"));
+            int uncountedVotes = Integer.parseInt(electionData.getOrDefault("uncounted_votes", "0"));
+            int validVotes = Integer.parseInt(electionData.getOrDefault("valid_votes", "0"));
+            int totalVotes = Integer.parseInt(electionData.getOrDefault("total_votes", "0"));
 
             /*
             String ID = "Id";
