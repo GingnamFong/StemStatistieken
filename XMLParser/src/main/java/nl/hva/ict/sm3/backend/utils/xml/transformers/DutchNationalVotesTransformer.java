@@ -11,7 +11,6 @@ import java.util.Map;
  * Just prints to content of electionData to the standard output.>br/>
  * <b>This class needs heavy modification!</b>
  */
-@SpringBootApplication
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
 
