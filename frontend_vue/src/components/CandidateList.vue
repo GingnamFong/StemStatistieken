@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const candidates = ref([])
 const error = ref(null)
 const loading = ref(true)
@@ -110,6 +112,12 @@ const filteredCandidates = computed(() => {
     return a.lastName.localeCompare(b.lastName) * dir
   })
 })
+
+function viewCandidate(candidate) {
+  if (candidate && candidate.id) {
+    router.push(`/Candidate/${encodeURIComponent(candidate.id)}`)
+  }
+}
 </script>
 
 <template>
@@ -170,7 +178,7 @@ const filteredCandidates = computed(() => {
           <div v-for="(candidates, partyName) in top3Candidates" :key="partyName" class="party-section">
           <h4 class="party-name">{{ partyName }}</h4>
           <div class="top3-list">
-            <div v-for="c in candidates" :key="c.id" class="top3-item">
+            <div v-for="c in candidates" :key="c.id" class="top3-item" @click="viewCandidate(c)">
               <div class="candidate-info">
                 <span class="candidate-name">
                   {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
@@ -208,7 +216,7 @@ const filteredCandidates = computed(() => {
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(c, index) in filteredCandidates" :key="c.id">
+          <tr v-for="(c, index) in filteredCandidates" :key="c.id" @click="viewCandidate(c)" class="clickable-row">
             <td class="index-col">{{ index + 1 }}</td>
             <td>{{ c.candidateIdentifier }}</td>
             <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
@@ -247,7 +255,7 @@ const filteredCandidates = computed(() => {
           </div>
         </div>
 
-        <div v-for="(c, index) in filteredCandidates" :key="c.id" class="candidate-card">
+        <div v-for="(c, index) in filteredCandidates" :key="c.id" class="candidate-card" @click="viewCandidate(c)">
           <div class="card-header">
             <span class="card-number">{{ index + 1 }}</span>
             <div class="card-name-section">
@@ -496,6 +504,14 @@ tbody tr:hover {
   transition: background-color 0.2s ease;
 }
 
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background-color: #e0f2fe !important;
+}
+
 .index-col {
   text-align: center;
   width: 50px;
@@ -642,10 +658,11 @@ tbody tr:hover {
   border-radius: 6px;
   background-color: #f8fafc;
   transition: background-color 0.2s ease;
+  cursor: pointer;
 }
 
 .top3-item:hover {
-  background-color: #f1f5f9;
+  background-color: #e0f2fe;
 }
 
 .candidate-info {
@@ -780,6 +797,15 @@ tbody tr:hover {
     margin-bottom: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .candidate-card:hover {
+    background-color: #f0f9ff;
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   }
 
   .card-header {
