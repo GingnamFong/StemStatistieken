@@ -12,7 +12,6 @@ public class National {
     private final int validVotes;
     private final int totalVotes;
 
-
     public National(String id, String votingMethod, int maxVotes, int uncountedVotes, int validVotes, int totalVotes ) {
         this.id = id;
         this.votingMethod = votingMethod;
@@ -48,7 +47,6 @@ public class National {
 
     @Override
     public String toString() {
-
         return "Votes{" +
                 "id='" + id + '\'' +
                 ", votingMethod='" + votingMethod + '\'' +

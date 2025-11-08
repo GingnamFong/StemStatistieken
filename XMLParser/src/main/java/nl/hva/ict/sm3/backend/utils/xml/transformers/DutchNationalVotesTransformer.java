@@ -3,7 +3,6 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 import nl.hva.ict.sm3.backend.model.National;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Map;
 
@@ -45,15 +44,25 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
             String TOTAL_VOTES = "TotalVotes";
              */
 
+            National national = new National(Id, votingMethod,  maxVotes, uncountedVotes, validVotes, totalVotes);
+
+            System.out.println("Registering national vote data: " + national);
+
+            boolean alreadyExist = election.getNationalVotes().stream()
+                    .anyMatch(c -> c.getId().equals(national.getId()));
+
+            if (!alreadyExist) {
+                election.addNationalVotes(national);
+                System.out.println("Added national votes for: " + national);
+            } else {
+                System.out.println("Already exists national votes for: " + national);
+            }
+
             try {
                 maxVotes = Math.max(maxVotes, maxVotes);
             } catch (Exception e) {
                 System.err.printf("maxVotes = %d\n", maxVotes);
             }
-
-            National national = new National(Id, votingMethod,  maxVotes, uncountedVotes, validVotes, totalVotes);
-
-            System.out.println("Registering candidate: " + national);
 
 
         }

@@ -10,6 +10,8 @@ public class Election {
     private List<Constituency> constituencies = new ArrayList<>();
     private Map<String, Party> parties = new HashMap<>();
     private List<Candidate> candidates = new ArrayList<>();
+    private List<National> nationalVotes = new ArrayList<>();
+
 
     public Election(String id) {
         this.id = id;
@@ -19,6 +21,7 @@ public class Election {
     public List<Constituency> getConstituencies() { return constituencies; }
     public List<Candidate> getCandidates() { return candidates; }
     public List<Party> getParties() { return new ArrayList<>(parties.values()); }
+    public List<National> getNationalVotes() { return new ArrayList<>(nationalVotes); }
 
     public void addConstituency(Constituency newConstituency) {
         Constituency existing = getConstituencyById(newConstituency.getId());
@@ -38,6 +41,8 @@ public class Election {
     public void addParty(Party party) {
         parties.put(party.getId(), party);
     }
+
+    public void addNationalVotes(National national) {};
 
     public Constituency getConstituencyById(String id) {
         return constituencies.stream()
@@ -73,6 +78,6 @@ public class Election {
     @Override
     public String toString() {
         return "Election{id='%s', constituencies=%d, parties=%d, candidates=%d}"
-                .formatted(id, constituencies.size(), parties.size(), candidates.size());
+                .formatted(id, constituencies.size(), parties.size(), candidates.size(), nationalVotes.size());
     }
 }
