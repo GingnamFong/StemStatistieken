@@ -78,6 +78,8 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
     public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
         System.out.printf("%s meta data: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
+
+    //comment
 }
 
 
