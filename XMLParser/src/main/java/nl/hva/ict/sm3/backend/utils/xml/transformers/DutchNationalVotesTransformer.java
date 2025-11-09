@@ -12,8 +12,6 @@ import java.util.Map;
  * <b>This class needs heavy modification!</b>
  */
 
-
-
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
 
@@ -29,7 +27,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
-
+            System.out.println("DEBUG: Raw electionData from XML = " + electionData);
             System.out.println("DEBUG - Raw electionData keys: " + electionData.keySet());
             System.out.println("DEBUG - Raw electionData values: " + electionData);
 
@@ -39,7 +37,6 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
             int uncountedVotes = parseIntSafe(electionData.get("UncountedVotes"));
             int validVotes = parseIntSafe(electionData.get("ValidVotes"));
             int totalVotes = parseIntSafe(electionData.get("TotalVotes"));
-
 
             /*
             String ID = "Id";
@@ -69,7 +66,6 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
             } catch (Exception e) {
                 System.err.printf("maxVotes = %d\n", maxVotes);
             }
-
 
         }
         System.out.printf("%s party votes: %s\n", aggregated ? "National" : "Constituency", electionData);
