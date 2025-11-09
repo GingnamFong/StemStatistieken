@@ -12,6 +12,8 @@ import java.util.Map;
  * <b>This class needs heavy modification!</b>
  */
 
+
+
 public class DutchNationalVotesTransformer implements VotesTransformer {
     private final Election election;
 
@@ -28,12 +30,16 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
 
-            String Id = electionData.get("id");
-            String votingMethod = electionData.getOrDefault("voting_method", "unknown");
-            int maxVotes = Integer.parseInt(electionData.getOrDefault("max_votes", "0"));
-            int uncountedVotes = Integer.parseInt(electionData.getOrDefault("uncounted_votes", "0"));
-            int validVotes = Integer.parseInt(electionData.getOrDefault("valid_votes", "0"));
-            int totalVotes = Integer.parseInt(electionData.getOrDefault("total_votes", "0"));
+            System.out.println("DEBUG - Raw electionData keys: " + electionData.keySet());
+            System.out.println("DEBUG - Raw electionData values: " + electionData);
+
+            String Id = electionData.getOrDefault("Id", "unknown");
+            String votingMethod = electionData.getOrDefault("VotingMethod", "unknown");
+            int maxVotes = parseIntSafe(electionData.get("MaxVotes"));
+            int uncountedVotes = parseIntSafe(electionData.get("UncountedVotes"));
+            int validVotes = parseIntSafe(electionData.get("ValidVotes"));
+            int totalVotes = parseIntSafe(electionData.get("TotalVotes"));
+
 
             /*
             String ID = "Id";
@@ -67,6 +73,10 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
 
         }
         System.out.printf("%s party votes: %s\n", aggregated ? "National" : "Constituency", electionData);
+    }
+
+    private int parseIntSafe(String maxVotes) {
+        return 0;
     }
 
     @Override

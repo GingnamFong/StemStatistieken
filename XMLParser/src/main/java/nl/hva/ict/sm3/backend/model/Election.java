@@ -42,7 +42,9 @@ public class Election {
         parties.put(party.getId(), party);
     }
 
-    public void addNationalVotes(National national) {};
+    public void addNationalVotes(National national) {
+        nationalVotes.add(national);
+    };
 
     public Constituency getConstituencyById(String id) {
         return constituencies.stream()
