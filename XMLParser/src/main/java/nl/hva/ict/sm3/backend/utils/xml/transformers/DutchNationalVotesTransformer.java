@@ -29,7 +29,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
 
         // Core
-        String electionId = electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown");
+        String electionId = electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown"); // no
         String electionName = electionData.getOrDefault(ELECTION_NAME, "Unknown Election");
 
         // Party info
@@ -39,9 +39,9 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
 
         // Votes etc
         int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
-        int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0"));
-        int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0"));
-        int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0"));
+        int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")); // no
+        int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
+        int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0")); // no
 
         //unique id
         String uniqueId = String.format("%s-%s", electionId, partyId);

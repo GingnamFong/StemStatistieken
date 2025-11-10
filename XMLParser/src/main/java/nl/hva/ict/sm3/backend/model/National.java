@@ -5,16 +5,16 @@ package nl.hva.ict.sm3.backend.model;
  * <b>This class is by no means production ready! You need to alter it extensively!</b>
  */
 public class National {
-    private final String id;              // unique (electionId + partyId)
-    private final String electionId;      // e.g. "TK2023"
-    private final String electionName;    // e.g. "Tweede Kamerverkiezing 2023"
-    private final String partyId;         // internal party ID (e.g. "P01")
-    private final String partyName;       // full name (e.g. "Volkspartij voor Vrijheid en Democratie")
-    private final String shortCode;       // abbreviation (e.g. "VVD")
-    private final int validVotes;         // number of valid votes for this party
-    private final int rejectedVotes;      // rejected/invalid votes (usually 0 at national level)
-    private final int totalCounted;       // total votes counted (valid + rejected)
-    private final int numberOfSeats;      // number of seats allocated
+    private final String id;
+    private final String electionId;
+    private final String electionName;
+    private final String partyId;
+    private final String partyName;
+    private final String shortCode;
+    private final int validVotes;
+    private final int rejectedVotes;
+    private final int totalCounted;
+    private final int numberOfSeats;
 
     public National(String id, String electionId, String electionName,
                        String partyId, String partyName, String shortCode,
