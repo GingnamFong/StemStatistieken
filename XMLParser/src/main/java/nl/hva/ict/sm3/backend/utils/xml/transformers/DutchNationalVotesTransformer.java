@@ -1,6 +1,7 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
 import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 import nl.hva.ict.sm3.backend.model.National;
 
@@ -12,7 +13,7 @@ import java.util.Map;
  * <b>This class needs heavy modification!</b>
  */
 
-public class DutchNationalVotesTransformer implements VotesTransformer {
+public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAttributeNames {
     private final Election election;
 
     /**
@@ -26,11 +27,61 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
 
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
-        if (aggregated) {
-            System.out.println("DEBUG: Raw electionData from XML = " + electionData);
-            System.out.println("DEBUG - Raw electionData keys: " + electionData.keySet());
-            System.out.println("DEBUG - Raw electionData values: " + electionData);
 
+        // Core
+        String electionId = electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown");
+        String electionName = electionData.getOrDefault(ELECTION_NAME, "Unknown Election");
+
+        // Party info
+        String partyId = electionData.getOrDefault(REGISTERED_PARTY + "-Id", "unknown");
+        String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
+        String shortCode = electionData.getOrDefault(SHORT_CODE, "N/A");
+
+        // Votes etc
+        int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
+        int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0"));
+        int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0"));
+        int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0"));
+
+        //unique id
+        String uniqueId = String.format("%s-%s", electionId, partyId);
+
+        National result = new National(
+                uniqueId,
+                electionId,
+                electionName,
+                partyId,
+                partyName,
+                shortCode,
+                validVotes,
+                rejectedVotes,
+                totalCounted,
+                numberOfSeats
+        );
+
+        System.out.println("Registering national result: " + result);
+
+        boolean alreadyExists = election.getNationalVotes().stream()
+                .anyMatch(r -> r.getId().equals(uniqueId));
+
+        if (!alreadyExists) {
+            election.addNationalVotes(result);
+            System.out.println("Registered national result: " + result);
+        } else {
+            System.out.println("Skipped duplicate: " + result);
+        }
+    }
+
+    // Helper to safely parse integers
+    private int parseIntSafe(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+        /*
             String Id = electionData.getOrDefault("Id", "unknown");
             String votingMethod = electionData.getOrDefault("VotingMethod", "unknown");
             int maxVotes = parseIntSafe(electionData.get("MaxVotes"));
@@ -38,14 +89,25 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
             int validVotes = parseIntSafe(electionData.get("ValidVotes"));
             int totalVotes = parseIntSafe(electionData.get("TotalVotes"));
 
-            /*
             String ID = "Id";
             String MAX_VOTES = "MaxVotes";
             String UNCOUNTED_VOTES = "UncountedVotes";
             String VALID_VOTES = "ValidVotes";
             String VOTING_METHOD = "VotingMethod";
             String TOTAL_VOTES = "TotalVotes";
-             */
+
+                ELECTION_IDENTIFIER,
+                ELECTION_NAME,
+                CONTEST_IDENTIFIER,
+                NUMBER_OF_SEATS,
+                REGISTERED_PARTY,
+                REGISTERED_NAME,
+                SHORT_CODE,
+                VALID_VOTES,
+                REJECTED_VOTES,
+                TOTAL_COUNTED,
+                RESULT
+
 
             National national = new National(Id, votingMethod,  maxVotes, uncountedVotes, validVotes, totalVotes);
 
@@ -67,13 +129,13 @@ public class DutchNationalVotesTransformer implements VotesTransformer {
                 System.err.printf("maxVotes = %d\n", maxVotes);
             }
 
-        }
         System.out.printf("%s party votes: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
     private int parseIntSafe(String maxVotes) {
         return 0;
     }
+    */
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
