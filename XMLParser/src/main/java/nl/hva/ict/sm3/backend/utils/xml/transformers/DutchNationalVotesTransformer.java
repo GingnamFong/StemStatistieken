@@ -33,9 +33,9 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         String electionName = electionData.getOrDefault(ELECTION_NAME, "Unknown Election");
 
         // Party info
-        String partyId = electionData.getOrDefault(REGISTERED_PARTY + "-Id", "unknown");
+        String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
-        String shortCode = electionData.getOrDefault(SHORT_CODE, "N/A");
+        String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null);
 
         // Votes etc
         int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
