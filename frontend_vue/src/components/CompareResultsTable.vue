@@ -56,7 +56,7 @@ const props = defineProps({
 
 const allParties = computed(() => {
   const partiesSet = new Set()
-  
+
   props.columns.forEach(col => {
     if (col.data && col.data.partijen) {
       col.data.partijen.forEach(party => {
@@ -64,7 +64,7 @@ const allParties = computed(() => {
       })
     }
   })
-  
+
   return Array.from(partiesSet).sort()
 })
 
@@ -229,7 +229,7 @@ function formatNumber(num) {
   .card-header {
     padding: 20px;
   }
-  
+
   .comparison-table th,
   .comparison-table td {
     padding: 12px 16px;

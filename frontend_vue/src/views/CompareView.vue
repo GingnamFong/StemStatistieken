@@ -16,7 +16,7 @@
             <span>Vergelijk Verkiezingen</span>
           </div>
           <h1 class="page-title">Vergelijk Uitslagen</h1>
-          <p class="page-description">Vergelijk provincies of gemeentes tussen verschillende jaren</p>
+          <p class="page-description">Vergelijk provincies, gemeentes of kieskringen tussen verschillende jaren</p>
         </div>
       </div>
     </header>
