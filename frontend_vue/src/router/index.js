@@ -42,6 +42,11 @@ const router = createRouter({
       name: 'ElectionDashboard',
       component: () => import('../views/ElectionDashboardView.vue'),
     },
+    {
+      path: '/vergelijken',
+      name: 'Compare',
+      component: () => import('../views/CompareView.vue'),
+    },
 
   ],
 })
