@@ -34,7 +34,7 @@
 
       <section class="grid">
         <article class="card">
-          <h3>Wat we doen</h3>
+          <h2>Wat we doen</h2>
           <ul class="list">
             <li>Interactieve kaarten en grafieken voor verkiezingsuitslagen</li>
             <li>Vergelijk functionaliteit tussen partijen en jaren</li>
@@ -42,7 +42,7 @@
           </ul>
         </article>
         <article class="card">
-          <h3>Onze waarden</h3>
+          <h2>Onze waarden</h2>
           <ul class="list">
             <li>Betrouwbaarheid en transparantie</li>
             <li>Toegankelijkheid en performance</li>
@@ -56,9 +56,28 @@
         <p>
           Heb je feedback of wil je meedenken? Laat het ons weten.
         </p>
+        <ul class="contact-list">
+          <li><strong>Adres:</strong> Wibauthuis, Wibautstraat 3B, 1091 GH Amsterdam</li>
+          <li><strong>Telefoon:</strong> (020) 123 45 67</li>
+          <li><strong>E-mail:</strong> contact@stemstatistieken.nl</li>
+          <li><strong>Openingstijden:</strong> Maandag t/m vrijdag, 09:00 - 17:00</li>
+        </ul>
         <p class="muted">
           Tip: gebruik de navigatie om andere onderdelen zoals Uitslagen, Kandidaten en Vergelijken te verkennen.
         </p>
+      </section>
+      <section class="card map-card">
+        <h2>Hier vind je ons</h2>
+        <p class="muted">Ons team werkt vanuit het Wibauthuis van de Hogeschool van Amsterdam.</p>
+        <div class="map-wrapper">
+          <iframe
+            class="map-iframe"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d546.7886733042398!2d4.909632646712929!3d52.35916815236507!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c6099a4b62ff9f%3A0xaaf1a4822a7d03c9!2sHogeschool%20van%20Amsterdam%20-%20HvA%20Wibauthuis%20(WBH)!5e0!3m2!1snl!2snl!4v1762874430364!5m2!1snl!2snl"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
       </section>
     </main>
   </section>
@@ -205,6 +224,45 @@
 
 .muted {
   color: #64748b;
+}
+
+.contact {
+  margin-top: 22px;
+}
+
+.contact-list {
+  list-style: none;
+  margin: 16px 0 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  color: #334155;
+}
+
+.contact-list strong {
+  color: #1e293b;
+}
+
+.map-card {
+  margin-top: 28px;
+}
+
+.map-wrapper {
+  position: relative;
+  padding-top: 56.25%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+  margin-top: 16px;
+}
+
+.map-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 @media (min-width: 1024px) {
