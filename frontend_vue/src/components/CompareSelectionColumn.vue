@@ -22,8 +22,8 @@
           :disabled="disabled"
         >
           <option value="">Kies type...</option>
-          <option value="provincie" :disabled="selectedType && selectedType !== 'provincie'">Provincie</option>
-          <option value="gemeente" :disabled="selectedType && selectedType !== 'gemeente'">Gemeente</option>
+          <option value="provincie">Provincie</option>
+          <option value="gemeente">Gemeente</option>
         </select>
       </div>
 
