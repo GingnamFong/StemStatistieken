@@ -31,10 +31,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { defineEmits } from 'vue'
-import NederlandMap2021 from '@/assets/Nederland_gemeenten_2021.svg'
+import NederlandMap2021 from '@/assets/Nederland_gemeente_2021.svg'
 
 const container = ref(null)
 const emit = defineEmits(['municipalitySelected'])
+defineProps({ year: Number })
 
 const tooltip = ref({
   visible: false,
@@ -106,5 +107,68 @@ function handleClick(e) {
 </script>
 
 <style scoped>
-@import './DutchMapGemeente2024.vue'; /* ✅ optional reuse if you move CSS there */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ensure the SVG scales but keep pointer events */
+.dutch-map {
+  width: 80%;
+  max-width: 600px; /* prevents the SVG from being huge */
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* base path styles (these target all paths in the injected SVG) */
+path {
+  fill: #e0e0e0;
+  stroke: #777;
+  stroke-width: 0.4;
+  transition: fill 0.12s;
+}
+.dutch-map:hover {
+  transform: scale(1.02);
+}
+
+path:hover {
+  fill: #ffd24d;
+}
+
+/* tooltip */
+.tooltip {
+  position: absolute;
+  transform: translate(0, 0);
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  font-size: 0.85rem;
+  min-width: 160px;
+  z-index: 50;
+  line-height: 1.3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.tooltip strong {
+  font-size: 0.9rem;
+  color: #ffd24d;
+}
+
+.tooltip ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tooltip li {
+  margin: 3px 0;
+  font-size: 0.82rem;
+}
 </style>
+

@@ -45,6 +45,18 @@
             <div class="card-title-group">
               <h2 class="card-title">{{ currentTitle }}</h2>
             </div>
+
+            <!-- 🔹 Year toggle buttons -->
+            <div class="year-selector">
+              <button
+                v-for="year in [2021, 2023]"
+                :key="year"
+                @click="selectedYear = year"
+                :class="['year-button', { active: selectedYear === year }]"
+              >
+                {{ year }}
+              </button>
+            </div>
           </div>
 
           <div class="card-body">
@@ -52,9 +64,10 @@
               <component
                 :is="currentMapComponent"
                 :showDataSection="false"
-                @municipalitySelected="handleMunicipalitySelected"
-                @provincieDataForChart="handleProvincieSelected"
-                @regionSelected="handleKieskringSelected"
+                :year="selectedYear"
+              @municipalitySelected="handleMunicipalitySelected"
+              @provincieDataForChart="handleProvincieSelected"
+              @regionSelected="handleKieskringSelected"
               />
             </div>
           </div>
@@ -90,6 +103,7 @@
 <script setup>
 import {computed, ref} from 'vue'
 import DutchMapGemeente2024 from '@/components/DutchMapGemeente2024.vue'
+import DutchMapGemeente2021 from '@/components/DutchMapGemeente2021.vue'
 import DutchMapProvincie from '@/components/DutchMapProvincie.vue'
 import ChartsPanel from '@/components/ChartsPanel.vue'
 import DutchMapKiesKring from '@/components/DutchMapKiesKring.vue'
@@ -116,6 +130,7 @@ const viewTypes = [
 /* --- Reactive state --- */
 const selectedType = ref('province')
 const selectedRegion = ref(null)
+const selectedYear = ref(2023)
 
 /* --- Handlers --- */
 function handleMunicipalitySelected(m) {
@@ -158,7 +173,9 @@ const currentTitle = computed(() => {
 const currentMapComponent = computed(() => {
   switch (selectedType.value) {
     case 'municipality':
-      return DutchMapGemeente2024
+      return selectedYear.value === 2021
+        ? DutchMapGemeente2021
+        : DutchMapGemeente2024
     case 'province':
       return DutchMapProvincie
     case 'kieskring':
