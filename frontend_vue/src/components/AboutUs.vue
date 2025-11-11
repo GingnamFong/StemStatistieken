@@ -12,11 +12,11 @@
             <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0-6a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zm0 18a1 1 0 011 1v2a1 1 0 11-2 0v-2a1 1 0 011-1zm-9-7a1 1 0 011-1h2a1 1 0 110 2H4a1 1 0 01-1-1zm16 0a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" />
             </svg>
-            <span>Over Ons</span>
+            <span>Over Ons — StemStatistieken</span>
           </div>
-          <h1 class="page-title">Wie wij zijn</h1>
+          <h1 class="page-title">Wie wij zijn bij StemStatistieken</h1>
           <p class="page-description">
-            We maken verkiezingsdata helder en toegankelijk met moderne, betrouwbare en gebruiksvriendelijke tools.
+            StemStatistieken maakt verkiezingsdata helder en toegankelijk met moderne, betrouwbare en gebruiksvriendelijke tools.
           </p>
         </div>
       </div>
