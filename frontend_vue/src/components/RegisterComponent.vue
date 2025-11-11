@@ -1,18 +1,31 @@
 <template>
-  <div class="register-page">
+  <section class="register-page">
     <!-- Left side -->
     <section class="register-left">
-      <div class="logo">📊 StemStatistieken</div>
-      <h1>Bekijk snel en gemakkelijk
-        de verkiezingsresultaten
-        en discussieer mee!</h1>
-
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+        </svg>
+        <span>StemStatistieken</span>
+      </div>
+      <h1>
+        Bekijk snel en gemakkelijk<br />
+        de verkiezingsresultaten<br />
+        en discussieer mee!
+      </h1>
     </section>
 
     <!-- Right side (form) -->
     <section class="register-right">
       <div class="register-card">
-        <div class="register-logo">📊</div>
+        <div class="register-icon-wrapper">
+          <div class="register-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+        </div>
         <h2>Creëer uw account</h2>
         <p class="subtitle">Voeg uw informatie in om een account te kunnen maken!</p>
 
@@ -20,30 +33,30 @@
           <div class="form-row">
             <div class="form-group">
               <label for="name">Voornaam</label>
-              <input type="text" id="name" v-model="form.name" />
-              <span v-if="errors.name">{{ errors.name }}</span>
+              <input type="text" id="name" v-model="form.name" placeholder="voer uw voornaam in"/>
+              <span v-if="errors.name" class="error-text">{{ errors.name }}</span>
             </div>
             <div class="form-group">
               <label for="lastName">Achternaam</label>
-              <input type="text" id="lastName" v-model="form.lastName" />
+              <input type="text" id="lastName" v-model="form.lastName" placeholder="voer uw achternaam in"/>
             </div>
           </div>
 
           <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" v-model="form.email" />
-            <span v-if="errors.email">{{ errors.email }}</span>
+            <input type="email" id="email" v-model="form.email" placeholder="voer uw email in"/>
+            <span v-if="errors.email" class="error-text">{{ errors.email }}</span>
           </div>
 
           <div class="form-group">
             <label for="password">Wachtwoord</label>
-            <input type="password" id="password" v-model="form.password" />
-            <span v-if="errors.password">{{ errors.password }}</span>
+            <input type="password" id="password" v-model="form.password" placeholder="voer uw wachtwoord in"/>
+            <span v-if="errors.password" class="error-text">{{ errors.password }}</span>
           </div>
 
           <div class="form-check">
             <input type="checkbox" id="terms" />
-            <label for="terms">Ik ga akkoord met de <a href="#">Algemene Voorwaarden</a></label>
+            <label for="terms">Ik ga akkoord met de <a href="#" class="terms-link">Algemene Voorwaarden</a></label>
           </div>
 
           <button type="submit" class="btn-primary">Registreren</button>
@@ -51,15 +64,18 @@
         </form>
 
         <p class="login-link">
-          Al een account? <a href="/login">Log dan in</a>
+          Al een account? <router-link to="/login">Log dan in</router-link>
         </p>
       </div>
     </section>
-  </div>
+  </section>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const form = reactive({
   name: '',
@@ -118,79 +134,113 @@ function handleSubmit() {
 <style scoped>
 .register-page {
   display: flex;
-  height: 100vh;
-  width: 100%;
-  background-color: #f4f5f7;
-  font-family: 'Inter', sans-serif;
+  height: calc(100vh + 64px);
+  min-height: 100vh;
+  width: 100vw;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  margin: -64px calc(50% - 50vw) 0;
+  overflow: hidden;
 }
 
-/* LEFT SIDE */
 .register-left {
-  min-width: 50%;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 80px;
-  background-color: #f5f6f7;
-  color: #000;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/banner.png') center/cover;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.register-left > * {
+  position: relative;
+  z-index: 1;
 }
 
 .register-left .logo {
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 1.5rem 'Nunito', sans-serif;
+  margin-bottom: 60px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .register-left h1 {
-  font-size: 2rem;
-  line-height: 1.3;
-  font-weight: 700;
-  margin-bottom: 16px;
+  font: 800 2.5rem/1.3 'Nunito', sans-serif;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
-.register-left p {
-  color: #555;
-  max-width: 380px;
-}
-
-/* RIGHT SIDE */
 .register-right {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #fff;
-  border-left: 1px solid #eee;
+  padding: 40px;
+  overflow-y: auto;
 }
 
 .register-card {
-  width: auto;
+  width: 100%;
+  max-width: 500px;
   text-align: center;
-  padding: 40px 20px;
 }
 
-.register-logo {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
+.register-icon-wrapper {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
 }
 
-h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #111;
+.register-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-icon svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.register-card h2 {
+  font: 800 2rem/1 'Nunito', sans-serif;
+  color: #1e293b;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  color: #666;
-  margin-bottom: 30px;
-  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 40px;
 }
 
-/* FORM */
 .register-form {
   text-align: left;
+  margin-bottom: 24px;
 }
 
 .form-row {
@@ -200,96 +250,117 @@ h2 {
 
 .form-group {
   flex: 1;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
-label {
+.form-group label {
   display: block;
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #333;
+  font: 600 14px 'Nunito', sans-serif;
+  color: #1e293b;
+  margin-bottom: 8px;
 }
 
-input {
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
   width: 100%;
-  padding: 10px 0;
-  border: none;
-  border-bottom: 1px solid #ccc;
-  font-size: 1rem;
-  background: transparent;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font: 16px 'Nunito', sans-serif;
+  color: #1e293b;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   outline: none;
 }
 
-input:focus {
-  border-bottom-color: #000;
+.form-group input::placeholder {
+  color: #94a3b8;
 }
 
-span {
-  color: red;
-  font-size: 0.8rem;
+.error-text {
+  display: block;
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 4px;
 }
 
-/* CHECKBOX */
 .form-check {
   margin: 12px 0 24px;
-  font-size: 0.85rem;
-  color: #444;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 14px;
+  color: #475569;
 }
 
-.form-check a {
-  color: #000;
+.form-check input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.form-check label {
+  font: 400 14px 'Nunito', sans-serif;
+  color: #475569;
+  margin: 0;
+}
+
+.terms-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.terms-link:hover {
+  color: #2563eb;
   text-decoration: underline;
 }
 
-/* BUTTONS */
 .btn-primary {
   width: 100%;
-  background: #000;
-  color: #fff;
+  padding: 12px 24px;
+  background: #1e293b;
+  color: white;
   border: none;
-  border-radius: 999px;
-  padding: 12px;
-  font-weight: 600;
+  border-radius: 8px;
+  font: 600 16px 'Nunito', sans-serif;
   cursor: pointer;
-  margin-bottom: 12px;
-  transition: background 0.3s;
+  transition: all 0.2s;
+  margin-bottom: 24px;
 }
 
 .btn-primary:hover {
-  background: #222;
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
 }
 
-.btn-google {
-  width: 100%;
-  background: #e5e7eb;
-  border: none;
-  border-radius: 999px;
-  padding: 12px;
-  font-weight: 600;
-  cursor: pointer;
+.btn-primary:active {
+  transform: translateY(0);
 }
 
-/* FOOTER LINK */
 .login-link {
-  margin-top: 24px;
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 14px;
+  color: #64748b;
 }
 
 .login-link a {
   font-weight: 600;
-  color: #000;
+  color: #3b82f6;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .login-link a:hover {
+  color: #2563eb;
   text-decoration: underline;
 }
 
-/* RESPONSIVE FIXES */
 @media (max-width: 800px) {
   .register-page {
     flex-direction: column;
@@ -298,9 +369,37 @@ span {
     padding: 40px 20px;
     text-align: center;
     align-items: center;
+    min-height: 40vh;
+  }
+  .register-left h1 {
+    font-size: 2rem;
   }
   .register-right {
-    border-left: none;
+    padding: 40px 20px;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-left {
+    padding: 32px 16px;
+    min-height: 35vh;
+  }
+  .register-left .logo {
+    font-size: 1.2rem;
+    margin-bottom: 32px;
+  }
+  .register-left h1 {
+    font-size: 1.75rem;
+  }
+  .register-right {
+    padding: 32px 16px;
+  }
+  .register-card h2 {
+    font-size: 1.75rem;
   }
 }
 </style>

@@ -89,6 +89,26 @@ public class DutchElectionParser {
         parseFiles(folderName, "Telling_%s_gemeente".formatted(electionId), new EMLHandler(municipalityVotesTransformer));
     }
 
+    /**
+     * Parses only the candidate lists (Kandidatenlijsten) and total votes (Totaaltelling) files.
+     * This is optimized for loading candidate lists without needing all other election data.
+     *
+     * @param electionId the identifier for the files that should be processed, for example <i>TK2023</i>.
+     * @param folderName The name of the folder that contains the files containing the election data.
+     * @throws IOException in case something goes wrong while reading the file.
+     * @throws XMLStreamException when a file has not the expected format.
+     */
+    public void parseCandidateListsAndTotalVotes(String electionId, String folderName) throws IOException, XMLStreamException, ParserConfigurationException, SAXException {
+        // TODO replace with proper usage of a logging framework
+        System.out.printf("Loading candidate lists and total votes from %s\n", folderName);
+        
+        // Parse only Kandidatenlijsten files (from Kandidatenlijsten folder)
+        parseFiles(folderName, "Kandidatenlijsten_%s".formatted(electionId), new EMLHandler(candidateTransformer));
+        
+        // Parse only Totaaltelling file
+        parseFiles(folderName, "Totaaltelling_%s".formatted(electionId), new EMLHandler(nationalVotesTransformer));
+    }
+
     private void parseFiles(String folderName, String fileFilter, EMLHandler emlHandler) throws IOException, ParserConfigurationException, SAXException {
         List<Path> files = PathUtils.findFilesToScan(folderName, fileFilter);
         files.sort(Comparator.comparing(Path::getFileName));

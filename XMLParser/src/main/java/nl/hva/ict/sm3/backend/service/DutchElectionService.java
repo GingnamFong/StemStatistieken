@@ -77,7 +77,7 @@ public class DutchElectionService {
     }
 
     public void loadCandidateLists(Election election, String folderName) {
-        System.out.println("Loading candidate lists...");
+        System.out.println("Loading candidate lists and total votes...");
 
         String electionId = election.getId().trim();
         folderName = folderName.trim();
@@ -95,13 +95,26 @@ public class DutchElectionService {
             String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
             System.out.println("Resolved folder name: " + safeFolderName);
 
-            // parse candidate lists
-            electionParser.parseResults(electionId,
-                    PathUtils.getResourcePath("/" + safeFolderName + "/Kandidatenlijsten"));
+            // Parse only candidate lists (from Kandidatenlijsten folder) and Totaaltelling
+            // This will load both candidates and their vote counts without loading all other data
+            System.out.println("Step 1: Loading candidate lists...");
+            electionParser.parseCandidateListsAndTotalVotes(electionId,
+                    PathUtils.getResourcePath("/" + safeFolderName));
+            
+            // Debug: Print summary of loaded candidates
+            System.out.println("Step 2: Summary - Loaded " + election.getCandidates().size() + " candidates");
+            long candidatesWithShortCode = election.getCandidates().stream()
+                    .filter(c -> c.getShortCode() != null && !c.getShortCode().trim().isEmpty())
+                    .count();
+            System.out.println("  - Candidates with shortCode: " + candidatesWithShortCode);
+            long candidatesWithVotes = election.getCandidates().stream()
+                    .filter(c -> c.getVotes() > 0)
+                    .count();
+            System.out.println("  - Candidates with votes > 0: " + candidatesWithVotes);
 
             // Cache the result
             electionCache.put(electionId, election);
-            System.out.println("Candidate lists loaded for election: " + electionId);
+            System.out.println("Candidate lists and total votes loaded for election: " + electionId);
 
         } catch (IOException | XMLStreamException | ParserConfigurationException |
                  SAXException | NullPointerException e) {
