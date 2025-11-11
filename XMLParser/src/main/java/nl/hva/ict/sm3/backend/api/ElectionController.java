@@ -124,4 +124,29 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
+    @GetMapping("/{electionId}/candidates/{candidateId}")
+    public ResponseEntity<Candidate> getCandidateById(
+            @PathVariable String electionId,
+            @PathVariable String candidateId) {
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            // Try to load candidate lists if election not in cache
+            election = new Election(electionId);
+            electionService.loadCandidateLists(election, electionId);
+            // Election is now cached by loadCandidateLists method
+        }
+
+        if (election == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Candidate candidate = election.getCandidateById(candidateId);
+        if (candidate == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(candidate);
+    }
+
 }
