@@ -19,14 +19,14 @@
 ## Wat ga je vandaag doen?
 - **Kevin Koudhoofd:** Verder werken aan de vergelijking functie voor provincies en gemeenten van 2023 en het melden bij teamgenoten die ook werken aan een vergelijking functie.
 - **Ging Nam Fong:** Vergelijken kieskring
-- **Jonathan Roemers:** Data die zich niet toont proberen te fixen
+- **Jonathan Roemers:** Data die zich niet toont proberen te fixen want niet alle gevraagde data wordt getoond 
 - **Jerrico Garcia:** Beginnen met WGAC kleuren
 - **Arham Malik:** ...
 
 ## Loop je ergens tegenaan?
 - **Kevin Koudhoofd:** Nergens
 - **Ging Nam Fong:** Nee
-- **Jonathan Roemers:** Niet alle gevraagde data laat zich tonen
+- **Jonathan Roemers:** Sommige strings tonen geen data
 - **Jerrico Garcia:** Nee
 - **Arham Malik:** ...
 
