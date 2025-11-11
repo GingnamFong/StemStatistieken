@@ -16,6 +16,21 @@ const props = defineProps({
 })
 
 const chartConfig = computed(() => {
+  if (!props.data || props.data.length === 0) {
+    return {
+      data: {
+        labels: [],
+        datasets: [{ data: [], backgroundColor: [], borderColor: '#ffffff', borderWidth: 2 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 8 },
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      },
+    }
+  }
+  
   const labels = props.data.map(p => p.name)
   const values = props.data.map(p => p.votes)
   const total = values.reduce((a, b) => a + (b || 0), 0)
