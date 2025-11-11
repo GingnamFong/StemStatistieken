@@ -2,7 +2,12 @@
   <section class="login-page">
       <!-- Left message -->
     <section class="login-left">
-      <div class="logo">📊 StemStatistieken</div>
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+        </svg>
+        <span>StemStatistieken</span>
+      </div>
       <h1>
         Bekijk snel en gemakkelijk<br />
         de verkiezingsresultaten<br />
@@ -13,31 +18,47 @@
     <!-- Right card (login) -->
     <section class="login-right">
       <div class="login-card">
-        <div class="login-logo">📊</div>
+        <div class="login-icon-wrapper">
+          <div class="login-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+        </div>
         <h2>Welkom terug</h2>
         <p class="subtitle">Log in om verder te gaan!</p>
 
         <form @submit.prevent="onSubmit" class="login-form">
-          <label for="email">Email<span class="req">*</span></label>
-          <input id="email" v-model="email" type="email"/>
+          <div class="form-group">
+            <label for="email">Email<span class="req">*</span></label>
+            <input id="email" v-model="email" type="email" placeholder="voer uw email in"/>
+          </div>
 
-          <label for="password">Wachtwoord<span class="req">*</span></label>
-          <input id="password" v-model="password" type="password"/>
+          <div class="form-group">
+            <label for="password">Wachtwoord<span class="req">*</span></label>
+            <input id="password" v-model="password" type="password" placeholder="voer uw wachtwoord in"/>
+          </div>
 
           <div class="help-row">
-            <a href="#" @click.prevent>Forgot password?</a>
+            <a href="#" @click.prevent class="forgot-link">Wachtwoord vergeten?</a>
           </div>
 
           <!-- Error message -->
           <div v-if="errorMessage" class="error-message">
-            {{ errorMessage }}
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{{ errorMessage }}</span>
           </div>
 
           <button type="submit" class="btn-primary">Inloggen</button>
         </form>
 
         <p class="register-link">
-          Geen account? <a href="/register">Registreer hier</a>
+          Geen account? <router-link to="/register">Registreer hier</router-link>
         </p>
       </div>
     </section>
@@ -74,142 +95,228 @@ function onSubmit() {
 <style scoped>
 .login-page {
   display: flex;
-  height: 100vh;
-  width: 100%;
-  font-family: 'Inter', sans-serif;
-  background-color: #f4f5f7;
+  height: calc(100vh + 64px);
+  min-height: 100vh;
+  width: 100vw;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  margin: -64px calc(50% - 50vw) 0;
+  overflow: hidden;
 }
 
-/* LEFT SIDE */
 .login-left {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 80px;
-  background-color: #f5f6f7;
-  color: #000;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/banner.png') center/cover;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.login-left > * {
+  position: relative;
+  z-index: 1;
 }
 
 .login-left .logo {
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 1.5rem 'Nunito', sans-serif;
+  margin-bottom: 60px;
+}
+
+.logo-icon {
+
+  width: 32px;
+  height: 32px;
 }
 
 .login-left h1 {
-  font-size: 2rem;
-  line-height: 1.3;
-  font-weight: 700;
+  font: 800 2.5rem/1.3 'Nunito', sans-serif;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
-/* RIGHT SIDE */
 .login-right {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   background: #fff;
-  border-left: 1px solid #eee;
+  padding: 40px;
+  overflow-y: auto;
 }
 
 .login-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 450px;
   text-align: center;
-  padding: 40px 20px;
 }
 
-.login-logo {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
+.login-icon-wrapper {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
 }
 
-h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #111;
+.login-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-icon svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.login-card h2 {
+  font: 800 2rem/1 'Nunito', sans-serif;
+  color: #1e293b;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  color: #666;
-  margin-bottom: 30px;
-  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 40px;
 }
 
-/* FORM */
 .login-form {
   text-align: left;
+  margin-bottom: 24px;
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
-label {
+.form-group label {
   display: block;
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #333;
+  font: 600 14px 'Nunito', sans-serif;
+  color: #1e293b;
+  margin-bottom: 8px;
 }
 
-input {
+.req {
+  color: #e74c3c;
+  margin-left: 4px;
+}
+
+.form-group input {
   width: 100%;
-  padding: 10px 0;
-  border: none;
-  border-bottom: 1px solid #ccc;
-  font-size: 1rem;
-  background: transparent;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font: 16px 'Nunito', sans-serif;
+  color: #1e293b;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   outline: none;
 }
 
-input:focus {
-  border-bottom-color: #000;
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+.help-row {
+  text-align: right;
+  margin-bottom: 24px;
+}
+
+.forgot-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font: 500 14px 'Nunito', sans-serif;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .error-message {
-  color: red;
-  font-size: 0.8rem;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #e74c3c;
+  font-size: 14px;
+  margin-bottom: 24px;
 }
 
-/* BUTTON */
+.error-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .btn-primary {
   width: 100%;
-  background: #000;
-  color: #fff;
+  padding: 12px 24px;
+  background: #1e293b;
+  color: white;
   border: none;
-  border-radius: 999px;
-  padding: 12px;
-  font-weight: 600;
+  border-radius: 8px;
+  font: 600 16px 'Nunito', sans-serif;
   cursor: pointer;
-  margin-bottom: 12px;
-  transition: background 0.3s;
+  transition: all 0.2s;
+  margin-bottom: 24px;
 }
 
 .btn-primary:hover {
-  background: #222;
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
 }
 
-/* FOOTER LINK */
+.btn-primary:active {
+  transform: translateY(0);
+}
+
 .register-link {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 14px;
+  color: #64748b;
 }
 
 .register-link a {
   font-weight: 600;
-  color: #000;
+  color: #3b82f6;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .register-link a:hover {
+  color: #2563eb;
   text-decoration: underline;
 }
 
-/* RESPONSIVE */
 @media (max-width: 800px) {
   .login-page {
     flex-direction: column;
@@ -218,9 +325,33 @@ input:focus {
     padding: 40px 20px;
     text-align: center;
     align-items: center;
+    min-height: 40vh;
+  }
+  .login-left h1 {
+    font-size: 2rem;
   }
   .login-right {
-    border-left: none;
+    padding: 40px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-left {
+    padding: 32px 16px;
+    min-height: 35vh;
+  }
+  .login-left .logo {
+    font-size: 1.2rem;
+    margin-bottom: 32px;
+  }
+  .login-left h1 {
+    font-size: 1.75rem;
+  }
+  .login-right {
+    padding: 32px 16px;
+  }
+  .login-card h2 {
+    font-size: 1.75rem;
   }
 }
 </style>
