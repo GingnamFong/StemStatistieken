@@ -24,6 +24,11 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/over-ons',
+      name: 'over-ons',
+      component: () => import('../views/AboutView.vue'),
+    },
+    {
       path: '/Register',
       name: 'Register',
       component: () => import('../views/RegisterView.vue'),
