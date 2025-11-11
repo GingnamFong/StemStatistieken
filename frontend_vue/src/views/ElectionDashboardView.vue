@@ -13,7 +13,7 @@
             <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <span>Tweede Kamer 2023</span>
+            <span>Tweede Kamer {{ selectedYear }}</span>
           </div>
           <h1 class="page-title">Verkiezingsuitslagen</h1>
           <p class="page-description">Verken interactieve kaarten en gedetailleerde statistieken</p>
@@ -534,5 +534,68 @@ const currentMapComponent = computed(() => {
     padding: 0 16px 32px;
   }
 }
+.election-badge span {
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.election-badge span {
+  display: inline-block;
+}
+
+.year-button.active ~ .dashboard-header .election-badge span {
+  transform: scale(1.05);
+  color: #ffd24d;
+}
+/* === Year Selector Buttons === */
+.year-selector {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.year-button {
+  padding: 8px 20px;
+  border: 2px solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.year-button:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.year-button.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+}
+
+.year-button:focus-visible {
+  outline: 3px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .year-selector {
+    gap: 8px;
+  }
+
+  .year-button {
+    padding: 6px 16px;
+    font-size: 14px;
+  }
+}
+
+
 </style>
 

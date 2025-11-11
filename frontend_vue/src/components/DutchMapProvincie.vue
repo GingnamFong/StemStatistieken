@@ -50,10 +50,14 @@ const svgContainer = ref(null)
 const svgContent = ref('')
 const selectedProvincie = ref(null)
 const kieskringen = ref([])
-const props = defineProps({
+const { showDataSection, year } = defineProps({
   showDataSection: {
     type: Boolean,
     default: true
+  },
+  year: {
+    type: Number,
+    default: 2023
   }
 })
 
@@ -105,7 +109,7 @@ const addPathListeners = () => {
         path.style.fillOpacity = '0.8'
         emit('provincie-selected', provincieNaam)
         await loadProvincieData(provincieNaam)
-        
+
         // Emit data in format voor ChartsPanel
         if (selectedProvincie.value.resultaten && selectedProvincie.value.resultaten.length > 0) {
           const chartData = {
