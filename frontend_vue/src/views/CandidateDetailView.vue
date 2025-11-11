@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AboutUs from '@/components/AboutUs.vue'
+import CandidateBio from '@/components/CandidateBio.vue'
 </script>
 
 <template>
-  <AboutUs />
+  <CandidateBio />
 </template>
 
 <style scoped>
