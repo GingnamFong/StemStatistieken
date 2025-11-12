@@ -2,6 +2,15 @@
   <section class="results-card">
     <div class="card-header">
       <h2 class="card-title">Vergelijkingsresultaten</h2>
+      <button @click="toggleSortOrder" class="sort-toggle" :title="sortDescending ? 'Sorteer: Laag → Hoog' : 'Sorteer: Hoog → Laag'">
+        <svg v-if="sortDescending" class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 13l5 5 5-5M7 6l5-5 5 5" />
+        </svg>
+        <svg v-else class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 17l5-5 5 5M7 6l5 5 5-5" />
+        </svg>
+        <span class="sort-label">{{ sortDescending ? 'Hoog → Laag' : 'Laag → Hoog' }}</span>
+      </button>
     </div>
 
     <div class="card-body">
@@ -12,7 +21,7 @@
               <th class="party-column">Partij</th>
               <th v-for="(col, idx) in columns" :key="idx" class="result-column">
                 <div class="column-header">
-                  <div class="column-title">{{ getColumnTitle(col, idx) }}</div>
+                  <div class="column-title">{{ getColumnTitle(col) }}</div>
                   <div class="column-subtitle">{{ getColumnSubtitle(col) }}</div>
                 </div>
               </th>
@@ -37,7 +46,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+
+const sortDescending = ref(true)
+
+function toggleSortOrder() {
+  sortDescending.value = !sortDescending.value
+}
 
 const props = defineProps({
   columns: {
@@ -56,7 +71,7 @@ const props = defineProps({
 
 const allParties = computed(() => {
   const partiesSet = new Set()
-  
+
   props.columns.forEach(col => {
     if (col.data && col.data.partijen) {
       col.data.partijen.forEach(party => {
@@ -64,11 +79,26 @@ const allParties = computed(() => {
       })
     }
   })
-  
-  return Array.from(partiesSet).sort()
+
+  // Sort by total votes (highest to lowest) across all columns
+  const parties = Array.from(partiesSet)
+  return parties.sort((a, b) => {
+    let aTotal = 0
+    let bTotal = 0
+
+    props.columns.forEach(col => {
+      const aData = getPartyData(col, a)
+      const bData = getPartyData(col, b)
+      if (aData) aTotal += aData.votes
+      if (bData) bTotal += bData.votes
+    })
+
+    // Sort based on toggle: descending (high to low) or ascending (low to high)
+    return sortDescending.value ? bTotal - aTotal : aTotal - bTotal
+  })
 })
 
-function getColumnTitle(col, index) {
+function getColumnTitle(col) {
   // Find the original column index in allColumns
   const originalIndex = props.allColumns.findIndex(c => c === col)
   const selections = props.availableSelections[originalIndex] || []
@@ -109,6 +139,9 @@ function formatNumber(num) {
 .card-header {
   padding: 24px 28px;
   border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-title {
@@ -116,6 +149,43 @@ function formatNumber(num) {
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+}
+
+.sort-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sort-toggle:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #f8fafc;
+}
+
+.sort-toggle:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.sort-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.sort-label {
+  font-weight: 600;
 }
 
 .card-body {
@@ -229,7 +299,7 @@ function formatNumber(num) {
   .card-header {
     padding: 20px;
   }
-  
+
   .comparison-table th,
   .comparison-table td {
     padding: 12px 16px;
