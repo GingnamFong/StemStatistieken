@@ -41,7 +41,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
         int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")); // no
         int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
-        int numberOfSeats = parseIntSafe(electionData.getOrDefault("NumberOfSeats", "0")); // no
+        int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0")); // no
 
         //unique id
         String uniqueId = String.format("%s-%s", electionId, partyId);
