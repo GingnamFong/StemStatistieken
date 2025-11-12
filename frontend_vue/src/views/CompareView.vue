@@ -220,6 +220,7 @@ async function loadColumnData(index) {
     if (col.type === 'provincie') {
       const data = await ProvincieService.getProvincieResultaten(col.selection)
       col.data = data
+
     } else if (col.type === 'gemeente') {
       const data = await ElectionService.getMunicipality(col.year, col.selection)
       col.data = {
@@ -230,16 +231,44 @@ async function loadColumnData(index) {
           percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
         }))
       }
-    } else if (col.type === 'kieskring') {
-      const data = await ConstituencyService.getConstituencyResultaten(col.selection)
-      col.data = data
 
+    } else if (col.type === 'kieskring') {
+      const allConstituencies = await ElectionService.getConstituencies(col.year)
+      const constituency = allConstituencies.find(c => c.id === col.selection || c.name === col.selection)
+
+      if (!constituency) {
+        col.data = null
+        return
+      }
+
+      const partijTotaal = {}
+
+      for (const gemeente of constituency.municipalities || []) {
+        for (const partij of gemeente.allParties || []) {
+          if (!partijTotaal[partij.name]) partijTotaal[partij.name] = 0
+          partijTotaal[partij.name] += partij.votes
+        }
+      }
+
+      const totaalStemmen = constituency.totalVotes || 0
+      const partijen = Object.entries(partijTotaal).map(([naam, stemmen]) => ({
+        naam,
+        stemmen,
+        percentage: totaalStemmen > 0 ? ((stemmen / totaalStemmen) * 100).toFixed(1) : '0.0'
+      }))
+
+      col.data = {
+        totaalStemmen,
+        partijen
+      }
     }
+
   } catch (error) {
     console.error(`Failed to load data for column ${index}:`, error)
     col.data = null
   }
 }
+
 
 function handleSelectionChange(index, selection) {
   columns.value[index].selection = selection
