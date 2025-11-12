@@ -18,7 +18,7 @@
                 <span>Vergelijk Verkiezingen</span>
               </div>
               <h1 class="page-title">Vergelijk Uitslagen</h1>
-              <p class="page-description">>Vergelijk provincies, gemeentes of kieskringen tussen verschillende jaren</p>
+              <p class="page-description">Vergelijk provincies of gemeentes tussen verschillende jaren</p>
             </div>
             <div class="header-right">
               <button class="btn-reset" @click="resetAll">
@@ -137,49 +137,6 @@ const hasAnyResults = computed(() => {
   return activeColumns.value.length > 0
 })
 
-function transformConstituencyData(constituency) {
-  if (!constituency) return null
-
-  const partyTotals = new Map()
-  let totalVotes = 0
-
-  const municipalities = Array.isArray(constituency.municipalities) ? constituency.municipalities : []
-
-  municipalities.forEach(municipality => {
-    const validVotes = municipality?.validVotes || 0
-    totalVotes += validVotes
-
-    const parties = Array.isArray(municipality?.allParties) ? municipality.allParties : []
-    parties.forEach(party => {
-      const naam = party?.name || party?.naam || party?.id || 'Onbekend'
-      const stemmen = party?.votes ?? party?.stemmen ?? 0
-
-      if (!partyTotals.has(naam)) {
-        partyTotals.set(naam, { naam, stemmen: 0 })
-      }
-
-      const partij = partyTotals.get(naam)
-      partij.stemmen += stemmen
-    })
-  })
-
-  if (totalVotes === 0 && typeof constituency.totalVotes === 'number') {
-    totalVotes = constituency.totalVotes
-  }
-
-  const partijen = Array.from(partyTotals.values())
-    .map(partij => ({
-      ...partij,
-      percentage: totalVotes > 0 ? ((partij.stemmen / totalVotes) * 100).toFixed(1) : '0.0'
-    }))
-    .sort((a, b) => b.stemmen - a.stemmen)
-
-  return {
-    totaalStemmen: totalVotes,
-    partijen
-  }
-}
-
 async function addThirdColumn() {
   showThirdColumn.value = true
   // Only set the type if there's already a selected type, but don't reset other columns
@@ -239,13 +196,6 @@ async function handleYearChange(index, year) {
     } else if (type === 'gemeente') {
       const gemeentes = await ElectionService.getMunicipalities(year)
       availableSelections.value[index] = gemeentes
-    } else if (type === 'kieskring') {
-      const kieskringen = await ElectionService.getConstituencies(year)
-      availableSelections.value[index] = kieskringen.map(k => ({
-        ...k,
-        id: k.id || k.naam || k.name,
-        name: k.name || k.naam || k.id
-      }))
     }
   } catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
@@ -275,16 +225,6 @@ async function loadColumnData(index) {
           percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
         }))
       }
-    } else if (col.type === 'kieskring') {
-      const selections = availableSelections.value[index] || []
-      const constituency = selections.find(item => (item.id || item.naam) === col.selection)
-
-      if (!constituency) {
-        col.data = null
-        return
-      }
-
-      col.data = transformConstituencyData(constituency)
     }
   } catch (error) {
     console.error(`Failed to load data for column ${index}:`, error)
