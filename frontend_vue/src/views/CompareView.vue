@@ -18,7 +18,7 @@
                 <span>Vergelijk Verkiezingen</span>
               </div>
               <h1 class="page-title">Vergelijk Uitslagen</h1>
-              <p class="page-description">Vergelijk provincies of gemeentes tussen verschillende jaren</p>
+              <p class="page-description">Vergelijk provincies, gemeentes of kieskringen tussen verschillende jaren</p>
             </div>
             <div class="header-right">
               <button class="btn-reset" @click="resetAll">
@@ -190,12 +190,17 @@ async function handleYearChange(index, year) {
   if (!type || !year) return
 
   try {
+    await ElectionService.getElection(year).catch(() => null)
+
     if (type === 'provincie') {
       const provincies = await ProvincieService.getAllProvincies()
       availableSelections.value[index] = provincies
     } else if (type === 'gemeente') {
       const gemeentes = await ElectionService.getMunicipalities(year)
       availableSelections.value[index] = gemeentes
+    } else if (type === 'kieskring') {
+      const kieskringen = await ElectionService.getConstituencies(year)
+      availableSelections.value[index] = kieskringen
     }
   } catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
@@ -225,6 +230,10 @@ async function loadColumnData(index) {
           percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
         }))
       }
+    } else if (col.type === 'kieskring') {
+      const data = await ConstituencyService.getConstituencyResultaten(col.selection)
+      col.data = data
+
     }
   } catch (error) {
     console.error(`Failed to load data for column ${index}:`, error)
