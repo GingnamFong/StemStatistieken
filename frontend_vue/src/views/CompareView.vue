@@ -9,14 +9,26 @@
           <span class="breadcrumb-item active">Vergelijken</span>
         </div>
         <div class="header-info">
-          <div class="election-badge">
-            <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span>Vergelijk Verkiezingen</span>
+          <div class="header-top-row">
+            <div class="header-left">
+              <div class="election-badge">
+                <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>Vergelijk Verkiezingen</span>
+              </div>
+              <h1 class="page-title">Vergelijk Uitslagen</h1>
+              <p class="page-description">Vergelijk provincies of gemeentes tussen verschillende jaren</p>
+            </div>
+            <div class="header-right">
+              <button class="btn-reset" @click="resetAll">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-13.657-5.657L4 4m16 16l-2.343 2.343A8 8 0 018 20" />
+                </svg>
+                Reset selectie
+              </button>
+            </div>
           </div>
-          <h1 class="page-title">Vergelijk Uitslagen</h1>
-          <p class="page-description">Vergelijk provincies, gemeentes of kieskringen tussen verschillende jaren</p>
         </div>
       </div>
     </header>
@@ -108,7 +120,13 @@ const columns = ref([
 const availableSelections = ref([[], [], []])
 
 const selectedType = computed(() => {
-  return columns.value[0].type || null
+  // Find the first column that has a type selected
+  for (let i = 0; i < columns.value.length; i++) {
+    if (columns.value[i].type) {
+      return columns.value[i].type
+    }
+  }
+  return null
 })
 
 const activeColumns = computed(() => {
@@ -119,11 +137,17 @@ const hasAnyResults = computed(() => {
   return activeColumns.value.length > 0
 })
 
-function addThirdColumn() {
+async function addThirdColumn() {
   showThirdColumn.value = true
+  // Only set the type if there's already a selected type, but don't reset other columns
   if (selectedType.value) {
     columns.value[2].type = selectedType.value
-    handleTypeChange(2, selectedType.value)
+    // If there's already a year selected in another column, use that and load selections
+    const existingYear = columns.value[0].year || columns.value[1].year
+    if (existingYear) {
+      columns.value[2].year = existingYear
+      await handleYearChange(2, existingYear)
+    }
   }
 }
 
@@ -134,15 +158,23 @@ function removeThirdColumn() {
 }
 
 function handleTypeChange(index) {
-  if (index === 0 && columns.value[0].type) {
-    if (!columns.value[1].type) {
-      columns.value[1].type = columns.value[0].type
-    }
-    if (showThirdColumn.value && !columns.value[2].type) {
-      columns.value[2].type = columns.value[0].type
+  const newType = columns.value[index].type
+
+  // Propagate type to ALL other columns and reset their selections
+  for (let i = 0; i < columns.value.length; i++) {
+    if (i !== index) {
+      // Skip column 2 if third column is not shown
+      if (i === 2 && !showThirdColumn.value) continue
+
+      columns.value[i].type = newType
+      columns.value[i].year = ''
+      columns.value[i].selection = ''
+      columns.value[i].data = null
+      availableSelections.value[i] = []
     }
   }
 
+  // Reset current column
   columns.value[index].year = ''
   columns.value[index].selection = ''
   columns.value[index].data = null
@@ -203,6 +235,16 @@ async function loadColumnData(index) {
 function handleSelectionChange(index, selection) {
   columns.value[index].selection = selection
   loadColumnData(index)
+}
+
+function resetAll() {
+  // Hide third column
+  showThirdColumn.value = false
+  // Reset all columns and selections
+  for (let i = 0; i < 3; i++) {
+    columns.value[i] = { type: '', year: '', selection: '', data: null }
+    availableSelections.value[i] = []
+  }
 }
 </script>
 
@@ -273,6 +315,23 @@ function handleSelectionChange(index, selection) {
   color: white;
 }
 
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  padding-bottom: 4px;
+}
+
 .election-badge {
   display: inline-flex;
   align-items: center;
@@ -312,6 +371,44 @@ function handleSelectionChange(index, selection) {
   padding: 0 32px 40px;
   position: relative;
   z-index: 2;
+}
+
+/* Reset Button */
+.btn-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px 12px 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Nunito', sans-serif;
+  /* MATCH Kandidaten search input */
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reset:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-reset:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-reset .btn-icon {
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Selection Row */
@@ -380,6 +477,21 @@ function handleSelectionChange(index, selection) {
 
   .page-description {
     font-size: 16px;
+  }
+
+  .header-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .header-right {
+    width: 100%;
+    padding-bottom: 0;
+  }
+
+  .btn-reset {
+    width: 100%;
   }
 }
 
