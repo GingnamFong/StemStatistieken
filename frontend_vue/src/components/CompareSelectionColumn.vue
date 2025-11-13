@@ -2,10 +2,10 @@
   <div class="selection-card">
     <div class="card-number">{{ columnNumber }}</div>
     <div class="selection-content">
-      <button 
-        v-if="showRemove" 
-        @click="$emit('remove')" 
-        class="remove-btn" 
+      <button
+        v-if="showRemove"
+        @click="$emit('remove')"
+        class="remove-btn"
         title="Verwijder kolom"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -15,8 +15,8 @@
 
       <div class="form-group">
         <label class="form-label">Type</label>
-        <select 
-          :value="modelValue.type" 
+        <select
+          :value="modelValue.type"
           @change="handleTypeChange"
           class="form-select"
           :disabled="disabled"
@@ -24,13 +24,14 @@
           <option value="">Kies type...</option>
           <option value="provincie">Provincie</option>
           <option value="gemeente">Gemeente</option>
+          <option value="kieskring">Kieskring</option>
         </select>
       </div>
 
       <div class="form-group">
         <label class="form-label">Jaar</label>
-        <select 
-          :value="modelValue.year" 
+        <select
+          :value="modelValue.year"
           @change="handleYearChange"
           class="form-select"
           :disabled="!modelValue.type"
@@ -42,17 +43,18 @@
 
       <div class="form-group">
         <label class="form-label">
-          {{ modelValue.type === 'provincie' ? 'Provincie' : modelValue.type === 'gemeente' ? 'Gemeente' : 'Selectie' }}
+          {{ modelValue.type === 'provincie' ? 'Provincie' : modelValue.type === 'gemeente' ? 'Gemeente' : modelValue.type === 'kieskring' ? 'Kieskring' : 'Selectie' }}
+
         </label>
-        <select 
-          :value="modelValue.selection" 
+        <select
+          :value="modelValue.selection"
           @change="handleSelectionChange"
           class="form-select"
           :disabled="!modelValue.year || !availableSelections.length"
         >
-          <option value="">Kies {{ modelValue.type === 'provincie' ? 'provincie' : 'gemeente' }}...</option>
-          <option 
-            v-for="item in availableSelections" 
+          <option value="">Kies {{ modelValue.type === 'provincie' ? 'provincie' : modelValue.type === 'gemeente' ? 'gemeente' : 'kieskring' }}...</option>
+          <option
+            v-for="item in availableSelections"
             :key="item.id || item.naam"
             :value="item.id || item.naam"
           >

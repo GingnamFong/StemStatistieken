@@ -18,7 +18,7 @@
                 <span>Vergelijk Verkiezingen</span>
               </div>
               <h1 class="page-title">Vergelijk Uitslagen</h1>
-              <p class="page-description">Vergelijk provincies of gemeentes tussen verschillende jaren</p>
+              <p class="page-description">Vergelijk provincies, gemeentes of kieskringen tussen verschillende jaren</p>
             </div>
             <div class="header-right">
               <button class="btn-reset" @click="resetAll">
@@ -55,7 +55,7 @@
           v-model="columns[1]"
           :available-selections="availableSelections[1]"
           :selected-type="selectedType"
-          :disabled="false"
+          :disabled="columns[0].type === ''"
           :show-remove="false"
           @type-change="() => handleTypeChange(1)"
           @year-change="(year) => handleYearChange(1, year)"
@@ -69,7 +69,7 @@
           v-model="columns[2]"
           :available-selections="availableSelections[2]"
           :selected-type="selectedType"
-          :disabled="false"
+          :disabled="columns[0].type === ''"
           :show-remove="true"
           @type-change="() => handleTypeChange(2)"
           @year-change="(year) => handleYearChange(2, year)"
@@ -190,12 +190,17 @@ async function handleYearChange(index, year) {
   if (!type || !year) return
 
   try {
+    await ElectionService.getElection(year).catch(() => null)
+
     if (type === 'provincie') {
       const provincies = await ProvincieService.getAllProvincies()
       availableSelections.value[index] = provincies
     } else if (type === 'gemeente') {
       const gemeentes = await ElectionService.getMunicipalities(year)
       availableSelections.value[index] = gemeentes
+    } else if (type === 'kieskring') {
+      const kieskringen = await ElectionService.getConstituencies(year)
+      availableSelections.value[index] = kieskringen
     }
   } catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
@@ -215,6 +220,7 @@ async function loadColumnData(index) {
     if (col.type === 'provincie') {
       const data = await ProvincieService.getProvincieResultaten(col.selection)
       col.data = data
+
     } else if (col.type === 'gemeente') {
       const data = await ElectionService.getMunicipality(col.year, col.selection)
       col.data = {
@@ -225,12 +231,44 @@ async function loadColumnData(index) {
           percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
         }))
       }
+
+    } else if (col.type === 'kieskring') {
+      const allConstituencies = await ElectionService.getConstituencies(col.year)
+      const constituency = allConstituencies.find(c => c.id === col.selection || c.name === col.selection)
+
+      if (!constituency) {
+        col.data = null
+        return
+      }
+
+      const partijTotaal = {}
+
+      for (const gemeente of constituency.municipalities || []) {
+        for (const partij of gemeente.allParties || []) {
+          if (!partijTotaal[partij.name]) partijTotaal[partij.name] = 0
+          partijTotaal[partij.name] += partij.votes
+        }
+      }
+
+      const totaalStemmen = constituency.totalVotes || 0
+      const partijen = Object.entries(partijTotaal).map(([naam, stemmen]) => ({
+        naam,
+        stemmen,
+        percentage: totaalStemmen > 0 ? ((stemmen / totaalStemmen) * 100).toFixed(1) : '0.0'
+      }))
+
+      col.data = {
+        totaalStemmen,
+        partijen
+      }
     }
+
   } catch (error) {
     console.error(`Failed to load data for column ${index}:`, error)
     col.data = null
   }
 }
+
 
 function handleSelectionChange(index, selection) {
   columns.value[index].selection = selection

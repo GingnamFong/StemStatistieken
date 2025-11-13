@@ -28,9 +28,26 @@ export const ElectionService = {
     return await response.json()
   },
 
+  async getConstituencies(electionId) {
+    const response = await fetch(`${API_BASE_URL}/elections/${electionId}/constituencies`)
+    if (!response.ok) throw new Error(`Failed to get constituencies for ${electionId}`)
+    return await response.json()
+  },
+
   async getMunicipality(electionId, municipalityId) {
     const response = await fetch(`${API_BASE_URL}/elections/${electionId}/municipalities/${encodeURIComponent(municipalityId)}`)
     if (!response.ok) throw new Error(`Failed to get municipality ${municipalityId}`)
+    return await response.json()
+  },
+
+  async getCandidate(electionId, candidateId) {
+    const response = await fetch(`${API_BASE_URL}/elections/${electionId}/candidates/${candidateId}`)
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Kandidaat niet gevonden')
+      }
+      throw new Error(`Failed to get candidate ${candidateId}`)
+    }
     return await response.json()
   }
 }

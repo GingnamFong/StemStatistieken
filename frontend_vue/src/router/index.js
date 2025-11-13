@@ -24,6 +24,11 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/over-ons',
+      name: 'over-ons',
+      component: () => import('../views/AboutView.vue'),
+    },
+    {
       path: '/Register',
       name: 'Register',
       component: () => import('../views/RegisterView.vue'),
@@ -36,6 +41,11 @@ const router = createRouter({
       path: '/Candidate',
       name: 'Candidate',
       component: () => import('../views/CandidateView.vue'),
+    },
+    {
+      path: '/Candidate/:candidateId',
+      name: 'CandidateDetail',
+      component: () => import('../views/CandidateDetailView.vue'),
     },
     {
       path: '/dashboard',
