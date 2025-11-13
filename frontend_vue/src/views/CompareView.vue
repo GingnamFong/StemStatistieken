@@ -104,12 +104,30 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
+
+const loading = ref(false)
+const error = ref(null)
+const municipalitie = ref([])
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    const data = await ElectionService.loadMunicipalities('TK2023')
+    console.log('✅ Received data:', data)
+    municipalitie.value = data.municipalitie || []
+  } catch (err) {
+    console.error('❌ Error in loadMunicipalities:', err)
+    error.value = err.message
+  } finally {
+    loading.value = false
+  }
+})
 
 const showThirdColumn = ref(false)
 const columns = ref([
