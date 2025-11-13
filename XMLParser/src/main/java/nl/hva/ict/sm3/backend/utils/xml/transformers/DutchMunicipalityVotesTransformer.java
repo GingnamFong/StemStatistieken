@@ -1,156 +1,74 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
-import nl.hva.ict.sm3.backend.model.*;
+import nl.hva.ict.sm3.backend.model.Constituency;
+import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.Municipality;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 
 import java.util.Map;
 
 /**
- * Handles BOTH municipality totals (aggregated) and polling station results (non-aggregated).
- * This transformer receives all vote-related events from EMLHandler.
- *
- * aggregated = true  → municipality-level totals
- * aggregated = false → polling-station (stembureau) level
+ * Just prints to content of electionData to the standard output.>br/>
+ * <b>This class needs heavy modification!</b>
  */
 public class DutchMunicipalityVotesTransformer implements VotesTransformer {
-
     private final Election election;
-
-    // Tracks which polling station we are currently parsing
-    private PollingStation currentStation = null;
 
     public DutchMunicipalityVotesTransformer(Election election) {
         this.election = election;
     }
 
-
-    // ---------------------------------------------------------
-    //  METADATA HANDLER
-    //  Triggered for <REPORTING_UNIT_VOTES> end tag
-    // ---------------------------------------------------------
     @Override
-    public void registerMetadata(boolean aggregated, Map<String, String> data) {
-
+    public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
-            currentStation = null;
-            return;
-        }
+            // Extract municipality info
+            String municipalityName = electionData.getOrDefault("AuthorityIdentifier", "unknown");
+            String contestId = electionData.getOrDefault("ContestIdentifier-Id", "unknown");
+            String municipalityId = electionData.getOrDefault("AuthorityIdentifier-Id", "unknown");
+            String validVotesStr = electionData.getOrDefault("ValidVotes", "0");
+            String partyId = electionData.getOrDefault("AffiliationIdentifier-Id", "unknown");
+            String partyName = electionData.getOrDefault("RegisteredName", "unknown");
 
-        String municipalityId = data.get("AuthorityIdentifier-Id");
-        String stationId = data.get("ReportingUnitIdentifier-Id");
-        String fullText = data.get("ReportingUnitIdentifier");
+            int validVotes = 0;
 
-        if (municipalityId == null || stationId == null) {
-            System.err.println("⚠ Missing municipality or station ID");
-            return;
-        }
-
-        Municipality municipality = election.getMunicipalityById(municipalityId);
-        if (municipality == null) {
-            System.err.println("⚠ Municipality ID " + municipalityId + " not found for station " + fullText);
-            return;
-        }
-
-        // --------------------------------------------
-        // Parse station name + postal code
-        // --------------------------------------------
-        String stationName = fullText;
-        String postalCode = null;
-
-        if (fullText != null && fullText.contains("postcode:")) {
-            int start = fullText.indexOf("postcode:") + 9;
-            int end = fullText.indexOf(")", start);
-
-            if (end > start) {
-                postalCode = fullText.substring(start, end).trim();
+            try {
+                validVotes = Integer.parseInt(validVotesStr);
+            } catch (NumberFormatException e) {
+                System.err.printf("⚠️ Invalid number for ValidVotes '%s' in municipality '%s'%n", validVotesStr, municipalityName);
             }
 
-            stationName = fullText.substring(0, fullText.indexOf("(")).trim();
-        }
 
-        // Create polling station
-        currentStation = new PollingStation(stationId, stationName, postalCode);
-
-        municipality.addPollingStation(currentStation);
-    }
+            // Find the constituency
+            Constituency constituency = election.getConstituencyById(contestId);
 
 
-    // ---------------------------------------------------------
-    //  PARTY VOTES
-    // ---------------------------------------------------------
-    @Override
-    public void registerPartyVotes(boolean aggregated, Map<String, String> data) {
-
-        String partyId = data.get("AffiliationIdentifier-Id");
-        String partyName = data.get("RegisteredName");
-        String votesStr = data.get("ValidVotes");
-
-        if (partyId == null || votesStr == null) {
-            return;
-        }
-
-        int votes = parseIntSafe(votesStr);
-
-        if (aggregated) {
-            // MUNICIPALITY TOTAL LEVEL
-            String municipalityId = data.get("AuthorityIdentifier-Id");
-            String municipalityName = data.get("AuthorityIdentifier");
-
-            if (municipalityId == null) return;
-
-            // Find constituency & municipality
-            for (Constituency c : election.getConstituencies()) {
-                Municipality m = c.getMunicipalityById(municipalityId);
-
-                if (m != null) {
-                    m.addVotesForParty(partyId,
-                            partyName != null ? partyName : "Unknown",
-                            votes
-                    );
-                    return;
+            if (constituency != null) {
+                Municipality municipality = constituency.getMunicipalityById(municipalityId);
+                if (municipality == null) {
+                    municipality = new Municipality(municipalityId, municipalityName, validVotes);
+                    constituency.addMunicipality(municipality);
                 }
-            }
+                // add votes per party
+                municipality.addVotesForParty(partyId,partyName,validVotes);
 
-            System.err.println("⚠ Municipality not found: " + municipalityId);
-        } else {
-            // POLLING STATION LEVEL
-            if (currentStation != null) {
-                currentStation.addResult(new VoteResult("party", partyId, votes));
+                System.out.printf("Added municipality: %s with %d votes to constituency %s%n",
+                        municipalityName, validVotes, constituency.getName());
+                System.out.printf("Municipality: %s, ContestId: %s\n", municipalityName, contestId);
+            } else {
+                System.err.printf("Warning: constituency with id '%s' not found for municipality '%s'%n",
+                        contestId, municipalityName);
             }
         }
     }
 
 
-    // ---------------------------------------------------------
-    //  CANDIDATE VOTES
-    // ---------------------------------------------------------
     @Override
-    public void registerCandidateVotes(boolean aggregated, Map<String, String> data) {
-
-        if (aggregated || currentStation == null) return;
-
-        String candidateId = data.get("CandidateIdentifier-Id");
-        String votesStr = data.get("ValidVotes");
-
-        if (candidateId == null || votesStr == null) {
-            return;
-        }
-
-        int votes = parseIntSafe(votesStr);
-
-        currentStation.addResult(new VoteResult("candidate", candidateId, votes));
+    public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
+        // Implement candidate-level votes if needed
     }
 
-
-    // ---------------------------------------------------------
-    // Utilities
-    // ---------------------------------------------------------
-    private int parseIntSafe(String s) {
-        try {
-            return Integer.parseInt(s);
-        } catch (NumberFormatException e) {
-            System.err.println("⚠ Invalid number: " + s);
-            return 0;
-        }
+    @Override
+    public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
+        // Implement metadata handling if needed
     }
 }

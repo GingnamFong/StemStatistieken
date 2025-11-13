@@ -73,33 +73,6 @@ public class ElectionController {
 
         return ResponseEntity.ok(municipality);
     }
-    @GetMapping("/{electionId}/pollingstations")
-    public ResponseEntity<PollingStation> getPollingStationByPostcode(
-            @PathVariable String electionId,
-            @RequestParam String postcode
-    ) {
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Normalize postcode format (remove spaces)
-        String cleaned = postcode.replaceAll("\\s+", "").toUpperCase();
-
-        // Search through all municipalities
-        for (Municipality m : election.getAllMunicipalities()) {
-            for (PollingStation ps : m.getPollingStations()) {
-                if (ps.getPostalCode() != null &&
-                        ps.getPostalCode().replaceAll("\\s+", "").equalsIgnoreCase(cleaned)) {
-
-                    return ResponseEntity.ok(ps);
-                }
-            }
-        }
-
-        return ResponseEntity.notFound().build();
-    }
-
 
 
 

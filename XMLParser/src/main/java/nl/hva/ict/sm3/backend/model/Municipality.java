@@ -1,6 +1,5 @@
 package nl.hva.ict.sm3.backend.model;
 
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -10,7 +9,6 @@ public class Municipality {
     private int validVotes;
     private Map<String, Integer> partyVotes = new HashMap<>();
     private Map<String, String> partyNames = new HashMap<>();
-    private List<PollingStation> pollingStations = new ArrayList<>();
 
     public Municipality(String id, String name, int validVotes) {
         this.id = id;
@@ -44,22 +42,6 @@ public class Municipality {
                 .limit(n)
                 .collect(Collectors.toList());
     }
-    public void addPollingStation(PollingStation station) {
-        pollingStations.add(station);
-        validVotes += station.getTotalVotes();
-    }
-
-    public List<PollingStation> getPollingStations() {
-        return pollingStations;
-    }
-
-    public PollingStation getPollingStationByPostalCode(String postalCode) {
-        return pollingStations.stream()
-                .filter(s -> s.getPostalCode().equalsIgnoreCase(postalCode))
-                .findFirst()
-                .orElse(null);
-    }
-
 
     @Override
     public String toString() {
