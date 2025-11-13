@@ -11,10 +11,10 @@ public class National {
     private final String partyId;
     private final String partyName;
     private final String shortCode;
-    private final int validVotes;
-    private final int rejectedVotes;
-    private final int totalCounted;
-    private final int numberOfSeats;
+    private final int validVotes; // wachten op oplossing
+    private final int rejectedVotes; // verplaatsen naar election.java
+    private final int totalCounted; // verplaatsen naar election.java
+    private final int numberOfSeats; // wachten op oplossing
 
     public National(String id, String electionId, String electionName,
                        String partyId, String partyName, String shortCode,

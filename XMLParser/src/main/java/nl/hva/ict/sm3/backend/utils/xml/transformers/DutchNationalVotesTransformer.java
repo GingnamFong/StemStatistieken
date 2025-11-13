@@ -37,11 +37,14 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
         String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null); // no
 
-        // Votes etc
+        // Look for the seats data
         int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
+        int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0")); // no
+
+        // Seperated from the rest of the data up here
         int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")); // no
         int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
-        int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0")); // no
+
         /*
         int numberOfSeats;
         try {
@@ -61,11 +64,13 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 partyId,
                 partyName,
                 shortCode,
-                validVotes,
-                rejectedVotes,
-                totalCounted,
-                numberOfSeats
+                validVotes, // wachten op oplossing, zoeken welk xml bestand deze data zit
+                rejectedVotes, // apart
+                totalCounted, // apart
+                numberOfSeats // wachten op oplossing, zoeken welk xml bestand deze data zit
         );
+
+
 
         System.out.println("Registering national result: " + result);
 
