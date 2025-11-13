@@ -113,21 +113,25 @@ import CompareResultsTable from '@/components/CompareResultsTable.vue'
 
 const loading = ref(false)
 const error = ref(null)
-const municipalitie = ref([])
 
 onMounted(async () => {
   loading.value = true
   try {
-    const data = await ElectionService.loadMunicipalities('TK2023')
-    console.log('✅ Received data:', data)
-    municipalitie.value = data.municipalitie || []
+    await ElectionService.getElection('TK2023')
+    console.log('✅ Election data ready')
+
+    const gemeentes = await ElectionService.getMunicipalities   ('TK2023')
+    console.log('✅ Loaded municipalities:', gemeentes.length)
+    availableSelections.value[0] = gemeentes
+
   } catch (err) {
-    console.error('❌ Error in loadMunicipalities:', err)
+    console.error('❌ Error preloading data:', err)
     error.value = err.message
   } finally {
     loading.value = false
   }
 })
+
 
 const showThirdColumn = ref(false)
 const columns = ref([
