@@ -14,14 +14,14 @@
 - **Ging Nam Fong:** ...
 - **Jonathan Roemers:** Onderzoekserslag en uitzoeken hoe ik de data van de zetels kan ophalen
 - **Jerrico Garcia:** Stembureaus tonen 
-- **Arham Malik:** ...
+- **Arham Malik:** login maken
 
 ## Wat ga je vandaag doen?
 - **Kevin Koudhoofd:** SOP deadline is morgen ik ga die hopelijk vandaag af krijgen. Ik ga daar aan werken en bespreken wie wat gaat doen in het weekend.
 - **Ging Nam Fong:** ...
 - **Jonathan Roemers:** Onderzoeksverslag en werken aan transformer, vooral gericht op de zetels
 - **Jerrico Garcia:** SOP afmaken, Onderzoek maken en stembureau's maken 
-- **Arham Malik:** ...
+- **Arham Malik:** login afmaken
 
 ## Loop je ergens tegenaan?
 - **Kevin Koudhoofd:** De data op de /vergelijken pagina laad niet automatisch in na de eerste pagina verversing.
