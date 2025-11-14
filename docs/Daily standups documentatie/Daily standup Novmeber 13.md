@@ -1,4 +1,4 @@
-# Daily Stand-up - Datum
+# Daily Stand-up - 13 November 2025
 
 ## Teamleden
 - Kevin Koudhoofd
