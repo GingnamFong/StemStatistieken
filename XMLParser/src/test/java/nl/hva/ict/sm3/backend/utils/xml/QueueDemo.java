@@ -5,15 +5,15 @@ import java.util.*;
 public class QueueDemo {
     public static void main(String[] args) {
 
-        // Queue using LinkedList
+        // Queue LinkedList
         Queue<Integer> linkedListQueue = new LinkedList<>();
 
-        // Queue using ArrayDeque
+        // Queue ArrayDeque
         Queue<Integer> arrayDequeQueue = new ArrayDeque<>();
 
-        // Demo: basic queue operations
-        System.out.println("=== Basic Queue Operations ===");
+        System.out.println("=== Basic Queue ===");
 
+        // Add element
         linkedListQueue.offer(10);
         linkedListQueue.offer(20);
         linkedListQueue.offer(30);
@@ -22,11 +22,11 @@ public class QueueDemo {
         arrayDequeQueue.offer(20);
         arrayDequeQueue.offer(30);
 
-        System.out.println("LinkedList poll(): " + linkedListQueue.poll());
-        System.out.println("ArrayDeque poll(): " + arrayDequeQueue.poll());
+        System.out.println("LinkedList poll:" + linkedListQueue.poll());
+        System.out.println("ArrayDeque poll:" + arrayDequeQueue.poll());
 
-        // Simple Performance Comparison
-        System.out.println("\n=== Performance Test (adding 1,000,000 elements) ===");
+        // insert 1m elements
+        System.out.println("\n=== Performance ===");
 
         int n = 1_000_000;
 
@@ -46,7 +46,7 @@ public class QueueDemo {
         System.out.println("ArrayDeque time: " + timeAD / 1_000_000 + " ms");
 
         System.out.println("\nConclusion:");
-        System.out.println("- ArrayDeque is usually faster for queue operations.");
-        System.out.println("- LinkedList has higher overhead and is slower in practice.");
+        System.out.println("- ArrayDeque is usually faster");
+        System.out.println("- LinkedList has higher overhead and is slower");
     }
 }
