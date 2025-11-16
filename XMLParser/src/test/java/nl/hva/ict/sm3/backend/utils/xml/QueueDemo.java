@@ -25,7 +25,7 @@ public class QueueDemo {
         System.out.println("LinkedList poll:" + linkedListQueue.poll());
         System.out.println("ArrayDeque poll:" + arrayDequeQueue.poll());
 
-        // insert 1m elements
+        // insert multiple elements
         System.out.println("\n=== Performance ===");
 
         int n = 1_000_000;
