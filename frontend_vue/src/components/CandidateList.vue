@@ -108,14 +108,28 @@ const top3Candidates = computed(() => {
 const filteredCandidates = computed(() => {
   let result = candidates.value
   if (search.value.trim()) {
-    const q = search.value.toLowerCase()
-    result = result.filter(
-      c =>
-        c.firstName?.toLowerCase().includes(q) ||
-        c.lastName?.toLowerCase().includes(q) ||
-        c.initials?.toLowerCase().includes(q) ||
-        c.partyName?.toLowerCase().includes(q)
-    )
+    const searchTerm = search.value.trim().toLowerCase()
+    const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0)
+
+    result = result.filter(c => {
+      // Build full name for searching
+      const fullName = [
+        c.initials,
+        c.firstName,
+        c.lastName
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      // Check if all search words match somewhere in the candidate data
+      return searchWords.every(word => {
+        return (
+          fullName.includes(word) ||
+          c.firstName?.toLowerCase().includes(word) ||
+          c.lastName?.toLowerCase().includes(word) ||
+          c.initials?.toLowerCase().includes(word) ||
+          c.partyName?.toLowerCase().includes(word)
+        )
+      })
+    })
   }
 
   return [...result].sort((a, b) => {
