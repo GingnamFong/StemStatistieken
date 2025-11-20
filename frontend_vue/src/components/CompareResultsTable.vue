@@ -108,7 +108,9 @@ function getColumnTitle(col) {
 
 function getColumnSubtitle(col) {
   if (!col.data) return ''
-  const year = col.year === 'TK2023' ? '2023' : col.year
+  // Extract year from election ID (e.g., TK2021 -> 2021, TK2023 -> 2023, TK2025 -> 2025)
+  const yearMatch = col.year ? col.year.match(/\d{4}/) : null
+  const year = yearMatch ? yearMatch[0] : col.year
   return `${year} • ${formatNumber(col.data.totaalStemmen)} stemmen`
 }
 
