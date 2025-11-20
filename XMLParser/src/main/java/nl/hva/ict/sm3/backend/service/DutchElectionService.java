@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Instant;
 
 /**
  * A demo service for demonstrating how an EML-XML parser can be used inside a backend application.<br/>
@@ -22,7 +23,30 @@ import java.util.Map;
  */
 @Service
 public class DutchElectionService {
-    private final Map<String, Election> electionCache = new HashMap<>();
+    private static class CacheEntry {
+        private final Election election;
+        private final Instant cachedAt;
+
+        public CacheEntry(Election election, Instant cachedAt) {
+            this.election = election;
+            this.cachedAt = cachedAt;
+        }
+
+        public Election getElection() {
+            return election;
+        }
+
+        public Instant getCachedAt() {
+            return cachedAt;
+        }
+
+        public boolean isExpired(long hours) {
+            return Instant.now().isAfter(cachedAt.plusSeconds(hours * 3600));
+        }
+    }
+
+    private final Map<String, CacheEntry> electionCache = new HashMap<>();
+    private static final long CACHE_EXPIRATION_HOURS = 1;
 
     public Election readResults(String electionId, String folderName) {
         System.out.println("Processing files...");
@@ -59,7 +83,7 @@ public class DutchElectionService {
                 }
             }
 
-            electionCache.put(electionId, election);
+            electionCache.put(electionId, new CacheEntry(election, Instant.now()));
 
 
             System.out.println("Dutch Election results: " + election);
@@ -73,7 +97,18 @@ public class DutchElectionService {
     }
 
     public Election getElectionById(String electionId) {
-        return electionCache.get(electionId);
+        CacheEntry entry = electionCache.get(electionId);
+        if (entry == null) {
+            return null;
+        }
+
+        if (entry.isExpired(CACHE_EXPIRATION_HOURS)) {
+            
+            electionCache.remove(electionId);
+            return null;
+        }
+        
+        return entry.getElection();
     }
 
     public void loadCandidateLists(Election election, String folderName) {
@@ -112,8 +147,7 @@ public class DutchElectionService {
                     .count();
             System.out.println("  - Candidates with votes > 0: " + candidatesWithVotes);
 
-            // Cache the result
-            electionCache.put(electionId, election);
+            electionCache.put(electionId, new CacheEntry(election, Instant.now()));
             System.out.println("Candidate lists and total votes loaded for election: " + electionId);
 
         } catch (IOException | XMLStreamException | ParserConfigurationException |
