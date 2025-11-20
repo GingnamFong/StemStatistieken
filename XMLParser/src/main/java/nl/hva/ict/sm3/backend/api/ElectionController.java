@@ -122,9 +122,14 @@ public class ElectionController {
 
         String folder = folderName != null ? folderName : electionId;
 
-        Election election = new Election(electionId);
+        // Check if election already exists in cache to preserve existing data
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            // Only create new election if it doesn't exist in cache
+            election = new Election(electionId);
+        }
 
-        //  fill this instance
+        // Load candidate lists into the election (preserves existing data if election was already cached)
         electionService.loadCandidateLists(election, folder);
 
         return ResponseEntity.ok(election);
@@ -141,10 +146,7 @@ public class ElectionController {
             election = new Election(electionId);
             electionService.loadCandidateLists(election, electionId);
             // Election is now cached by loadCandidateLists method
-        }
-
-        if (election == null) {
-            return ResponseEntity.notFound().build();
+            // If loading failed, election will still exist but may be empty
         }
 
         Candidate candidate = election.getCandidateById(candidateId);
