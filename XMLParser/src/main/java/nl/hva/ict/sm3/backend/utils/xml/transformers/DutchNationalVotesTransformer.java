@@ -28,6 +28,19 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
 
+        /*
+        ElectionInfo electionInfo = new ElectionInfo(
+                electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown"),
+                electionData.getOrDefault(ELECTION_NAME, "Unknown Election")
+        );
+
+        PartyInfo partyInfo = newPartyInfo(
+                electionInfo.getOrDefault(AFFILIATION_IDENTIFIER + "-id", "unknown"),
+                electionData.getOrDefault(REGISTERED_NAME, "Unknown Party"),
+                electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null)
+        );
+         */
+
         // Core
         String electionId = electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown"); // no
         String electionName = electionData.getOrDefault(ELECTION_NAME, "Unknown Election");
