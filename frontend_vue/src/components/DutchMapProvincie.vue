@@ -44,6 +44,7 @@
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue'
 import { ProvincieService } from '../services/ProvincieService.js'
+import { watch } from 'vue'
 
 const mapContainer = ref(null)
 const svgContainer = ref(null)
@@ -73,7 +74,11 @@ onMounted(async () => {
     svgContent.value = '<div style="text-align: center; padding: 50px; color: #666;">Kon SVG niet laden. Controleer of /images/NederlandSVG.svg bestaat.</div>'
   }
 })
-
+watch(() => year, () => {
+  if (selectedProvincie.value) {
+    loadProvincieData(selectedProvincie.value.name) // reload with new year
+  }
+})
 const addPathListeners = () => {
   if (!svgContainer.value) return
 

@@ -61,6 +61,9 @@
 
           <div class="card-body">
             <div class="map-wrapper">
+              <div class="year-indicator">
+                Bekijk gegevens voor <strong>{{ selectedYear }}</strong>
+              </div>
               <component
                 :is="currentMapComponent"
                 :showDataSection="false"
@@ -284,6 +287,13 @@ const currentMapComponent = computed(() => {
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
 }
+.year-button.active {
+  background: #1e293b !important;
+  color: #ffd24d !important;
+  border-color: #1e293b !important;
+  transform: scale(1.08);
+  font-weight: 800;
+}
 
 /* Dashboard Container */
 .dashboard-container {
@@ -403,6 +413,19 @@ const currentMapComponent = computed(() => {
   align-items: center;
   min-height: 400px;
 }
+.year-indicator {
+  text-align: center;
+  margin-top: 12px;
+  background: #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  display: inline-block;
+}
+
 
 /* Live indicator removed */
 
@@ -463,6 +486,7 @@ const currentMapComponent = computed(() => {
 .card-body::-webkit-scrollbar-thumb:hover {
   background: #adb5bd;
 }
+
 
 /* Responsive Design */
 @media (max-width: 1200px) {
