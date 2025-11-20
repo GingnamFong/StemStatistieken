@@ -36,6 +36,7 @@ import NederlandMap2021 from '@/assets/Nederland_gemeente_2021.svg'
 const container = ref(null)
 const emit = defineEmits(['municipalitySelected'])
 defineProps({ year: Number })
+let lastHoveredPath = null
 
 const tooltip = ref({
   visible: false,
@@ -72,10 +73,21 @@ function getMunicipalityByPathId(pathId) {
 
 function handleMouseMove(e) {
   const path = e.target.closest('path')
+
+  // Remove highlight from previous
+  if (lastHoveredPath && lastHoveredPath !== path) {
+    lastHoveredPath.classList.remove('hovered-municipality')
+  }
+
   if (!path) {
     tooltip.value.visible = false
+    lastHoveredPath = null
     return
   }
+
+  // Add highlight
+  path.classList.add('hovered-municipality')
+  lastHoveredPath = path
 
   const m = getMunicipalityByPathId(path.id)
   const name = (m && m.name) || path.dataset.name || path.id || 'Unknown'
@@ -96,6 +108,11 @@ function handleMouseMove(e) {
 
 function hideTooltip() {
   tooltip.value.visible = false
+  if (lastHoveredPath) {
+    lastHoveredPath.classList.remove('hovered-municipality')
+    lastHoveredPath = null
+  }
+
 }
 
 function handleClick(e) {
@@ -103,10 +120,12 @@ function handleClick(e) {
   if (!path) return
   const m = getMunicipalityByPathId(path.id)
   if (m) emit('municipalitySelected', m)
+
+
 }
 </script>
 
-<style scoped>
+<style>
 .map-container {
   position: relative;
   width: 100%;
@@ -115,6 +134,13 @@ function handleClick(e) {
   justify-content: center;
   align-items: center;
 }
+.hovered-municipality {
+  fill: #F6C700 !important;
+  stroke: #000 !important;
+  stroke-width: 0.6;
+  transition: fill 0.12s, stroke 0.12s;
+}
+
 
 /* Ensure the SVG scales but keep pointer events */
 .dutch-map {
