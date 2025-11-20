@@ -8,10 +8,9 @@ public class DemoMain {
     public static void main(String[] args) {
         DutchElectionService electionService = new DutchElectionService();
 
-        // Load real XML (TK2023)
         Election election = electionService.readResults(
                 "TK2023",
-                "TK2023" // folder in resources
+                "TK2023"
         );
 
         SetBenchmarkService bench = new SetBenchmarkService();

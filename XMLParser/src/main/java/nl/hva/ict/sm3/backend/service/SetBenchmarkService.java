@@ -8,21 +8,6 @@ import nl.hva.ict.sm3.backend.model.Party;
 import java.util.*;
 
 public class SetBenchmarkService {
-
-    /**
-     * Runs a benchmark on synthetic test data (optional)
-     */
-    public void runBenchmarkSynthetic() {
-        System.out.println("=== HASHSET vs TREESET BENCHMARK (SYNTHETIC DATA) ===");
-
-        int[] sizes = {1_000, 10_000, 100_000};
-
-        for (int size : sizes) {
-            System.out.println("\n--- Testing with " + size + " items ---");
-            benchmarkSynthetic(size);
-        }
-    }
-
     /**
      * Runs benchmark using actual election data parsed from XML
      */
