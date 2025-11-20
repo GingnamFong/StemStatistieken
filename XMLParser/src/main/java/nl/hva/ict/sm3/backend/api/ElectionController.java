@@ -122,17 +122,22 @@ public class ElectionController {
 
         String folder = folderName != null ? folderName : electionId;
 
-        // Check if election already exists in cache to preserve existing data
+        // Check if election already exists in cache 
         Election election = electionService.getElectionById(electionId);
+        if (election != null && !election.getCandidates().isEmpty()) {
+            return ResponseEntity.ok(election);
+        }
+
         if (election == null) {
-            // Only create new election if it doesn't exist in cache
             election = new Election(electionId);
         }
 
         // Load candidate lists into the election (preserves existing data if election was already cached)
         electionService.loadCandidateLists(election, folder);
 
-        return ResponseEntity.ok(election);
+        // Get the election from cache after loading 
+        Election cachedElection = electionService.getElectionById(electionId);
+        return ResponseEntity.ok(cachedElection != null ? cachedElection : election);
     }
 
     @GetMapping("/{electionId}/candidates/{candidateId}")

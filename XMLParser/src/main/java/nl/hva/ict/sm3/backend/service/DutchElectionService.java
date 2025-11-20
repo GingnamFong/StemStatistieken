@@ -112,10 +112,22 @@ public class DutchElectionService {
     }
 
     public void loadCandidateLists(Election election, String folderName) {
-        System.out.println("Loading candidate lists and total votes...");
-
         String electionId = election.getId().trim();
         folderName = folderName.trim();
+
+        // Check election already exists in cache
+        CacheEntry cachedEntry = electionCache.get(electionId);
+        if (cachedEntry != null && !cachedEntry.isExpired(CACHE_EXPIRATION_HOURS)) {
+            Election cachedElection = cachedEntry.getElection();
+            // candidates are already loaded, skip parsing 
+            if (cachedElection != null && !cachedElection.getCandidates().isEmpty()) {
+                System.out.println("Candidate lists already cached for election: " + electionId + 
+                    " (candidates: " + cachedElection.getCandidates().size() + ") - using cache");
+                return;
+            }
+        }
+
+        System.out.println("Candidates not in cache - parsing candidate lists and total votes...");
 
         DutchElectionParser electionParser = new DutchElectionParser(
                 new DutchDefinitionTransformer(election),
