@@ -2,7 +2,12 @@
   <nav class="navbar">
     <!-- Left side -->
     <div class="navbar-left">
-      <router-link to="/" class="brand">My App</router-link>
+      <router-link to="/" class="brand" aria-label="StemStatistieken">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+        </svg>
+        <span>StemStatistieken</span>
+      </router-link>
       <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
 
@@ -136,10 +141,18 @@ function performSearch() {
   color: #ffffff;
   padding: 18px 24px;
   transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .brand:hover {
   color: #3b82f6;
+}
+/* Brand icon (same as login page) */
+.brand-icon {
+  width: 22px;
+  height: 22px;
 }
 
 /* Hamburger button */

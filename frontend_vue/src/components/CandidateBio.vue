@@ -10,7 +10,15 @@ const candidate = ref(null)
 const error = ref(null)
 const loading = ref(true)
 
-const electionId = computed(() => route.params.electionId || 'TK2023')
+const selectedYear = computed(() => {
+  const yearParam = route.query.year
+  if (yearParam && ['2021', '2023', '2025'].includes(yearParam)) {
+    return parseInt(yearParam)
+  }
+  return 2023 // default
+})
+
+const electionId = computed(() => `TK${selectedYear.value}`)
 const candidateId = computed(() => route.params.candidateId)
 
 onMounted(async () => {
@@ -81,7 +89,7 @@ function goBack() {
                   <circle cx="12" cy="7" r="4" />
                 </svg>
 
-                <span>Tweede Kamer 2023</span>
+                <span>Tweede Kamer {{ selectedYear }}</span>
               </div>
               <h1 class="page-title" v-if="candidate">{{ fullName }}</h1>
               <h1 class="page-title" v-else>Kandidaat Detail</h1>

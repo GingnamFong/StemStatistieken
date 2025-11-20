@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -9,16 +9,22 @@ const loading = ref(true)
 const search = ref('')
 const sortKey = ref('lastName')
 const sortDir = ref('asc')
+const selectedYear = ref(2023)
 
 const API_BASE_URL =
   (location.origin === 'https://hva-frontend.onrender.com')
     ? 'https://hva-backend-c647.onrender.com'
     : 'http://localhost:8081'
 
-onMounted(async () => {
+const availableYears = [2021, 2023, 2025]
+
+const electionId = computed(() => `TK${selectedYear.value}`)
+
+async function loadCandidates() {
   loading.value = true
+  error.value = null
   try {
-    const response = await fetch(`${API_BASE_URL}/elections/TK2023/candidatelists`, {
+    const response = await fetch(`${API_BASE_URL}/elections/${electionId.value}/candidatelists`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -29,9 +35,18 @@ onMounted(async () => {
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message
+    candidates.value = []
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadCandidates()
+})
+
+watch(selectedYear, () => {
+  loadCandidates()
 })
 
 function changeSort(key) {
@@ -93,14 +108,28 @@ const top3Candidates = computed(() => {
 const filteredCandidates = computed(() => {
   let result = candidates.value
   if (search.value.trim()) {
-    const q = search.value.toLowerCase()
-    result = result.filter(
-      c =>
-        c.firstName?.toLowerCase().includes(q) ||
-        c.lastName?.toLowerCase().includes(q) ||
-        c.initials?.toLowerCase().includes(q) ||
-        c.partyName?.toLowerCase().includes(q)
-    )
+    const searchTerm = search.value.trim().toLowerCase()
+    const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0)
+
+    result = result.filter(c => {
+      // Build full name for searching
+      const fullName = [
+        c.initials,
+        c.firstName,
+        c.lastName
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      // Check if all search words match somewhere in the candidate data
+      return searchWords.every(word => {
+        return (
+          fullName.includes(word) ||
+          c.firstName?.toLowerCase().includes(word) ||
+          c.lastName?.toLowerCase().includes(word) ||
+          c.initials?.toLowerCase().includes(word) ||
+          c.partyName?.toLowerCase().includes(word)
+        )
+      })
+    })
   }
 
   return [...result].sort((a, b) => {
@@ -115,7 +144,7 @@ const filteredCandidates = computed(() => {
 
 function viewCandidate(candidate) {
   if (candidate && candidate.id) {
-    router.push(`/Candidate/${encodeURIComponent(candidate.id)}`)
+    router.push(`/Candidate/${encodeURIComponent(candidate.id)}?year=${selectedYear.value}`)
   }
 }
 </script>
@@ -138,13 +167,26 @@ function viewCandidate(candidate) {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                <span>Tweede Kamer 2023</span>
+                <span>Tweede Kamer {{ selectedYear }}</span>
               </div>
               <h1 class="page-title">Kandidaten Lijst</h1>
               <p class="page-description">Bekijk alle kandidaten en hun verkiezingsresultaten</p>
             </div>
-            <div class="header-right" v-if="candidates.length">
-              <div class="search-wrapper">
+            <div class="header-right">
+              <div class="year-selector-wrapper">
+                <div class="year-selector">
+                  <button
+                    v-for="year in availableYears"
+                    :key="year"
+                    @click="selectedYear = year"
+                    :class="['year-btn', { active: selectedYear === year }]"
+                    :disabled="loading"
+                  >
+                    {{ year }}
+                  </button>
+                </div>
+              </div>
+              <div class="search-wrapper" v-if="candidates.length">
         <input
           v-model="search"
           type="text"
@@ -599,6 +641,52 @@ tbody tr:hover {
   display: block;
 }
 
+/* Year Selector */
+.year-selector-wrapper {
+  margin-right: 16px;
+}
+
+.year-selector {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 4px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.year-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  min-width: 70px;
+}
+
+.year-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.year-btn.active {
+  background: white;
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.year-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .empty {
   text-align: center;
   color: #64748b;
@@ -722,6 +810,22 @@ tbody tr:hover {
   .header-right {
     width: 100%;
     padding-bottom: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .year-selector-wrapper {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .year-selector {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .year-btn {
+    flex: 1;
   }
 
   .search-wrapper {
