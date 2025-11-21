@@ -83,6 +83,7 @@ public class Election {
                 .orElse(null);
     }
 
+
     /**
      * Finds a candidate by matching shortCode from votes file with lastName + all initials.
      * Format: lastName + all initials without dots (e.g. "YeşilgözD" or "JettenRAA" for "R.A.A.")

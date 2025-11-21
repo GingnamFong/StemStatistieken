@@ -44,16 +44,21 @@
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue'
 import { ProvincieService } from '../services/ProvincieService.js'
+import { watch } from 'vue'
 
 const mapContainer = ref(null)
 const svgContainer = ref(null)
 const svgContent = ref('')
 const selectedProvincie = ref(null)
 const kieskringen = ref([])
-const props = defineProps({
+const { showDataSection, year } = defineProps({
   showDataSection: {
     type: Boolean,
     default: true
+  },
+  year: {
+    type: Number,
+    default: 2023
   }
 })
 
@@ -69,7 +74,11 @@ onMounted(async () => {
     svgContent.value = '<div style="text-align: center; padding: 50px; color: #666;">Kon SVG niet laden. Controleer of /images/NederlandSVG.svg bestaat.</div>'
   }
 })
-
+watch(() => year, () => {
+  if (selectedProvincie.value) {
+    loadProvincieData(selectedProvincie.value.name) // reload with new year
+  }
+})
 const addPathListeners = () => {
   if (!svgContainer.value) return
 
@@ -105,7 +114,7 @@ const addPathListeners = () => {
         path.style.fillOpacity = '0.8'
         emit('provincie-selected', provincieNaam)
         await loadProvincieData(provincieNaam)
-        
+
         // Emit data in format voor ChartsPanel
         if (selectedProvincie.value.resultaten && selectedProvincie.value.resultaten.length > 0) {
           const chartData = {

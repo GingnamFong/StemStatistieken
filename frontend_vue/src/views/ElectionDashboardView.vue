@@ -13,7 +13,7 @@
             <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <span>Tweede Kamer 2023</span>
+            <span>Tweede Kamer {{ selectedYear }}</span>
           </div>
           <h1 class="page-title">Verkiezingsuitslagen</h1>
           <p class="page-description">Verken interactieve kaarten en gedetailleerde statistieken</p>
@@ -45,16 +45,32 @@
             <div class="card-title-group">
               <h2 class="card-title">{{ currentTitle }}</h2>
             </div>
+
+            <!-- 🔹 Year toggle buttons -->
+            <div class="year-selector">
+              <button
+                v-for="year in [2021, 2023]"
+                :key="year"
+                @click="selectedYear = year"
+                :class="['year-button', { active: selectedYear === year }]"
+              >
+                {{ year }}
+              </button>
+            </div>
           </div>
 
           <div class="card-body">
             <div class="map-wrapper">
+              <div class="year-indicator">
+                Bekijk gegevens voor <strong>{{ selectedYear }}</strong>
+              </div>
               <component
                 :is="currentMapComponent"
                 :showDataSection="false"
-                @municipalitySelected="handleMunicipalitySelected"
-                @provincieDataForChart="handleProvincieSelected"
-                @regionSelected="handleKieskringSelected"
+                :year="selectedYear"
+              @municipalitySelected="handleMunicipalitySelected"
+              @provincieDataForChart="handleProvincieSelected"
+              @regionSelected="handleKieskringSelected"
               />
             </div>
           </div>
@@ -90,6 +106,7 @@
 <script setup>
 import {computed, ref} from 'vue'
 import DutchMapGemeente2024 from '@/components/DutchMapGemeente2024.vue'
+import DutchMapGemeente2021 from '@/components/DutchMapGemeente2021.vue'
 import DutchMapProvincie from '@/components/DutchMapProvincie.vue'
 import ChartsPanel from '@/components/ChartsPanel.vue'
 import DutchMapKiesKring from '@/components/DutchMapKiesKring.vue'
@@ -116,6 +133,7 @@ const viewTypes = [
 /* --- Reactive state --- */
 const selectedType = ref('province')
 const selectedRegion = ref(null)
+const selectedYear = ref(2023)
 
 /* --- Handlers --- */
 function handleMunicipalitySelected(m) {
@@ -158,7 +176,9 @@ const currentTitle = computed(() => {
 const currentMapComponent = computed(() => {
   switch (selectedType.value) {
     case 'municipality':
-      return DutchMapGemeente2024
+      return selectedYear.value === 2021
+        ? DutchMapGemeente2021
+        : DutchMapGemeente2024
     case 'province':
       return DutchMapProvincie
     case 'kieskring':
@@ -266,6 +286,13 @@ const currentMapComponent = computed(() => {
   font-size: 18px;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
+}
+.year-button.active {
+  background: #1e293b !important;
+  color: #ffd24d !important;
+  border-color: #1e293b !important;
+  transform: scale(1.08);
+  font-weight: 800;
 }
 
 /* Dashboard Container */
@@ -386,6 +413,19 @@ const currentMapComponent = computed(() => {
   align-items: center;
   min-height: 400px;
 }
+.year-indicator {
+  text-align: center;
+  margin-top: 12px;
+  background: #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  display: inline-block;
+}
+
 
 /* Live indicator removed */
 
@@ -446,6 +486,7 @@ const currentMapComponent = computed(() => {
 .card-body::-webkit-scrollbar-thumb:hover {
   background: #adb5bd;
 }
+
 
 /* Responsive Design */
 @media (max-width: 1200px) {
@@ -517,5 +558,68 @@ const currentMapComponent = computed(() => {
     padding: 0 16px 32px;
   }
 }
+.election-badge span {
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.election-badge span {
+  display: inline-block;
+}
+
+.year-button.active ~ .dashboard-header .election-badge span {
+  transform: scale(1.05);
+  color: #ffd24d;
+}
+/* === Year Selector Buttons === */
+.year-selector {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.year-button {
+  padding: 8px 20px;
+  border: 2px solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.year-button:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.year-button.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+}
+
+.year-button:focus-visible {
+  outline: 3px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .year-selector {
+    gap: 8px;
+  }
+
+  .year-button {
+    padding: 6px 16px;
+    font-size: 14px;
+  }
+}
+
+
 </style>
 

@@ -1,14 +1,12 @@
 <template>
   <div class="map-container" ref="container">
-    <!-- SVG Map (imported via vite-svg-loader) -->
-    <NederlandMap
+    <NederlandMap2021
       class="dutch-map"
       @mousemove="handleMouseMove"
       @mouseleave="hideTooltip"
       @click="handleClick"
     />
 
-    <!-- Tooltip -->
     <div
       v-if="tooltip.visible"
       class="tooltip"
@@ -33,12 +31,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { defineEmits } from 'vue'
-import NederlandMap from '@/assets/Nederland_gemeenten_2024.svg'
-import { ElectionService } from '@/services/ElectionService'
+import NederlandMap2021 from '@/assets/Nederland_gemeente_2021.svg'
 
 const container = ref(null)
 const emit = defineEmits(['municipalitySelected'])
 defineProps({ year: Number })
+let lastHoveredPath = null
 
 const tooltip = ref({
   visible: false,
@@ -58,33 +56,42 @@ const API_BASE_URL =
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/elections/TK2023/municipalities`)
+    const res = await fetch(`${API_BASE_URL}/elections/TK2021/municipalities`)
     if (!res.ok) throw new Error('Network error')
     municipalities.value = await res.json()
-    console.log('Loaded municipalities:', municipalities.value)
+    console.log('Loaded 2021 municipalities:', municipalities.value)
   } catch (err) {
-    console.error('Failed to load municipalities:', err)
+    console.error('Failed to load 2021 municipalities:', err)
   }
 })
 
-// Utility to get municipality data by svg path id (robust to "GM" prefix)
 function getMunicipalityByPathId(pathId) {
   if (!pathId) return null
-  const id = pathId.replace(/^\D+/, '') // remove GM prefix
+  const id = pathId.replace(/^\D+/, '')
   return municipalities.value.find(m => String(m.id) === String(id)) || null
 }
 
 function handleMouseMove(e) {
   const path = e.target.closest('path')
+
+  // Remove highlight from previous
+  if (lastHoveredPath && lastHoveredPath !== path) {
+    lastHoveredPath.classList.remove('hovered-municipality')
+  }
+
   if (!path) {
     tooltip.value.visible = false
+    lastHoveredPath = null
     return
   }
+
+  // Add highlight
+  path.classList.add('hovered-municipality')
+  lastHoveredPath = path
 
   const m = getMunicipalityByPathId(path.id)
   const name = (m && m.name) || path.dataset.name || path.id || 'Unknown'
 
-  // compute tooltip position relative to container
   const rect = container.value?.getBoundingClientRect?.() || { left: 0, top: 0 }
   const offsetX = e.clientX - rect.left
   const offsetY = e.clientY - rect.top
@@ -97,13 +104,15 @@ function handleMouseMove(e) {
     : []
   tooltip.value.x = offsetX + 12
   tooltip.value.y = offsetY + 12
-
-  // Debug log to check data
-  console.log('Hovered:', name, tooltip.value.topParties)
 }
 
 function hideTooltip() {
   tooltip.value.visible = false
+  if (lastHoveredPath) {
+    lastHoveredPath.classList.remove('hovered-municipality')
+    lastHoveredPath = null
+  }
+
 }
 
 function handleClick(e) {
@@ -111,11 +120,12 @@ function handleClick(e) {
   if (!path) return
   const m = getMunicipalityByPathId(path.id)
   if (m) emit('municipalitySelected', m)
+
+
 }
 </script>
 
-
-<style scoped>
+<style>
 .map-container {
   position: relative;
   width: 100%;
@@ -124,6 +134,13 @@ function handleClick(e) {
   justify-content: center;
   align-items: center;
 }
+.hovered-municipality {
+  fill: #F6C700 !important;
+  stroke: #000 !important;
+  stroke-width: 0.6;
+  transition: fill 0.12s, stroke 0.12s;
+}
+
 
 /* Ensure the SVG scales but keep pointer events */
 .dutch-map {
@@ -180,3 +197,4 @@ path:hover {
   font-size: 0.82rem;
 }
 </style>
+
