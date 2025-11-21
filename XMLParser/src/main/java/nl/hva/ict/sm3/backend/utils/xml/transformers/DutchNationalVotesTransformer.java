@@ -39,6 +39,33 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 electionData.getOrDefault(REGISTERED_NAME, "Unknown Party"),
                 electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null)
         );
+
+        VoteTotals voteTotals = new VoteTotals(
+                parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0")),
+                parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0"))
+        );
+
+        RejectedData rejectedData = new RejectedData(
+                parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")),
+                parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0"))
+        );
+
+        String uniqueId = electionInfo.getId() + "-" + partyInfo.getId();
+
+        National result = new National(
+            uniqueId,
+            electionInfo,
+            partyInfo,
+            voteTotals,
+            rejectedData
+        );
+
+         boolean alreadyExists = election.getNationalVotes().stream()
+            .anyMatch(r -> r.getId().equals(uniqueId));
+
+        if (!alreadyExists) {
+            election.addNationalVotes(result);
+         }
          */
 
         // Core
