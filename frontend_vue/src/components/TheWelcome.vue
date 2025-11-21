@@ -1,9 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-const API_BASE_URL =
-  (location.origin === 'https://hva-frontend.onrender.com')
-    ? 'https://hva-backend-c647.onrender.com'
-    : 'http://localhost:8081'
+import { API_BASE_URL } from '@/config/api'
 
 const election = ref(null)
 const error = ref(null)
