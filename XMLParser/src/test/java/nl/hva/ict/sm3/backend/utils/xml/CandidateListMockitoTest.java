@@ -42,6 +42,7 @@ public class CandidateListMockitoTest {
 
         transformer.registerCandidate(electionData);
 
+        //Capture agurment verify 1x to verify data
         ArgumentCaptor<Candidate> candidateCaptor = ArgumentCaptor.forClass(Candidate.class);
         verify(election, times(1)).addCandidate(candidateCaptor.capture());
         
@@ -55,7 +56,7 @@ public class CandidateListMockitoTest {
         assertEquals("VVD", capturedCandidate.getPartyName());
     }
 
-    // Create candidate  election data
+    // Create candidate election data
     private Map<String, String> createCandidateElectionData() {
         Map<String, String> electionData = new HashMap<>();
         electionData.put(CANDIDATE_IDENTIFIER_ID, "1");
