@@ -56,6 +56,28 @@ public class CandidateListMockitoTest {
         assertEquals("VVD", capturedCandidate.getPartyName());
     }
 
+    @Test
+    void testRegisterCandidate_MissingData() {
+        // Empty Data
+        Map<String, String> emptyElectionData = new HashMap<>();
+
+        transformer.registerCandidate(emptyElectionData);
+
+        ArgumentCaptor<Candidate> candidateCaptor = ArgumentCaptor.forClass(Candidate.class);
+        verify(election, times(1)).addCandidate(candidateCaptor.capture());
+        
+        Candidate capturedCandidate = candidateCaptor.getValue();
+        assertEquals("unknown-unknown", capturedCandidate.getId());
+        assertEquals("unknown", capturedCandidate.getFirstName());
+        assertEquals("unknown", capturedCandidate.getLastName());
+        assertEquals("unknown", capturedCandidate.getInitials());
+        assertEquals("unknown", capturedCandidate.getResidence());
+        assertEquals("unknown", capturedCandidate.getPartyId());
+        assertEquals("Unknown Party", capturedCandidate.getPartyName());
+        assertEquals(0, capturedCandidate.getCandidateIdentifier());
+    }
+
+
     // Create candidate election data
     private Map<String, String> createCandidateElectionData() {
         Map<String, String> electionData = new HashMap<>();
