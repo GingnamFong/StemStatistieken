@@ -54,7 +54,7 @@ public class DutchCandidateTransformer implements CandidateTransformer {
 
         if (!alreadyExists) {
             election.addCandidate(candidate);
-            System.out.println("Registered candidate: " + candidate.getLastName() + " " + candidate.getFirstName() + 
+            System.out.println("Registered candidate: " + candidate.getFirstName() + " " + candidate.getLastName() +
                 " (ID: " + candidateId + ", Party: " + partyName + ")");
         } else {
             System.out.println("Skipped duplicate: " + candidate);

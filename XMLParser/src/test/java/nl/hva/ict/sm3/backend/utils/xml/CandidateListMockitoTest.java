@@ -77,6 +77,28 @@ public class CandidateListMockitoTest {
         assertEquals(0, capturedCandidate.getCandidateIdentifier());
     }
 
+    @Test
+    void testRegisterCandidate_InvalidCandidateId_HandlesErrorGracefully() {
+        // Candidate ID is invalid
+        Map<String, String> electionData = new HashMap<>();
+        electionData.put(CANDIDATE_IDENTIFIER_ID, "invalid-id");
+        electionData.put(FIRST_NAME, "Rob");
+        electionData.put(LAST_NAME, "Jetten");
+        electionData.put(AFFILIATION_IDENTIFIER + "-Id", "1");
+        electionData.put(REGISTERED_NAME, "D66");
+
+        // no exception should be thrown
+        transformer.registerCandidate(electionData);
+
+        ArgumentCaptor<Candidate> candidateCaptor = ArgumentCaptor.forClass(Candidate.class);
+        verify(election, times(1)).addCandidate(candidateCaptor.capture());
+
+        //Candidate identifier should be 0 because of invalid input
+        Candidate capturedCandidate = candidateCaptor.getValue();
+        assertEquals(0, capturedCandidate.getCandidateIdentifier());
+        assertEquals("1-invalid-id", capturedCandidate.getId()); 
+
+    }
 
     // Create candidate election data
     private Map<String, String> createCandidateElectionData() {
