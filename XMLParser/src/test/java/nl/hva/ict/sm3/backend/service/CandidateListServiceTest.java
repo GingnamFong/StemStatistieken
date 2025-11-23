@@ -27,7 +27,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CandidateListServiceTest {
 
-    // Mock DutchElectionService
     @Mock
     private DutchElectionService electionService;
 
@@ -35,7 +34,7 @@ class CandidateListServiceTest {
     @InjectMocks
     private CandidateListService candidateListService;
 
-    // Test data die we in meerdere tests gebruiken
+    // Test data
     private Election testElection;
     private Election cachedElection;
     private List<Candidate> testCandidates;
