@@ -25,13 +25,24 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-
+import { API_BASE_URL } from '@/config/api'
+import { watch } from 'vue'
+import kieskringenUrl from '@/assets/kieskringen.svg'
 const emit = defineEmits(['regionSelected'])
 const container = ref(null)
 const svgContainer = ref(null)
 const svgContent = ref('')
 
 const constituencies = ref([])
+
+const props = defineProps({
+  year: {
+    type: Number,
+    required: true
+  }
+})
+
+
 
 const tooltip = ref({
   visible: false,
@@ -136,10 +147,12 @@ function attachInteractivity() {
   })
 }
 
-onMounted(async () => {
+async function loadData() {
   // 1) load backend data
   try {
-    const res = await fetch('http://localhost:8081/elections/TK2023/constituencies')
+    const res = await fetch(
+      `${API_BASE_URL}/elections/TK${props.year}/constituencies`
+    )
     if (!res.ok) throw new Error('Network error')
     constituencies.value = await res.json()
   } catch (err) {
@@ -148,7 +161,7 @@ onMounted(async () => {
 
   // 2) load raw SVG & inject
   try {
-    const file = await fetch('/src/assets/kieskringen.svg')
+    const file = await fetch('kieskringenUrl')
     svgContent.value = await file.text()
   } catch (e) {
     console.error('Failed to load kieskringen SVG:', e)
@@ -158,6 +171,14 @@ onMounted(async () => {
   // 3) after injection, attach logic
   await nextTick()
   attachInteractivity()
+}
+
+// Load initial data
+  onMounted(loadData)
+
+// Watch year change
+  watch(() => props.year, async () => {
+    await loadData()
 })
 </script>
 
