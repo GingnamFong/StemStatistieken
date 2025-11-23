@@ -1,7 +1,6 @@
 package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.*;
-import nl.hva.ict.sm3.backend.service.CandidateListService;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +14,9 @@ import java.util.List;
 @RequestMapping("/elections")
 public class ElectionController {
     private final DutchElectionService electionService;
-    private final CandidateListService candidateListService;
 
-    public ElectionController(DutchElectionService electionService, CandidateListService candidateListService) {
+    public ElectionController(DutchElectionService electionService) {
         this.electionService = electionService;
-        this.candidateListService = candidateListService;
     }
 
     @GetMapping("/{electionId}")
@@ -116,53 +113,6 @@ public class ElectionController {
         Election election = electionService.readResults(electionId, folderName != null ? folderName : electionId);
         if (election == null) return ResponseEntity.status(500).build();
         return ResponseEntity.ok(election);
-    }
-
-    @PostMapping("/{electionId}/candidatelists")
-    public ResponseEntity<Election> loadCandidateLists(
-            @PathVariable String electionId,
-            @RequestParam(required = false) String folderName) {
-
-        String folder = folderName != null ? folderName : electionId;
-
-        // Check if election already exists in cache 
-        Election election = electionService.getElectionById(electionId);
-        if (election != null && !election.getCandidates().isEmpty()) {
-            return ResponseEntity.ok(election);
-        }
-
-        if (election == null) {
-            election = new Election(electionId);
-        }
-
-        // Load candidate lists into the election (preserves existing data if election was already cached)
-        candidateListService.loadCandidateLists(election, folder);
-
-        // Get the election from cache after loading 
-        Election cachedElection = electionService.getElectionById(electionId);
-        return ResponseEntity.ok(cachedElection != null ? cachedElection : election);
-    }
-
-    @GetMapping("/{electionId}/candidates/{candidateId}")
-    public ResponseEntity<Candidate> getCandidateById(
-            @PathVariable String electionId,
-            @PathVariable String candidateId) {
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            // Try to load candidate lists if election not in cache
-            election = new Election(electionId);
-            candidateListService.loadCandidateLists(election, electionId);
-            // Election is now cached by loadCandidateLists method
-            // If loading failed, election will still exist but may be empty
-        }
-
-        Candidate candidate = election.getCandidateById(candidateId);
-        if (candidate == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(candidate);
     }
 
 }
