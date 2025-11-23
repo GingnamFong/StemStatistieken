@@ -113,6 +113,8 @@
 import { ref, onMounted, computed } from 'vue'
 import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
+import MunicipalityService from '@/services/MunicipalityService'
+import ConstituencyService from '@/services/ConstituencyService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
@@ -126,7 +128,7 @@ onMounted(async () => {
     await ElectionService.getElection('TK2023')
     console.log('✅ Election data ready')
 
-    const gemeentes = await ElectionService.getMunicipalities   ('TK2023')
+    const gemeentes = await MunicipalityService.getMunicipalities('TK2023')
     console.log('✅ Loaded municipalities:', gemeentes.length)
     availableSelections.value[0] = gemeentes
 
@@ -239,10 +241,10 @@ async function handleYearChange(index, year) {
       const provincies = await ProvincieService.getAllProvincies()
       availableSelections.value[index] = provincies
     } else if (type === 'gemeente') {
-      const gemeentes = await ElectionService.getMunicipalities(year)
+      const gemeentes = await MunicipalityService.getMunicipalities(year)
       availableSelections.value[index] = gemeentes
     } else if (type === 'kieskring') {
-      const kieskringen = await ElectionService.getConstituencies(year)
+      const kieskringen = await ConstituencyService.getConstituencies(year)
       availableSelections.value[index] = kieskringen
     }
   } catch (error) {
@@ -269,7 +271,7 @@ async function loadColumnData(index) {
       col.data = data
 
     } else if (col.type === 'gemeente') {
-      const data = await ElectionService.getMunicipality(col.year, col.selection)
+      const data = await MunicipalityService.getMunicipality(col.year, col.selection)
       col.data = {
         totaalStemmen: data.validVotes || 0,
         partijen: (data.allParties || []).map(p => ({
@@ -280,7 +282,7 @@ async function loadColumnData(index) {
       }
 
     } else if (col.type === 'kieskring') {
-      const allConstituencies = await ElectionService.getConstituencies(col.year)
+      const allConstituencies = await ConstituencyService.getConstituencies(col.year)
       const constituency = allConstituencies.find(c => c.id === col.selection || c.name === col.selection)
 
       if (!constituency) {
