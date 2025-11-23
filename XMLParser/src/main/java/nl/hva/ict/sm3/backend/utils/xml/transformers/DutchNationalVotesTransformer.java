@@ -4,6 +4,7 @@ import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 import nl.hva.ict.sm3.backend.model.National;
+import nl.hva.ict.sm3.backend.model.NationalResult;
 
 import java.util.Map;
 
@@ -50,6 +51,36 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
         // RejectedData rejectedData = new RejectedData(rejectedVotes, totalCounted);
 
+        String baseId = String.format("%s-%s", electionId, partyId);
+
+        // PARTY_VOTES record
+        National votesRecord = National.forPartyVotes(baseId + "-PARTY_VOTES",
+                electionId, electionName, partyId, partyName, shortCode, validVotes);
+        addIfNotExists(votesRecord);
+
+        // REJECTED_DATA record
+        National rejectedRecord = National.forRejectedData(baseId + "-REJECTED",
+                electionId, electionName, partyId, partyName, shortCode, rejectedVotes, totalCounted);
+        addIfNotExists(rejectedRecord);
+
+        // SEATS record
+        National seatsRecord = National.forSeats(baseId + "-SEATS",
+                electionId, electionName, partyId, partyName, shortCode, numberOfSeats);
+        addIfNotExists(seatsRecord);
+    }
+
+    private void addIfNotExists(National record) {
+        boolean alreadyExists = election.getNationalVotes().stream()
+                .anyMatch(r -> r.getId().equals(record.getId()) && r.getType() == record.getType());
+
+        if (!alreadyExists) {
+            election.addNationalVotes(record);
+            System.out.println("Registered national result: " + record);
+        } else {
+            System.out.println("Skipped duplicate: " + record);
+        }
+    }
+
         /*
         National result = new National(
                 uniqueId,
@@ -59,6 +90,8 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 rejectedData
         );
          */
+
+    /*
 
         //unique id
         String uniqueId = String.format("%s-%s", electionId, partyId);
@@ -96,6 +129,8 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
             System.out.println("Skipped duplicate: " + result);
         }
     }
+
+     */
 
     // Helper to safely parse integers
     private int parseIntSafe(String value) {

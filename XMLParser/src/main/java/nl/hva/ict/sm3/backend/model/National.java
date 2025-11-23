@@ -1,5 +1,7 @@
 package nl.hva.ict.sm3.backend.model;
 
+import java.util.Objects;
+
 /**
  * This will hold the information for one specific election.<br/>
  * <b>This class is by no means production ready! You need to alter it extensively!</b>
@@ -13,15 +15,25 @@ public class National {
     private final String partyId;
     private final String partyName;
     private final String shortCode;
+
     private final int validVotes; // wachten op oplossing
     private final int rejectedVotes; // verplaatsen naar election.java
     private final int totalCounted; // verplaatsen naar election.java
     private final int numberOfSeats; // wachten op oplossing
+    private final NationalResult type;
 
-    public National(String id, String electionId, String electionName,
-                       String partyId, String partyName, String shortCode,
-                       int validVotes, int rejectedVotes, int totalCounted,
-                       int numberOfSeats) {
+    public National(String id,
+                    String electionId,
+                    String electionName,
+                    String partyId,
+                    String partyName,
+                    String shortCode,
+
+                    int validVotes,
+                    int rejectedVotes,
+                    int totalCounted,
+                    int numberOfSeats,
+                    NationalResult type) {
         this.id = id;
         this.electionId = electionId;
         this.electionName = electionName;
@@ -32,7 +44,30 @@ public class National {
         this.rejectedVotes = rejectedVotes;
         this.totalCounted = totalCounted;
         this.numberOfSeats = numberOfSeats;
+        this.type = type;
     }
+
+    public static National forPartyVotes(String id, String electionId, String electionName,
+                                         String partyId, String partyName, String shortCode,
+                                         int validVotes) {
+        return new National(id, electionId, electionName, partyId, partyName, shortCode,
+                validVotes, 0, 0, 0, NationalResult.PARTY_VOTES);
+    }
+
+    public static National forRejectedData(String id, String electionId, String electionName,
+                                           String partyId, String partyName, String shortCode,
+                                           int rejectedVotes, int totalCounted) {
+        return new National(id, electionId, electionName, partyId, partyName, shortCode,
+                0, rejectedVotes, totalCounted, 0, NationalResult.REJECTED_DATA);
+    }
+
+    public static National forSeats(String id, String electionId, String electionName,
+                                    String partyId, String partyName, String shortCode,
+                                    int numberOfSeats) {
+        return new National(id, electionId, electionName, partyId, partyName, shortCode,
+                0, 0, 0, numberOfSeats, NationalResult.SEATS);
+    }
+
 
     public String getId() {
         return id;
@@ -74,6 +109,10 @@ public class National {
         return numberOfSeats;
     }
 
+    public NationalResult getType() {
+        return type;
+    }
+
     @Override
     public String toString() {
         return "PartyResult{" +
@@ -86,6 +125,20 @@ public class National {
                 ", totalCounted=" + totalCounted +
                 ", numberOfSeats=" + numberOfSeats +
                 '}';
+
+
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof National)) return false;
+        National national = (National) o;
+        return Objects.equals(id, national.id) && type == national.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type);
     }
 }
 
