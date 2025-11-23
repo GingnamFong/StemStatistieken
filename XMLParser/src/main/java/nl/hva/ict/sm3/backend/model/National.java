@@ -47,7 +47,7 @@ public class National {
         this.type = type;
     }
 
-    public static National forPartyVotes(String id, String electionId, String electionName,
+    public static National forCombined(String id, String electionId, String electionName,
                                          String partyId, String partyName, String shortCode,
                                          int validVotes) {
         return new National(id, electionId, electionName, partyId, partyName, shortCode,
@@ -66,6 +66,21 @@ public class National {
                                     int numberOfSeats) {
         return new National(id, electionId, electionName, partyId, partyName, shortCode,
                 0, 0, 0, numberOfSeats, NationalResult.SEATS);
+    }
+
+    public static National forCombined(String id,
+                                       String electionId,
+                                       String electionName,
+                                       String partyId,
+                                       String partyName,
+                                       String shortCode,
+                                       int validVotes,
+                                       int rejectedVotes,
+                                       int totalCounted,
+                                       int numberOfSeats,
+                                       NationalResult type) {
+        return new National(id, electionId, electionName, partyId, partyName, shortCode,
+                validVotes, rejectedVotes, totalCounted, numberOfSeats, type);
     }
 
 
@@ -124,6 +139,7 @@ public class National {
                 ", rejectedVotes=" + rejectedVotes +
                 ", totalCounted=" + totalCounted +
                 ", numberOfSeats=" + numberOfSeats +
+                ", type=" + type +
                 '}';
 
 

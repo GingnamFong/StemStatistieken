@@ -7,6 +7,7 @@ import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.model.NationalResult;
 
 import java.util.Map;
+import java.util.List;
 
 
 /**
@@ -51,6 +52,51 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
         // RejectedData rejectedData = new RejectedData(rejectedVotes, totalCounted);
 
+        String combinedId = String.format("%s-%s-PARTY_VOTES", electionId, partyId);
+
+        National combinedRecord = National.forCombined(
+                combinedId,
+                electionId,
+                electionName,
+                partyId,
+                partyName,
+                shortCode,
+                validVotes,
+                rejectedVotes,
+                totalCounted,
+                numberOfSeats,
+                null // type if you have one; otherwise pass null
+        );
+
+        addOrReplace(combinedRecord);
+    }
+
+    /**
+     * Replace the existing record with the same id or add if missing.
+     * We search the Election's national votes list for a matching id and replace it.
+     */
+    private void addOrReplace(National record) {
+        List<National> nationals = election.getNationalVotes();
+
+        int existingIndex = -1;
+        for (int i = 0; i < nationals.size(); i++) {
+            National r = nationals.get(i);
+            if (r.getId().equals(record.getId())) {
+                existingIndex = i;
+                break;
+            }
+        }
+
+        if (existingIndex >= 0) {
+            nationals.set(existingIndex, record);
+            System.out.println("Replaced national result: " + record);
+        } else {
+            election.addNationalVotes(record);
+            System.out.println("Added national result: " + record);
+        }
+    }
+
+/*
         String baseId = String.format("%s-%s", electionId, partyId);
 
         // PARTY_VOTES record
