@@ -27,7 +27,8 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { API_BASE_URL } from '@/config/api'
 import { watch } from 'vue'
-import kieskringenUrl from '@/assets/kieskringen.svg'
+import svgRaw from "@/assets/kieskringen.svg?raw"
+
 const emit = defineEmits(['regionSelected'])
 const container = ref(null)
 const svgContainer = ref(null)
@@ -159,14 +160,7 @@ async function loadData() {
     console.error('Failed to load constituencies:', err)
   }
 
-  // 2) load raw SVG & inject
-  try {
-    const file = await fetch('kieskringenUrl')
-    svgContent.value = await file.text()
-  } catch (e) {
-    console.error('Failed to load kieskringen SVG:', e)
-    return
-  }
+  svgContent.value = svgRaw
 
   // 3) after injection, attach logic
   await nextTick()
