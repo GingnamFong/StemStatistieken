@@ -34,6 +34,8 @@
 import { ref, onMounted } from 'vue'
 import { defineEmits } from 'vue'
 import NederlandMap from '@/assets/Nederland_gemeenten_2024.svg'
+import { API_BASE_URL } from '@/config/api'
+
 
 const container = ref(null)
 const emit = defineEmits(['municipalitySelected'])
@@ -48,11 +50,6 @@ const tooltip = ref({
 })
 
 const municipalities = ref([])
-
-const API_BASE_URL =
-  (location.origin === 'https://hva-frontend.onrender.com')
-    ? 'https://hva-backend-c647.onrender.com'
-    : 'http://localhost:8081'
 
 onMounted(async () => {
   try {
