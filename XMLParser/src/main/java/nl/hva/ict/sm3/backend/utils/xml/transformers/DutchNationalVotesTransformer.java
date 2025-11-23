@@ -58,10 +58,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 voteTotals,
                 rejectedData
         );
-
          */
-
-
 
         //unique id
         String uniqueId = String.format("%s-%s", electionId, partyId);
@@ -86,10 +83,6 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 totalCounted, // apart
                 numberOfSeats // wachten op oplossing, zoeken welk xml bestand deze data zit
         );
-
-
-
-
 
         System.out.println("Registering national result: " + result);
 
