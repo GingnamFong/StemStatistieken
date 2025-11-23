@@ -4,6 +4,8 @@ package nl.hva.ict.sm3.backend.model;
  * This will hold the information for one specific election.<br/>
  * <b>This class is by no means production ready! You need to alter it extensively!</b>
  */
+
+
 public class National {
     private final String id;
     private final String electionId;

@@ -13,6 +13,7 @@ import java.util.Map;
  * <b>This class needs heavy modification!</b>
  */
 
+
 public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAttributeNames {
     private final Election election;
 
@@ -28,87 +29,62 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
 
-        /*
-        ElectionInfo electionInfo = new ElectionInfo(
-                electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown"),
-                electionData.getOrDefault(ELECTION_NAME, "Unknown Election")
-        );
-
-        PartyInfo partyInfo = newPartyInfo(
-                electionInfo.getOrDefault(AFFILIATION_IDENTIFIER + "-id", "unknown"),
-                electionData.getOrDefault(REGISTERED_NAME, "Unknown Party"),
-                electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null)
-        );
-
-        VoteTotals voteTotals = new VoteTotals(
-                parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0")),
-                parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0"))
-        );
-
-        RejectedData rejectedData = new RejectedData(
-                parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")),
-                parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0"))
-        );
-
-        String uniqueId = electionInfo.getId() + "-" + partyInfo.getId();
-
-        National result = new National(
-            uniqueId,
-            electionInfo,
-            partyInfo,
-            voteTotals,
-            rejectedData
-        );
-
-         boolean alreadyExists = election.getNationalVotes().stream()
-            .anyMatch(r -> r.getId().equals(uniqueId));
-
-        if (!alreadyExists) {
-            election.addNationalVotes(result);
-         }
-         */
-
         // Core
         String electionId = electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown"); // no
         String electionName = electionData.getOrDefault(ELECTION_NAME, "Unknown Election");
+        ElectionInfo electionInfo = new ElectionInfo(electionId, electionName);
 
         // Party info
         String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
         String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null); // no
+        PartyInfo partyInfo = new PartyInfo(partyId, partyName, shortCode);
 
         // Look for the seats data
         int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
         int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0")); // no
+        VoteTotals voteTotals = new VoteTotals(validVotes, numberOfSeats);
 
         // Seperated from the rest of the data up here
         int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")); // no
         int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
+        RejectedData rejectedData = new RejectedData(rejectedVotes, totalCounted);
+
+        National result = new National(
+                uniqueId,
+                electionInfo,
+                partyInfo,
+                voteTotals,
+                rejectedData
+        );
+
 
         /*
-        int numberOfSeats;
-        try {
-            numberOfSeats = Integer.parseInt(numberOfSeats);
-        } catch (NumberFormatException e) {
-            numberOfSeats = 0;
-        }
-        */
-
         //unique id
         String uniqueId = String.format("%s-%s", electionId, partyId);
 
         National result = new National(
                 uniqueId,
+
+                //election
                 electionId,
                 electionName,
+
+                //party
                 partyId,
                 partyName,
                 shortCode,
+
+                // votes
                 validVotes, // wachten op oplossing, zoeken welk xml bestand deze data zit
                 rejectedVotes, // apart
+
+                // counted rejected
                 totalCounted, // apart
                 numberOfSeats // wachten op oplossing, zoeken welk xml bestand deze data zit
         );
+
+         */
 
 
 
@@ -147,4 +123,11 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
     //comment
 }
 
-
+        /*
+        int numberOfSeats;
+        try {
+            numberOfSeats = Integer.parseInt(numberOfSeats);
+        } catch (NumberFormatException e) {
+            numberOfSeats = 0;
+        }
+        */
