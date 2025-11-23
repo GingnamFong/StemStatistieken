@@ -34,11 +34,9 @@
 import { ref, onMounted } from 'vue'
 import { defineEmits } from 'vue'
 import NederlandMap from '@/assets/Nederland_gemeenten_2024.svg'
-import { ElectionService } from '@/services/ElectionService'
 
 const container = ref(null)
 const emit = defineEmits(['municipalitySelected'])
-defineProps({ year: Number })
 
 const tooltip = ref({
   visible: false,

@@ -37,7 +37,9 @@
           :disabled="!modelValue.type"
         >
           <option value="">Kies jaar...</option>
+          <option value="TK2021">2021</option>
           <option value="TK2023">2023</option>
+          <option value="TK2025">2025</option>
         </select>
       </div>
 

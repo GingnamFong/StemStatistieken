@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -9,16 +9,19 @@ const loading = ref(true)
 const search = ref('')
 const sortKey = ref('lastName')
 const sortDir = ref('asc')
+const selectedYear = ref(2023)
 
-const API_BASE_URL =
-  (location.origin === 'https://hva-frontend.onrender.com')
-    ? 'https://hva-backend-c647.onrender.com'
-    : 'http://localhost:8081'
+import { API_BASE_URL } from '@/config/api'
 
-onMounted(async () => {
+const availableYears = [2021, 2023, 2025]
+
+const electionId = computed(() => `TK${selectedYear.value}`)
+
+async function loadCandidates() {
   loading.value = true
+  error.value = null
   try {
-    const response = await fetch(`${API_BASE_URL}/elections/TK2023/candidatelists`, {
+    const response = await fetch(`${API_BASE_URL}/elections/${electionId.value}/candidatelists`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -29,9 +32,18 @@ onMounted(async () => {
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message
+    candidates.value = []
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadCandidates()
+})
+
+watch(selectedYear, () => {
+  loadCandidates()
 })
 
 function changeSort(key) {
@@ -93,30 +105,72 @@ const top3Candidates = computed(() => {
 const filteredCandidates = computed(() => {
   let result = candidates.value
   if (search.value.trim()) {
-    const q = search.value.toLowerCase()
-    result = result.filter(
-      c =>
-        c.firstName?.toLowerCase().includes(q) ||
-        c.lastName?.toLowerCase().includes(q) ||
-        c.initials?.toLowerCase().includes(q) ||
-        c.partyName?.toLowerCase().includes(q)
-    )
+    const searchTerm = search.value.trim().toLowerCase()
+    const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0)
+
+    result = result.filter(c => {
+      // Build full name for searching
+      const fullName = [
+        c.initials,
+        c.firstName,
+        c.lastName
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      // Check if all search words match somewhere in the candidate data
+      return searchWords.every(word => {
+        return (
+          fullName.includes(word) ||
+          c.firstName?.toLowerCase().includes(word) ||
+          c.lastName?.toLowerCase().includes(word) ||
+          c.initials?.toLowerCase().includes(word) ||
+          c.partyName?.toLowerCase().includes(word)
+        )
+      })
+    })
   }
 
   return [...result].sort((a, b) => {
     const dir = sortDir.value === 'asc' ? 1 : -1
     if (sortKey.value === 'candidateIdentifier') return (a.candidateIdentifier - b.candidateIdentifier) * dir
-    if (sortKey.value === 'partyName') return a.partyName.localeCompare(b.partyName) * dir
-    if (sortKey.value === 'residence') return a.residence.localeCompare(b.residence) * dir
+    if (sortKey.value === 'partyName') {
+      const aParty = filterUnknown(a.partyName) || ''
+      const bParty = filterUnknown(b.partyName) || ''
+      return aParty.localeCompare(bParty) * dir
+    }
+    if (sortKey.value === 'residence') {
+      const aRes = filterUnknown(a.residence) || ''
+      const bRes = filterUnknown(b.residence) || ''
+      return aRes.localeCompare(bRes) * dir
+    }
     if (sortKey.value === 'votes') return (a.votes - b.votes) * dir
-    return a.lastName.localeCompare(b.lastName) * dir
+    const aLastName = filterUnknown(a.lastName) || ''
+    const bLastName = filterUnknown(b.lastName) || ''
+    return aLastName.localeCompare(bLastName) * dir
   })
 })
 
 function viewCandidate(candidate) {
   if (candidate && candidate.id) {
-    router.push(`/Candidate/${encodeURIComponent(candidate.id)}`)
+    router.push(`/Candidate/${encodeURIComponent(candidate.id)}?year=${selectedYear.value}`)
   }
+}
+
+// filter out "unknown" value
+function filterUnknown(value) {
+  if (!value) return ''
+  const str = String(value).trim()
+  if (str.toLowerCase() === 'unknown') return ''
+  return str
+}
+
+// format candidate name
+function formatCandidateName(candidate) {
+  const parts = [
+    candidate.initials ? filterUnknown(candidate.initials) : '',
+    filterUnknown(candidate.firstName),
+    filterUnknown(candidate.lastName)
+  ].filter(part => part && part.trim())
+  return parts.join(' ') || ''
 }
 </script>
 
@@ -138,13 +192,26 @@ function viewCandidate(candidate) {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                <span>Tweede Kamer 2023</span>
+                <span>Tweede Kamer {{ selectedYear }}</span>
               </div>
               <h1 class="page-title">Kandidaten Lijst</h1>
               <p class="page-description">Bekijk alle kandidaten en hun verkiezingsresultaten</p>
             </div>
-            <div class="header-right" v-if="candidates.length">
-              <div class="search-wrapper">
+            <div class="header-right">
+              <div class="year-selector-wrapper">
+                <div class="year-selector">
+                  <button
+                    v-for="year in availableYears"
+                    :key="year"
+                    @click="selectedYear = year"
+                    :class="['year-btn', { active: selectedYear === year }]"
+                    :disabled="loading"
+                  >
+                    {{ year }}
+                  </button>
+                </div>
+              </div>
+              <div class="search-wrapper" v-if="candidates.length">
         <input
           v-model="search"
           type="text"
@@ -181,7 +248,7 @@ function viewCandidate(candidate) {
             <div v-for="c in candidates" :key="c.id" class="top3-item" @click="viewCandidate(c)">
               <div class="candidate-info">
                 <span class="candidate-name">
-                  {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
+                  {{ c.candidateIdentifier }} {{ formatCandidateName(c) || '-' }}
                 </span>
                 <span class="candidate-votes">
                   {{ c.votes ? c.votes.toLocaleString() : '0' }} stemmen
@@ -219,9 +286,9 @@ function viewCandidate(candidate) {
           <tr v-for="(c, index) in filteredCandidates" :key="c.id" @click="viewCandidate(c)" class="clickable-row">
             <td class="index-col">{{ index + 1 }}</td>
             <td>{{ c.candidateIdentifier }}</td>
-            <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
-            <td>{{ c.partyName }}</td>
-            <td>{{ c.residence }}</td>
+            <td>{{ formatCandidateName(c) || '-' }}</td>
+            <td>{{ filterUnknown(c.partyName) || '-' }}</td>
+            <td>{{ filterUnknown(c.residence) || '-' }}</td>
             <td class="votes-cell">{{ c.votes ? c.votes.toLocaleString('nl-NL') : '0' }}</td>
           </tr>
           </tbody>
@@ -259,8 +326,8 @@ function viewCandidate(candidate) {
           <div class="card-header">
             <span class="card-number">{{ index + 1 }}</span>
             <div class="card-name-section">
-              <h3 class="card-name">{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</h3>
-              <span class="card-party">{{ c.partyName }}</span>
+              <h3 class="card-name">{{ formatCandidateName(c) || '-' }}</h3>
+              <span class="card-party">{{ filterUnknown(c.partyName) || '-' }}</span>
             </div>
           </div>
           <div class="card-body">
@@ -270,7 +337,7 @@ function viewCandidate(candidate) {
             </div>
             <div class="card-row">
               <span class="card-label">Woonplaats:</span>
-              <span class="card-value">{{ c.residence }}</span>
+              <span class="card-value">{{ filterUnknown(c.residence) || '-' }}</span>
             </div>
             <div class="card-row votes-row">
               <span class="card-label">Stemmen:</span>
@@ -599,6 +666,52 @@ tbody tr:hover {
   display: block;
 }
 
+/* Year Selector */
+.year-selector-wrapper {
+  margin-right: 16px;
+}
+
+.year-selector {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 4px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.year-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  min-width: 70px;
+}
+
+.year-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.year-btn.active {
+  background: white;
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.year-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .empty {
   text-align: center;
   color: #64748b;
@@ -722,6 +835,22 @@ tbody tr:hover {
   .header-right {
     width: 100%;
     padding-bottom: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .year-selector-wrapper {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .year-selector {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .year-btn {
+    flex: 1;
   }
 
   .search-wrapper {
