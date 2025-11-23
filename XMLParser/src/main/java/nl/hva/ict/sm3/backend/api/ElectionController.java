@@ -1,6 +1,7 @@
 package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.*;
+import nl.hva.ict.sm3.backend.service.CandidateListService;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +15,11 @@ import java.util.List;
 @RequestMapping("/elections")
 public class ElectionController {
     private final DutchElectionService electionService;
+    private final CandidateListService candidateListService;
 
-    public ElectionController(DutchElectionService electionService) {
+    public ElectionController(DutchElectionService electionService, CandidateListService candidateListService) {
         this.electionService = electionService;
+        this.candidateListService = candidateListService;
     }
 
     @GetMapping("/{electionId}")
@@ -133,7 +136,7 @@ public class ElectionController {
         }
 
         // Load candidate lists into the election (preserves existing data if election was already cached)
-        electionService.loadCandidateLists(election, folder);
+        candidateListService.loadCandidateLists(election, folder);
 
         // Get the election from cache after loading 
         Election cachedElection = electionService.getElectionById(electionId);
@@ -149,7 +152,7 @@ public class ElectionController {
         if (election == null) {
             // Try to load candidate lists if election not in cache
             election = new Election(electionId);
-            electionService.loadCandidateLists(election, electionId);
+            candidateListService.loadCandidateLists(election, electionId);
             // Election is now cached by loadCandidateLists method
             // If loading failed, election will still exist but may be empty
         }
