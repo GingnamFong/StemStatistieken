@@ -88,3 +88,39 @@ public class National {
                 '}';
     }
 }
+
+/*
+public class National {
+    private final String id;
+    private final ElectionInfo election;
+    private final PartyInfo party;
+    private final VoteTotals voteTotals;
+    private final RejectedData rejectedData;
+
+    public National(String id, ElectionInfo election, PartyInfo party,
+                    VoteTotals voteTotals, RejectedData rejectedData) {
+        this.id = id;
+        this.election = election;
+        this.party = party;
+        this.voteTotals = voteTotals;
+        this.rejectedData = rejectedData;
+    }
+
+    public String getId() { return id; }
+    public ElectionInfo getElection() { return election; }
+    public PartyInfo getParty() { return party; }
+    public VoteTotals getVoteTotals() { return voteTotals; }
+    public RejectedData getRejectedData() { return rejectedData; }
+
+    @Override
+    public String toString() {
+        return "National{" +
+                "id='" + id + '\'' +
+                ", election=" + election +
+                ", party=" + party +
+                ", voteTotals=" + voteTotals +
+                ", rejectedData=" + rejectedData +
+                '}';
+    }
+}
+ */

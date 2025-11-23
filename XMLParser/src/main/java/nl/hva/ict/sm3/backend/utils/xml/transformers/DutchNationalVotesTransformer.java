@@ -32,24 +32,25 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         // Core
         String electionId = electionData.getOrDefault(ELECTION_IDENTIFIER, "unknown"); // no
         String electionName = electionData.getOrDefault(ELECTION_NAME, "Unknown Election");
-        ElectionInfo electionInfo = new ElectionInfo(electionId, electionName);
+        // ElectionInfo electionInfo = new ElectionInfo(electionId, electionName);
 
         // Party info
         String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", "unknown");
         String partyName = electionData.getOrDefault(REGISTERED_NAME, "Unknown Party");
         String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null); // no
-        PartyInfo partyInfo = new PartyInfo(partyId, partyName, shortCode);
+       //  PartyInfo partyInfo = new PartyInfo(partyId, partyName, shortCode);
 
         // Look for the seats data
         int validVotes = parseIntSafe(electionData.getOrDefault(VALID_VOTES, "0"));
         int numberOfSeats = parseIntSafe(electionData.getOrDefault(NUMBER_OF_SEATS, "0")); // no
-        VoteTotals voteTotals = new VoteTotals(validVotes, numberOfSeats);
+        // VoteTotals voteTotals = new VoteTotals(validVotes, numberOfSeats);
 
         // Seperated from the rest of the data up here
         int rejectedVotes = parseIntSafe(electionData.getOrDefault(REJECTED_VOTES, "0")); // no
         int totalCounted = parseIntSafe(electionData.getOrDefault(TOTAL_COUNTED, "0")); // no
-        RejectedData rejectedData = new RejectedData(rejectedVotes, totalCounted);
+        // RejectedData rejectedData = new RejectedData(rejectedVotes, totalCounted);
 
+        /*
         National result = new National(
                 uniqueId,
                 electionInfo,
@@ -58,8 +59,10 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 rejectedData
         );
 
+         */
 
-        /*
+
+
         //unique id
         String uniqueId = String.format("%s-%s", electionId, partyId);
 
@@ -84,7 +87,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 numberOfSeats // wachten op oplossing, zoeken welk xml bestand deze data zit
         );
 
-         */
+
 
 
 
