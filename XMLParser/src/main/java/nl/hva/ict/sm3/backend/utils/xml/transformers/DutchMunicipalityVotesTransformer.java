@@ -12,12 +12,31 @@ import java.util.Map;
  * <b>This class needs heavy modification!</b>
  */
 public class DutchMunicipalityVotesTransformer implements VotesTransformer {
+    /** The election instance to which data will be added. */
     private final Election election;
 
+    /**
+     * Creates a new transformer for registering municipality vote data
+     * into the given election model.
+     *
+     * @param election the election object where parsed data will be stored
+     */
     public DutchMunicipalityVotesTransformer(Election election) {
         this.election = election;
     }
 
+    /**
+     * Registers aggregated party-level votes for a municipality.
+     * <p>
+     * The method extracts municipality identifiers, party information, and
+     * vote counts from the provided {@code electionData} map and inserts them
+     * into the correct {@link Constituency} and {@link Municipality} within
+     * the {@link Election}. If a municipality does not yet exist, it is created.
+     * </p>
+     *
+     * @param aggregated   whether this entry contains aggregated vote data
+     * @param electionData a map of XML key-value pairs representing election data
+     */
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
