@@ -4,20 +4,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import nl.hva.ict.sm3.backend.model.National;
 
 /**
- * DTO that groups national vote data into logical sections for nicer JSON output.
+ * DTO that groups national vote data into more logical sections for nicer JSON output
  */
 public class NationalDto {
 
-    @JsonProperty("electionInfo")
+    @JsonProperty("election_Info")
     private final ElectionInfo electionInfo;
 
-    @JsonProperty("partyInfo")
+    @JsonProperty("party_Info")
     private final PartyInfo partyInfo;
 
-    @JsonProperty("seatsData")
+    @JsonProperty("seats_Data")
     private final SeatsData seatsData;
 
-    @JsonProperty("rejectedData")
+    @JsonProperty("rejected_Data")
     private final RejectedData rejectedData;
 
     public NationalDto(ElectionInfo electionInfo,
