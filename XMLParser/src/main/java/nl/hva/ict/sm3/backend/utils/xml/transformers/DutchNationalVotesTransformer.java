@@ -78,6 +78,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
      * We search the Election's national votes list for a matching id and replace it.
      */
     private void addOrReplace(National record) {
+        // Use the Election's replace method if it exists, otherwise find and replace manually
         List<National> nationals = election.getNationalVotes();
 
         int existingIndex = -1;
@@ -90,7 +91,8 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         }
 
         if (existingIndex >= 0) {
-            nationals.set(existingIndex, record);
+            // Use the Election's replace method
+            election.replaceNationalVote(record.getId(), record);
             System.out.println("Replaced national result: " + record);
         } else {
             election.addNationalVotes(record);

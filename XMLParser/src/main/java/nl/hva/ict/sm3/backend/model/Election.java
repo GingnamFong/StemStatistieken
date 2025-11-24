@@ -11,6 +11,7 @@ public class Election {
     private Map<String, Party> parties = new HashMap<>();
     private List<Candidate> candidates = new ArrayList<>();
     private List<National> nationalVotes = new ArrayList<>();
+    private Map<String, Integer> seatAllocations = new HashMap<>();
 
 
     public Election(String id) {
@@ -44,7 +45,43 @@ public class Election {
 
     public void addNationalVotes(National national) {
         nationalVotes.add(national);
-    };
+    }
+    
+    /**
+     * Replaces a National vote record with the same ID.
+     * Used when updating seat counts.
+     */
+    public void replaceNationalVote(String nationalId, National updatedNational) {
+        for (int i = 0; i < nationalVotes.size(); i++) {
+            if (nationalVotes.get(i).getId().equals(nationalId)) {
+                nationalVotes.set(i, updatedNational);
+                return;
+            }
+        }
+        // If not found, just add it
+        nationalVotes.add(updatedNational);
+    }
+    
+    /**
+     * Sets the seat allocations for parties.
+     */
+    public void setSeatAllocations(Map<String, Integer> seatAllocations) {
+        this.seatAllocations = new HashMap<>(seatAllocations);
+    }
+    
+    /**
+     * Gets the seat allocations for parties.
+     */
+    public Map<String, Integer> getSeatAllocations() {
+        return new HashMap<>(seatAllocations);
+    }
+    
+    /**
+     * Gets the number of seats for a specific party.
+     */
+    public int getSeatsForParty(String partyId) {
+        return seatAllocations.getOrDefault(partyId, 0);
+    }
 
     public Constituency getConstituencyById(String id) {
         return constituencies.stream()
