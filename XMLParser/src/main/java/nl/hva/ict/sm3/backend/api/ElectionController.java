@@ -46,10 +46,16 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
-    @GetMapping("{electionId}/constituencies")
+    @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
-        if (election == null) return ResponseEntity.notFound().build();
+        if (election == null) {
+
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
 
         return ResponseEntity.ok(election.getConstituencies());
     }
@@ -116,12 +122,22 @@ public class ElectionController {
 
         String folder = folderName != null ? folderName : electionId;
 
-        Election election = new Election(electionId);
+        // Check if election already exists in cache 
+        Election election = electionService.getElectionById(electionId);
+        if (election != null && !election.getCandidates().isEmpty()) {
+            return ResponseEntity.ok(election);
+        }
 
-        //  fill this instance
+        if (election == null) {
+            election = new Election(electionId);
+        }
+
+        // Load candidate lists into the election (preserves existing data if election was already cached)
         electionService.loadCandidateLists(election, folder);
 
-        return ResponseEntity.ok(election);
+        // Get the election from cache after loading 
+        Election cachedElection = electionService.getElectionById(electionId);
+        return ResponseEntity.ok(cachedElection != null ? cachedElection : election);
     }
 
     @GetMapping("/{electionId}/candidates/{candidateId}")
@@ -135,10 +151,7 @@ public class ElectionController {
             election = new Election(electionId);
             electionService.loadCandidateLists(election, electionId);
             // Election is now cached by loadCandidateLists method
-        }
-
-        if (election == null) {
-            return ResponseEntity.notFound().build();
+            // If loading failed, election will still exist but may be empty
         }
 
         Candidate candidate = election.getCandidateById(candidateId);
