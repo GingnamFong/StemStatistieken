@@ -2,6 +2,7 @@ package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
+import nl.hva.ict.sm3.backend.service.MunicipalityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,8 +80,6 @@ public class ElectionController {
 
         return ResponseEntity.ok(municipality);
     }
-
-
 
     // Optional: endpoint for top parties nationally
     @GetMapping("/{electionId}/top-parties")
@@ -161,5 +160,42 @@ public class ElectionController {
 
         return ResponseEntity.ok(candidate);
     }
+    @GetMapping("/{electionId}/pollingstations/postcode/{postalCode}")
+    public ResponseEntity<?> getPollingStationByPostalCode(
+            @PathVariable String electionId,
+            @PathVariable String postalCode) {
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            return ResponseEntity.status(404).body("Election not found");
+        }
+
+        MunicipalityService muniService = new MunicipalityService(election);
+        PollingStation station = muniService.findPollingStationByPostalCode(postalCode);
+
+        if (station == null) {
+            return ResponseEntity.status(404)
+                    .body("No polling station found for postcode " + postalCode);
+        }
+
+        return ResponseEntity.ok(station);
+    }
+    @GetMapping("/{electionId}/pollingstations")
+    public ResponseEntity<List<PollingStation>> getAllPollingStations(
+            @PathVariable String electionId) {
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            return ResponseEntity.status(404).body(null);
+        }
+
+        List<PollingStation> allSb = election.getConstituencies().stream()
+                .flatMap(c -> c.getMunicipalities().stream())
+                .flatMap(m -> m.getPollingStations().stream())
+                .toList();
+
+        return ResponseEntity.ok(allSb);
+    }
+
 
 }
