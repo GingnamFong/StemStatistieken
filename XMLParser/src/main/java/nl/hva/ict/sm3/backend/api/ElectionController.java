@@ -65,6 +65,7 @@ public class ElectionController {
         return ResponseEntity.ok(response);
     }
 
+
     @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);

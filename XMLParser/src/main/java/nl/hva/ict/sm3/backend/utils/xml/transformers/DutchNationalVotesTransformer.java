@@ -188,6 +188,35 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         }
     }
 
+    private static final class SeatAllocator {
+        private SeatAllocator() {}
+        public static Map<String, Integer> allocateDHondt(Map<String, Long> votes, int totalSeats) {
+            Map<String, Integer> seats = new HashMap<>();
+            for (String party : votes.keySet()) seats.put(party, 0);
+
+            for (int i = 0; i < totalSeats; i++) {
+                String bestParty = null;
+                double bestQuotient = -1.0;
+                for (Map.Entry<String, Long> e : votes.entrySet()) {
+                    String party = e.getKey();
+                    long partyVotes = e.getValue() == null ? 0L : e.getValue();
+                    int already = seats.getOrDefault(party, 0);
+                    double quotient = partyVotes / (double) (already + 1);
+                    if (quotient > bestQuotient) {
+                        bestQuotient = quotient;
+                        bestParty = party;
+                    } else if (quotient == bestQuotient) {
+                        long currentBestVotes = votes.getOrDefault(bestParty, 0L);
+                        if (partyVotes > currentBestVotes) bestParty = party;
+                        else if (partyVotes == currentBestVotes && party.compareTo(bestParty) < 0) bestParty = party;
+                    }
+                }
+                seats.put(bestParty, seats.getOrDefault(bestParty, 0) + 1);
+            }
+            return seats;
+        }
+    }
+
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
         System.out.printf("%s candidate votes: %s\n", aggregated ? "National" : "Constituency", electionData);
