@@ -8,14 +8,26 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 /**
- * Demo controller for showing how you could load the election data in the backend.
+ * REST controller responsible for exposing all API endpoints related to
+ * Dutch election data. This includes retrieving election results, constituencies,
+ * municipalities, candidates, and polling station information.
+ *
+ * <p>The controller performs lightweight validation (e.g., ID format checks)
+ * and delegates all business logic to the {@link DutchElectionService} or
+ * {@link MunicipalityService}. This ensures the controller remains thin,
+ * testable, and focused purely on HTTP concerns.</p>
  */
 @RestController
 @RequestMapping("/elections")
 public class ElectionController {
     private final DutchElectionService electionService;
-
+    /**
+     * Constructs the controller with an injected {@link DutchElectionService}.
+     *
+     * @param electionService service that loads, caches, and provides election data
+     */
     public ElectionController(DutchElectionService electionService) {
         this.electionService = electionService;
     }
@@ -33,7 +45,12 @@ public class ElectionController {
         }
         return ResponseEntity.ok(election);
     }
-
+    /**
+     * Retrieves all municipalities for the given election.
+     *
+     * @param electionId ID of the election
+     * @return list of municipalities or {@code 404 Not Found} if the election could not be loaded
+     */
     @GetMapping("/{electionId}/municipalities")
     public ResponseEntity<List<Municipality>> getMunicipalities(@PathVariable String electionId) {
         validateId(electionId, "Election ID");
@@ -49,7 +66,12 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
-
+    /**
+     * Returns a list of constituencies (kieskringen) for the given election.
+     *
+     * @param electionId ID of the election
+     * @return list of constituencies or {@code 404 Not Found} if unavailable
+     */
     @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         validateId(electionId, "Election ID");
@@ -64,7 +86,13 @@ public class ElectionController {
 
         return ResponseEntity.ok(election.getConstituencies());
     }
-
+    /**
+     * Retrieves a specific municipality by its ID within a given election.
+     *
+     * @param electionId     the election identifier
+     * @param municipalityId ID of the requested municipality
+     * @return matching municipality or {@code 404 Not Found}
+     */
     @GetMapping("/{electionId}/municipalities/{municipalityId}")
     public ResponseEntity<Municipality> getMunicipalityById(
             @PathVariable String electionId,
@@ -84,6 +112,12 @@ public class ElectionController {
 
         return ResponseEntity.ok(municipality);
     }
+    /**
+     * Returns the national top-3 political parties based on vote counts.
+     *
+     * @param electionId ID of the election
+     * @return top-3 parties or {@code 404 Not Found} if the election is missing
+     */
 
     // Optional: endpoint for top parties nationally
     @GetMapping("/{electionId}/top-parties")
