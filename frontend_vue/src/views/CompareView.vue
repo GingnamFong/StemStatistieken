@@ -238,7 +238,8 @@ async function handleYearChange(index, year) {
     await ElectionService.getElection(year).catch(() => null)
 
     if (type === 'provincie') {
-      const provincies = await ProvincieService.getAllProvincies()
+      const electionId = `TK${year}`
+      const provincies = await ProvincieService.getAllProvincies(electionId)
       availableSelections.value[index] = provincies
     } else if (type === 'gemeente') {
       const gemeentes = await MunicipalityService.getMunicipalities(year)
@@ -267,7 +268,8 @@ async function loadColumnData(index) {
 
   try {
     if (col.type === 'provincie') {
-      const data = await ProvincieService.getProvincieResultaten(col.selection)
+      const electionId = `TK${col.year}`
+      const data = await ProvincieService.getProvincieResultaten(col.selection, electionId)
       col.data = data
 
     } else if (col.type === 'gemeente') {

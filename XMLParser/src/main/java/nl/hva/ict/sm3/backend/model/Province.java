@@ -103,16 +103,6 @@ public class Province {
         // Geeft het aantal kieskringen
         return constituencyIds.size();
     }
-    
-    /**
-     * Returns the number of parties in this province.
-     * 
-     * @return the count of parties
-     */
-    public int getPartyCount() {
-        // Geeft het aantal partijen
-        return parties.size();
-    }
 
     @Override
     public String toString() {
