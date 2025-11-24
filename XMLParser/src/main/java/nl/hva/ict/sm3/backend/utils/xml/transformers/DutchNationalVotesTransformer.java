@@ -5,6 +5,7 @@ import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.model.NationalResult;
+import nl.hva.ict.sm3.backend.dto.NationalDto;
 
 import java.util.Map;
 import java.util.List;
