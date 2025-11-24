@@ -198,7 +198,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         System.out.printf("%s meta data: %s\n", aggregated ? "National" : "Constituency", electionData);
     }
 
-    //comment
+
 }
 
         /*

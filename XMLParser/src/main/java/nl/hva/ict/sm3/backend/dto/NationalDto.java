@@ -2,100 +2,127 @@ package nl.hva.ict.sm3.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nl.hva.ict.sm3.backend.model.National;
-import nl.hva.ict.sm3.backend.model.NationalResult;
 
 /**
- * DTO that groups National into nested sections for nicer JSON output.
+ * DTO that groups national vote data into logical sections for nicer JSON output.
  */
 public class NationalDto {
 
-    @JsonProperty("election data")
-    private final ElectionData electionData;
+    @JsonProperty("electionInfo")
+    private final ElectionInfo electionInfo;
 
-    @JsonProperty("party data")
-    private final PartyData partyData;
+    @JsonProperty("partyInfo")
+    private final PartyInfo partyInfo;
 
-    @JsonProperty("votes")
-    private final VoteInfo votes;
+    @JsonProperty("seatsData")
+    private final SeatsData seatsData;
 
-    @JsonProperty("seats")
-    private final SeatInfo seats;
+    @JsonProperty("rejectedData")
+    private final RejectedData rejectedData;
 
-    public NationalDto(ElectionData electionData, PartyData partyData, VoteInfo votes, SeatInfo seats) {
-        this.electionData = electionData;
-        this.partyData = partyData;
-        this.votes = votes;
-        this.seats = seats;
+    public NationalDto(ElectionInfo electionInfo,
+                       PartyInfo partyInfo,
+                       SeatsData seatsData,
+                       RejectedData rejectedData) {
+        this.electionInfo = electionInfo;
+        this.partyInfo = partyInfo;
+        this.seatsData = seatsData;
+        this.rejectedData = rejectedData;
     }
 
-    // Factory mapper from your model
-    public static NationalDto from(National n) {
-        ElectionData e = new ElectionData(n.getId(), n.getElectionId(), n.getElectionName());
-        PartyData p = new PartyData(n.getPartyId(), n.getPartyName(), n.getShortCode());
-        VoteInfo v = new VoteInfo(n.getValidVotes(), n.getRejectedVotes());
-        SeatInfo s = new SeatInfo(n.getTotalCounted(), n.getNumberOfSeats(), n.getType());
-        return new NationalDto(e, p, v, s);
+    public static NationalDto from(National national) {
+        ElectionInfo electionSection = new ElectionInfo(national.getElectionId(), national.getElectionName());
+        PartyInfo partySection = new PartyInfo(national.getPartyId(), national.getPartyName());
+        SeatsData seatsSection = new SeatsData(national.getValidVotes(), national.getNumberOfSeats());
+        RejectedData rejectedSection = new RejectedData(national.getRejectedVotes(), national.getTotalCounted());
+        return new NationalDto(electionSection, partySection, seatsSection, rejectedSection);
     }
 
-    // nested DTOs
-    public static class ElectionData {
-        private final String id;
+    public ElectionInfo getElectionInfo() {
+        return electionInfo;
+    }
+
+    public PartyInfo getPartyInfo() {
+        return partyInfo;
+    }
+
+    public SeatsData getSeatsData() {
+        return seatsData;
+    }
+
+    public RejectedData getRejectedData() {
+        return rejectedData;
+    }
+
+    public static class ElectionInfo {
         private final String electionId;
         private final String electionName;
 
-        public ElectionData(String id, String electionId, String electionName) {
-            this.id = id;
+        public ElectionInfo(String electionId, String electionName) {
             this.electionId = electionId;
             this.electionName = electionName;
         }
 
-        public String getId() { return id; }
-        public String getElectionId() { return electionId; }
-        public String getElectionName() { return electionName; }
+        public String getElectionId() {
+            return electionId;
+        }
+
+        public String getElectionName() {
+            return electionName;
+        }
     }
 
-    public static class PartyData {
+    public static class PartyInfo {
         private final String partyId;
         private final String partyName;
-        private final String shortCode;
 
-        public PartyData(String partyId, String partyName, String shortCode) {
+        public PartyInfo(String partyId, String partyName) {
             this.partyId = partyId;
             this.partyName = partyName;
-            this.shortCode = shortCode;
         }
 
-        public String getPartyId() { return partyId; }
-        public String getPartyName() { return partyName; }
-        public String getShortCode() { return shortCode; }
+        public String getPartyId() {
+            return partyId;
+        }
+
+        public String getPartyName() {
+            return partyName;
+        }
     }
 
-    public static class VoteInfo {
+    public static class SeatsData {
         private final int validVotes;
-        private final int rejectedVotes;
+        private final int numberOfSeats;
 
-        public VoteInfo(int validVotes, int rejectedVotes) {
+        public SeatsData(int validVotes, int numberOfSeats) {
             this.validVotes = validVotes;
-            this.rejectedVotes = rejectedVotes;
+            this.numberOfSeats = numberOfSeats;
         }
 
-        public int getValidVotes() { return validVotes; }
-        public int getRejectedVotes() { return rejectedVotes; }
+        public int getValidVotes() {
+            return validVotes;
+        }
+
+        public int getNumberOfSeats() {
+            return numberOfSeats;
+        }
     }
 
-    public static class SeatInfo {
+    public static class RejectedData {
+        private final int rejectedVotes;
         private final int totalCounted;
-        private final int numberOfSeats;
-        private final NationalResult type;
 
-        public SeatInfo(int totalCounted, int numberOfSeats, NationalResult type) {
+        public RejectedData(int rejectedVotes, int totalCounted) {
+            this.rejectedVotes = rejectedVotes;
             this.totalCounted = totalCounted;
-            this.numberOfSeats = numberOfSeats;
-            this.type = type;
         }
 
-        public int getTotalCounted() { return totalCounted; }
-        public int getNumberOfSeats() { return numberOfSeats; }
-        public NationalResult getType() { return type; }
+        public int getRejectedVotes() {
+            return rejectedVotes;
+        }
+
+        public int getTotalCounted() {
+            return totalCounted;
+        }
     }
 }

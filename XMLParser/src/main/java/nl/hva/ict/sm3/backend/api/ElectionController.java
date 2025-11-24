@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.api;
 
+import nl.hva.ict.sm3.backend.dto.NationalDto;
 import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,24 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
+
+    @GetMapping("/{electionId}/national-results")
+    public ResponseEntity<List<NationalDto>> getNationalResults(@PathVariable String electionId) {
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
+
+        List<NationalDto> response = election.getNationalVotes().stream()
+                .map(NationalDto::from)
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
