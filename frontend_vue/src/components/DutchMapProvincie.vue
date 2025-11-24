@@ -174,26 +174,17 @@ const loadProvincieData = async (provincieNaam) => {
   try {
     // Use the year prop to construct electionId (e.g., 2021 -> "TK2021")
     const electionId = `TK${props.year}`
-    const API_BASE_URL = (location.origin === 'https://hva-frontend.onrender.com')
-      ? 'https://hva-backend-c647.onrender.com'
-      : 'http://localhost:8081'
-    
+
     console.log(`Loading province data for ${provincieNaam} in election ${electionId}`)
-    
-    // Use the province endpoint with electionId query parameter
-    const response = await fetch(`${API_BASE_URL}/provincies/${encodeURIComponent(provincieNaam)}?electionId=${electionId}`)
-    if (!response.ok) {
-      console.error(`Failed to fetch province data: ${response.status}`)
-      throw new Error('Failed to fetch province data')
-    }
-    
-    const provincieData = await response.json()
-    console.log('Province data received:', provincieData)
-    
+
+    // Use the ProvincieService instead of direct fetch
+    const resultaten = await ProvincieService.getProvincieResultaten(provincieNaam, electionId)
+    console.log('Province results received:', resultaten)
+
     selectedProvincie.value = {
       ...selectedProvincie.value,
-      stemmen: provincieData.resultaten?.totaalStemmen?.toLocaleString() || '0',
-      resultaten: provincieData.resultaten?.partijen || []
+      stemmen: resultaten.totaalStemmen?.toLocaleString() || '0',
+      resultaten: resultaten.partijen || []
     }
 
     // Haal ook de kieskringen op voor deze provincie
