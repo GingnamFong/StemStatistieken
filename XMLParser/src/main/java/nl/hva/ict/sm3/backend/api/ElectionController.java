@@ -2,7 +2,6 @@ package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
-import nl.hva.ict.sm3.backend.service.MunicipalityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -81,6 +80,8 @@ public class ElectionController {
         return ResponseEntity.ok(municipality);
     }
 
+
+
     // Optional: endpoint for top parties nationally
     @GetMapping("/{electionId}/top-parties")
     public ResponseEntity<List<Party>> getTopParties(@PathVariable String electionId) {
@@ -113,89 +114,5 @@ public class ElectionController {
         if (election == null) return ResponseEntity.status(500).build();
         return ResponseEntity.ok(election);
     }
-
-    @PostMapping("/{electionId}/candidatelists")
-    public ResponseEntity<Election> loadCandidateLists(
-            @PathVariable String electionId,
-            @RequestParam(required = false) String folderName) {
-
-        String folder = folderName != null ? folderName : electionId;
-
-        // Check if election already exists in cache 
-        Election election = electionService.getElectionById(electionId);
-        if (election != null && !election.getCandidates().isEmpty()) {
-            return ResponseEntity.ok(election);
-        }
-
-        if (election == null) {
-            election = new Election(electionId);
-        }
-
-        // Load candidate lists into the election (preserves existing data if election was already cached)
-        electionService.loadCandidateLists(election, folder);
-
-        // Get the election from cache after loading 
-        Election cachedElection = electionService.getElectionById(electionId);
-        return ResponseEntity.ok(cachedElection != null ? cachedElection : election);
-    }
-
-    @GetMapping("/{electionId}/candidates/{candidateId}")
-    public ResponseEntity<Candidate> getCandidateById(
-            @PathVariable String electionId,
-            @PathVariable String candidateId) {
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            // Try to load candidate lists if election not in cache
-            election = new Election(electionId);
-            electionService.loadCandidateLists(election, electionId);
-            // Election is now cached by loadCandidateLists method
-            // If loading failed, election will still exist but may be empty
-        }
-
-        Candidate candidate = election.getCandidateById(candidateId);
-        if (candidate == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(candidate);
-    }
-    @GetMapping("/{electionId}/pollingstations/postcode/{postalCode}")
-    public ResponseEntity<?> getPollingStationByPostalCode(
-            @PathVariable String electionId,
-            @PathVariable String postalCode) {
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            return ResponseEntity.status(404).body("Election not found");
-        }
-
-        MunicipalityService muniService = new MunicipalityService(election);
-        PollingStation station = muniService.findPollingStationByPostalCode(postalCode);
-
-        if (station == null) {
-            return ResponseEntity.status(404)
-                    .body("No polling station found for postcode " + postalCode);
-        }
-
-        return ResponseEntity.ok(station);
-    }
-    @GetMapping("/{electionId}/pollingstations")
-    public ResponseEntity<List<PollingStation>> getAllPollingStations(
-            @PathVariable String electionId) {
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            return ResponseEntity.status(404).body(null);
-        }
-
-        List<PollingStation> allSb = election.getConstituencies().stream()
-                .flatMap(c -> c.getMunicipalities().stream())
-                .flatMap(m -> m.getPollingStations().stream())
-                .toList();
-
-        return ResponseEntity.ok(allSb);
-    }
-
 
 }
