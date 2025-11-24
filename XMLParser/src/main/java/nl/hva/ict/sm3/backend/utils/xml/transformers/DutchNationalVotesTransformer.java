@@ -7,6 +7,7 @@ import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.model.NationalResult;
 import nl.hva.ict.sm3.backend.dto.NationalDto;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
