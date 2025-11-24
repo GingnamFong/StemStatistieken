@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CandidateListMockitoTest {
+public class CandidateListTransformerMockitoTest {
 
     @Mock
     private Election election;
