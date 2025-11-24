@@ -3,11 +3,9 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Constituency;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.model.Municipality;
-import nl.hva.ict.sm3.backend.model.PollingStation;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Just prints to content of electionData to the standard output.>br/>
@@ -41,21 +39,16 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
      */
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> data) {
-
-        // 1) Municipality-level aggregated votes
+        // Municipality-level aggregated votes
         if (aggregated) {
             handleMunicipalityVotes(data);
         }
-
-        // 2) Polling-station votes (SB entries)
-        handlePollingStationVotes(data);
     }
 
     // ---------------------------------------------------------
     // MUNICIPALITY (aggregated = true)
     // ---------------------------------------------------------
     private void handleMunicipalityVotes(Map<String, String> data) {
-
         String municipalityName = data.getOrDefault("AuthorityIdentifier", "unknown");
         String municipalityId = data.getOrDefault("AuthorityIdentifier-Id", "unknown");
         String constituencyId = data.getOrDefault("ContestIdentifier-Id", "unknown");
@@ -75,83 +68,6 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
 
         municipality.addVotesForParty(partyId, partyName, validVotes);
     }
-
-    // ---------------------------------------------------------
-    // POLLING STATION (SB entries)  — aggregated = false
-    // ---------------------------------------------------------
-    private void handlePollingStationVotes(Map<String, String> data) {
-
-        String reportingUnit = data.get("ReportingUnitIdentifier");
-        String reportingUnitId = data.get("ReportingUnitIdentifier-Id");
-
-        if (reportingUnit == null || reportingUnitId == null) return;
-
-        // detect SB entries robustly
-        if (!reportingUnitId.matches(".*SB\\d+.*")) return;
-
-        System.out.println("SB FOUND: " + reportingUnitId + " | " + reportingUnit);
-
-        // extract municipality ID
-        String municipalityId = extractMunicipalityId(reportingUnitId);
-        System.out.println(" → MUNI ID: " + municipalityId);
-
-        if (municipalityId == null) {
-            System.out.println(" ⚠️ Could not extract municipality ID from " + reportingUnitId);
-            return;
-        }
-
-        Municipality municipality = election.getMunicipalityById(municipalityId);
-        if (municipality == null) {
-            System.out.println(" ⚠️ Municipality NOT FOUND for SB " + reportingUnitId);
-            return;
-        }
-
-        String stationName = reportingUnit;
-        String postalCode = extractPostalCode(reportingUnit);
-
-        PollingStation station = municipality.getPollingStationById(reportingUnitId);
-        if (station == null) {
-            station = new PollingStation(reportingUnitId, stationName, postalCode);
-            municipality.addPollingStation(station);
-            System.out.println(" ➕ Added SB: " + reportingUnitId + " (postal=" + postalCode + ")");
-        }
-
-        String partyId = data.get("AffiliationIdentifier-Id");
-        String partyName = data.get("RegisteredName");
-        int votes = Integer.parseInt(data.getOrDefault("ValidVotes", "0"));
-
-        station.addVotes(partyId, partyName, votes);
-    }
-
-    private String extractMunicipalityId(String stationId) {
-        if (stationId == null) return null;
-
-        var m = Pattern.compile("^(\\d{4})").matcher(stationId);
-        return m.find() ? m.group(1) : null;
-    }
-
-
-
-
-    // ---------------------------------------------------------
-    // Extract postal code from strings like:
-    // "Stembureau Gemeentehuis (postcode: 1431BZ)"
-    // ---------------------------------------------------------
-    private String extractPostalCode(String text) {
-        if (text == null) return null;
-
-        // Matches everything like: (postcode: 1011 PN)
-        var m = java.util.regex.Pattern
-                .compile("\\(postcode\\s*:\\s*([0-9A-Z]{4}\\s*[A-Z]{2})\\)", Pattern.CASE_INSENSITIVE)
-                .matcher(text);
-
-        if (m.find()) {
-            return m.group(1).replace(" ", "").toUpperCase();
-        }
-
-        return null;
-    }
-
 
 
     @Override
