@@ -97,7 +97,7 @@ public class ProvincieService {
         logger.debug("Retrieving constituencies for province: {}", provincieNaam);
         
         List<String> kieskringen = provincieKieskringenMap.get(provincieNaam);
-        return kieskringen != null ? new ArrayList<>(kieskringen) : new ArrayList<>();
+        return kieskringen != null ? List.copyOf(kieskringen) : List.of();
     }
 
     /**
@@ -129,13 +129,12 @@ public class ProvincieService {
      */
     private void loadProvinceResultsForElection(String electionId, Province province) {
         // Haal de Election op (laadt automatisch als nog niet in cache)
-        Election election = electionService.getElectionById(electionId);
+        Election election = Optional.ofNullable(electionService.getElectionById(electionId))
+                .orElseGet(() -> electionService.readResults(electionId, electionId));
+        
         if (election == null) {
-            election = electionService.readResults(electionId, electionId);
-            if (election == null) {
-                logger.error("Could not load election: {}", electionId);
-                return;
-            }
+            logger.error("Could not load election: {}", electionId);
+            return;
         }
 
         // Haal de kieskring namen op die bij deze provincie horen
@@ -173,11 +172,9 @@ public class ProvincieService {
             }
 
             // Aggregeer alle partijen uit alle gemeenten in deze kieskring
-            for (Municipality municipality : constituency.getMunicipalities()) {
-                for (Party party : municipality.getAllParties()) {
-                    province.addPartyVotes(party.getId(), party.getName(), party.getVotes());
-                }
-            }
+            constituency.getMunicipalities().stream()
+                    .flatMap(municipality -> municipality.getAllParties().stream())
+                    .forEach(party -> province.addPartyVotes(party.getId(), party.getName(), party.getVotes()));
         }
 
         province.calculateTotalVotes();
