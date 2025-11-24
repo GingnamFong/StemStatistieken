@@ -1,3 +1,8 @@
+<!--
+  Component voor interactieve provinciekaart van Nederland.
+  Toont SVG kaart waar gebruikers op provincies kunnen klikken.
+  Laadt en toont verkiezingsresultaten per provincie.
+-->
 <template>
   <div class="dutch-map-wrapper">
     <div class="map-layout" :class="{ 'no-data-section': !showDataSection }">

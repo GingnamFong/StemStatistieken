@@ -9,7 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Service voor provincies: haalt provincie data op en aggregeert resultaten uit kieskringen.
+ * Service voor provincies.
+ * Haalt provincie data op en aggregeert verkiezingsresultaten uit kieskringen.
+ * Provincies worden opgebouwd door alle gemeenten in de bijbehorende kieskringen samen te voegen.
  */
 @Service
 public class ProvincieService {
@@ -40,7 +42,10 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt alle provincies op voor een specifieke verkiezing.
+     * Haalt alle provincies op voor een verkiezing.
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @return Lijst van alle provincies
      */
     public List<Province> getAllProvinciesForElection(String electionId) {
         logger.debug("Retrieving all provinces for election: {}", electionId);
@@ -50,7 +55,12 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt provincie data op inclusief resultaten voor een specifieke verkiezing.
+     * Haalt provincie data op inclusief verkiezingsresultaten.
+     * Laadt resultaten automatisch als ze nog niet geladen zijn.
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @param provincieNaam Naam van de provincie
+     * @return Provincie object met resultaten
      */
     public Province getProvincieDataForElection(String electionId, String provincieNaam) {
         logger.debug("Retrieving data for province: {} in election: {}", provincieNaam, electionId);
@@ -64,7 +74,11 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt alleen de resultaten (stemmen en partijen) op van een provincie voor een specifieke verkiezing.
+     * Haalt alleen de verkiezingsresultaten op van een provincie.
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @param provincieNaam Naam van de provincie
+     * @return ProvinceResults met totaalStemmen en partijen
      */
     public ProvinceResults getProvincieResultatenForElection(String electionId, String provincieNaam) {
         logger.debug("Retrieving results for province: {} in election: {}", provincieNaam, electionId);
@@ -75,6 +89,9 @@ public class ProvincieService {
 
     /**
      * Geeft alle kieskringen terug die bij een provincie horen.
+     * 
+     * @param provincieNaam Naam van de provincie
+     * @return Lijst van kieskring namen
      */
     public List<String> getKieskringenInProvincie(String provincieNaam) {
         logger.debug("Retrieving constituencies for province: {}", provincieNaam);
@@ -84,7 +101,11 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt provincie uit cache of maakt nieuwe aan voor een specifieke verkiezing.
+     * Haalt provincie uit cache of maakt nieuwe aan voor een verkiezing.
+     * 
+     * @param electionId Verkiezing ID
+     * @param provincieNaam Naam van de provincie
+     * @return Province object
      */
     private Province getOrCreateProvinceForElection(String electionId, String provincieNaam) {
         Map<String, Province> electionCache = electionProvinceCache.computeIfAbsent(electionId, k -> new HashMap<>());
@@ -101,7 +122,10 @@ public class ProvincieService {
 
     /**
      * Laadt en aggregeert provincie resultaten uit Election data.
-     * Provincies worden opgebouwd door kieskringen samen te voegen.
+     * Loopt door alle kieskringen van de provincie en telt stemmen van alle gemeenten bij elkaar op.
+     * 
+     * @param electionId Verkiezing ID
+     * @param province Provincie object om resultaten aan toe te voegen
      */
     private void loadProvinceResultsForElection(String electionId, Province province) {
         // Haal de Election op (laadt automatisch als nog niet in cache)

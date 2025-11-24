@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Domeinmodel voor een provincie met bijbehorende kieskringen en partijstemmen.
+ * Domeinmodel voor een provincie.
+ * Bevat naam, kieskringen en verkiezingsresultaten (partijen met stemmen).
  */
 public class Province {
     private final String name;
