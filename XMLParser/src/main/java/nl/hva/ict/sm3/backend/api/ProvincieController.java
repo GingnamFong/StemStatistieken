@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * REST-controller voor provincies.
- * Biedt endpoints om provincies, resultaten en kieskringen op te halen.
+ * Biedt HTTP endpoints om provincie data op te halen.
+ * Verwerkt requests van de frontend en geeft JSON responses terug.
  */
 @RestController
 @RequestMapping("/provincies")
@@ -30,9 +31,11 @@ public class ProvincieController {
     }
 
     /**
+     * Haalt alle provincies op voor een verkiezing.
      * GET /provincies?electionId=TK2021
-     * Haalt alle provincies op (basisinfo) voor een specifieke verkiezing.
-
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @return Lijst van provincies met basisinformatie
      */
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllProvincies(
@@ -47,9 +50,12 @@ public class ProvincieController {
     }
 
     /**
+     * Haalt een provincie op inclusief verkiezingsresultaten.
      * GET /provincies/{provincieNaam}?electionId=TK2021
-     * Haalt een specifieke provincie op inclusief resultaten voor een specifieke verkiezing.
-     
+     * 
+     * @param provincieNaam Naam van de provincie
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @return Provincie data met resultaten
      */
     @GetMapping("/{provincieNaam}")
     public ResponseEntity<Map<String, Object>> getProvincieData(
@@ -64,9 +70,12 @@ public class ProvincieController {
     }
 
     /**
+     * Haalt alleen de verkiezingsresultaten op van een provincie.
      * GET /provincies/{provincieNaam}/resultaten?electionId=TK2021
-     * Haalt de uitslag (resultaten) op van een provincie voor een specifieke verkiezing.
-
+     * 
+     * @param provincieNaam Naam van de provincie
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @return Resultaten met totaalStemmen en partijen
      */
     @GetMapping("/{provincieNaam}/resultaten")
     public ResponseEntity<Map<String, Object>> getProvincieResultaten(
@@ -81,9 +90,11 @@ public class ProvincieController {
     }
 
     /**
+     * Haalt alle kieskringen op die bij een provincie horen.
      * GET /provincies/{provincieNaam}/kieskringen
-     * Haalt alle kieskringen (constituencies) binnen een provincie op.
-
+     * 
+     * @param provincieNaam Naam van de provincie
+     * @return Lijst van kieskringen in deze provincie
      */
     @GetMapping("/{provincieNaam}/kieskringen")
     public ResponseEntity<List<Map<String, Object>>> getKieskringenInProvincie(
