@@ -22,6 +22,7 @@ public class ElectionController {
 
     @GetMapping("/{electionId}")
     public ResponseEntity<Election> getElection(@PathVariable String electionId) {
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
             // Automatically load the election if it doesn't exist in cache
@@ -35,6 +36,7 @@ public class ElectionController {
 
     @GetMapping("/{electionId}/municipalities")
     public ResponseEntity<List<Municipality>> getMunicipalities(@PathVariable String electionId) {
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
             // Automatically load the election if it doesn't exist in cache
@@ -47,8 +49,10 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
+
     @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
 
@@ -65,7 +69,7 @@ public class ElectionController {
     public ResponseEntity<Municipality> getMunicipalityById(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
-
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
             // Automatically load the election if it doesn't exist in cache
@@ -160,10 +164,14 @@ public class ElectionController {
 
         return ResponseEntity.ok(candidate);
     }
+
     @GetMapping("/{electionId}/pollingstations/postcode/{postalCode}")
     public ResponseEntity<?> getPollingStationByPostalCode(
             @PathVariable String electionId,
             @PathVariable String postalCode) {
+
+        validateId(electionId, "Election ID");
+        validatePostalCode(postalCode);
 
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
@@ -180,9 +188,11 @@ public class ElectionController {
 
         return ResponseEntity.ok(station);
     }
+
     @GetMapping("/{electionId}/pollingstations")
     public ResponseEntity<List<PollingStation>> getAllPollingStations(
             @PathVariable String electionId) {
+        validateId(electionId, "Election ID");
 
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
@@ -197,5 +207,29 @@ public class ElectionController {
         return ResponseEntity.ok(allSb);
     }
 
+    private void validateId(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " cannot be empty");
+        }
+        String trimmed = value.trim();
 
+        // Letters, cijfers, underscores en dashes toegestaan
+        if (!trimmed.matches("^[A-Za-z0-9_-]+$")) {
+            throw new IllegalArgumentException(fieldName + " contains illegal characters");
+        }
+    }
+
+    private void validatePostalCode(String postalCode) {
+        if (postalCode == null || postalCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Postal code cannot be empty");
+        }
+
+        // Nederlands format tolerant: letters/cijfers/spaties
+        if (!postalCode.matches("^[A-Za-z0-9 ]+$")) {
+            throw new IllegalArgumentException("Invalid postal code");
+        }
+    }
 }
+
+
+
