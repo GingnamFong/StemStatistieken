@@ -9,6 +9,7 @@ public class Municipality {
     private int validVotes;
     private Map<String, Integer> partyVotes = new HashMap<>();
     private Map<String, String> partyNames = new HashMap<>();
+    private List<PollingStation> pollingStations = new ArrayList<>();
 
     /**
         * Constructs a new Municipality.
@@ -44,6 +45,22 @@ public class Municipality {
         partyNames.put(partyId, partyName);
         validVotes += votes;
     }
+    public void addPollingStation(PollingStation ps) {
+        pollingStations.add(ps);
+    }
+
+    public PollingStation getPollingStationById(String id) {
+        return pollingStations.stream()
+                .filter(s -> s.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<PollingStation> getPollingStations() {
+        return pollingStations;
+    }
+
+
     /**
      * Returns a list of all parties in this municipality, sorted by number of votes in descending order.
      *

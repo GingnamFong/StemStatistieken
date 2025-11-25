@@ -235,17 +235,17 @@ async function handleYearChange(index, year) {
   setLoadingState(type)
 
   try {
-    await ElectionService.getElection(year).catch(() => null)
+    await ElectionService.getElection(`TK${year}`).catch(() => null)
 
     if (type === 'provincie') {
       const electionId = `TK${year}`
       const provincies = await ProvincieService.getAllProvincies(electionId)
       availableSelections.value[index] = provincies
     } else if (type === 'gemeente') {
-      const gemeentes = await MunicipalityService.getMunicipalities(year)
+      const gemeentes = await MunicipalityService.getMunicipalities(`TK${year}`)
       availableSelections.value[index] = gemeentes
     } else if (type === 'kieskring') {
-      const kieskringen = await ConstituencyService.getConstituencies(year)
+      const kieskringen = await ConstituencyService.getConstituencies(`TK${year}`)
       availableSelections.value[index] = kieskringen
     }
   } catch (error) {
@@ -273,7 +273,7 @@ async function loadColumnData(index) {
       col.data = data
 
     } else if (col.type === 'gemeente') {
-      const data = await MunicipalityService.getMunicipality(col.year, col.selection)
+      const data = await MunicipalityService.getMunicipality(`TK${col.year}`, col.selection)
       col.data = {
         totaalStemmen: data.validVotes || 0,
         partijen: (data.allParties || []).map(p => ({
@@ -284,7 +284,7 @@ async function loadColumnData(index) {
       }
 
     } else if (col.type === 'kieskring') {
-      const allConstituencies = await ConstituencyService.getConstituencies(col.year)
+      const allConstituencies = await ConstituencyService.getConstituencies(`TK${col.year}`)
       const constituency = allConstituencies.find(c => c.id === col.selection || c.name === col.selection)
 
       if (!constituency) {

@@ -2,25 +2,39 @@ package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
+import nl.hva.ict.sm3.backend.service.MunicipalityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 /**
- * Demo controller for showing how you could load the election data in the backend.
+ * REST controller responsible for exposing all API endpoints related to
+ * Dutch election data. This includes retrieving election results, constituencies,
+ * municipalities, candidates, and polling station information.
+ *
+ * <p>The controller performs lightweight validation (e.g., ID format checks)
+ * and delegates all business logic to the {@link DutchElectionService} or
+ * {@link MunicipalityService}. This ensures the controller remains thin,
+ * testable, and focused purely on HTTP concerns.</p>
  */
 @RestController
 @RequestMapping("/elections")
 public class ElectionController {
     private final DutchElectionService electionService;
-
+    /**
+     * Constructs the controller with an injected {@link DutchElectionService}.
+     *
+     * @param electionService service that loads, caches, and provides election data
+     */
     public ElectionController(DutchElectionService electionService) {
         this.electionService = electionService;
     }
 
     @GetMapping("/{electionId}")
     public ResponseEntity<Election> getElection(@PathVariable String electionId) {
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
             // Automatically load the election if it doesn't exist in cache
@@ -31,9 +45,15 @@ public class ElectionController {
         }
         return ResponseEntity.ok(election);
     }
-
+    /**
+     * Retrieves all municipalities for the given election.
+     *
+     * @param electionId ID of the election
+     * @return list of municipalities or {@code 404 Not Found} if the election could not be loaded
+     */
     @GetMapping("/{electionId}/municipalities")
     public ResponseEntity<List<Municipality>> getMunicipalities(@PathVariable String electionId) {
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
             // Automatically load the election if it doesn't exist in cache
@@ -46,8 +66,15 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
+    /**
+     * Returns a list of constituencies (kieskringen) for the given election.
+     *
+     * @param electionId ID of the election
+     * @return list of constituencies or {@code 404 Not Found} if unavailable
+     */
     @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
 
@@ -59,12 +86,18 @@ public class ElectionController {
 
         return ResponseEntity.ok(election.getConstituencies());
     }
-
+    /**
+     * Retrieves a specific municipality by its ID within a given election.
+     *
+     * @param electionId     the election identifier
+     * @param municipalityId ID of the requested municipality
+     * @return matching municipality or {@code 404 Not Found}
+     */
     @GetMapping("/{electionId}/municipalities/{municipalityId}")
     public ResponseEntity<Municipality> getMunicipalityById(
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
-
+        validateId(electionId, "Election ID");
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
             // Automatically load the election if it doesn't exist in cache
@@ -79,8 +112,12 @@ public class ElectionController {
 
         return ResponseEntity.ok(municipality);
     }
-
-
+    /**
+     * Returns the national top-3 political parties based on vote counts.
+     *
+     * @param electionId ID of the election
+     * @return top-3 parties or {@code 404 Not Found} if the election is missing
+     */
 
     // Optional: endpoint for top parties nationally
     @GetMapping("/{electionId}/top-parties")
@@ -115,4 +152,118 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
+    @PostMapping("/{electionId}/candidatelists")
+    public ResponseEntity<Election> loadCandidateLists(
+            @PathVariable String electionId,
+            @RequestParam(required = false) String folderName) {
+
+        String folder = folderName != null ? folderName : electionId;
+
+        // Check if election already exists in cache 
+        Election election = electionService.getElectionById(electionId);
+        if (election != null && !election.getCandidates().isEmpty()) {
+            return ResponseEntity.ok(election);
+        }
+
+        if (election == null) {
+            election = new Election(electionId);
+        }
+
+        // Load candidate lists into the election (preserves existing data if election was already cached)
+        electionService.loadCandidateLists(election, folder);
+
+        // Get the election from cache after loading 
+        Election cachedElection = electionService.getElectionById(electionId);
+        return ResponseEntity.ok(cachedElection != null ? cachedElection : election);
+    }
+
+    @GetMapping("/{electionId}/candidates/{candidateId}")
+    public ResponseEntity<Candidate> getCandidateById(
+            @PathVariable String electionId,
+            @PathVariable String candidateId) {
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            // Try to load candidate lists if election not in cache
+            election = new Election(electionId);
+            electionService.loadCandidateLists(election, electionId);
+            // Election is now cached by loadCandidateLists method
+            // If loading failed, election will still exist but may be empty
+        }
+
+        Candidate candidate = election.getCandidateById(candidateId);
+        if (candidate == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(candidate);
+    }
+
+    @GetMapping("/{electionId}/pollingstations/postcode/{postalCode}")
+    public ResponseEntity<?> getPollingStationByPostalCode(
+            @PathVariable String electionId,
+            @PathVariable String postalCode) {
+
+        validateId(electionId, "Election ID");
+        validatePostalCode(postalCode);
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            return ResponseEntity.status(404).body("Election not found");
+        }
+
+        MunicipalityService muniService = new MunicipalityService(election);
+        PollingStation station = muniService.findPollingStationByPostalCode(postalCode);
+
+        if (station == null) {
+            return ResponseEntity.status(404)
+                    .body("No polling station found for postcode " + postalCode);
+        }
+
+        return ResponseEntity.ok(station);
+    }
+
+    @GetMapping("/{electionId}/pollingstations")
+    public ResponseEntity<List<PollingStation>> getAllPollingStations(
+            @PathVariable String electionId) {
+        validateId(electionId, "Election ID");
+
+        Election election = electionService.getElectionById(electionId);
+        if (election == null) {
+            return ResponseEntity.status(404).body(null);
+        }
+
+        List<PollingStation> allSb = election.getConstituencies().stream()
+                .flatMap(c -> c.getMunicipalities().stream())
+                .flatMap(m -> m.getPollingStations().stream())
+                .toList();
+
+        return ResponseEntity.ok(allSb);
+    }
+
+    private void validateId(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " cannot be empty");
+        }
+        String trimmed = value.trim();
+
+        // Letters, cijfers, underscores en dashes toegestaan
+        if (!trimmed.matches("^[A-Za-z0-9_-]+$")) {
+            throw new IllegalArgumentException(fieldName + " contains illegal characters");
+        }
+    }
+
+    private void validatePostalCode(String postalCode) {
+        if (postalCode == null || postalCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Postal code cannot be empty");
+        }
+
+        // Nederlands format tolerant: letters/cijfers/spaties
+        if (!postalCode.matches("^[A-Za-z0-9 ]+$")) {
+            throw new IllegalArgumentException("Invalid postal code");
+        }
+    }
 }
+
+
+
