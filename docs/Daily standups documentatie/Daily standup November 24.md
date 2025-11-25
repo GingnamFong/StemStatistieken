@@ -24,7 +24,7 @@
 - **Kevin Koudhoofd:** Vergelijkfunctie werkte niet meer na het fixen van parameter voor provincies.
 - **Ging Nam Fong:** Nee
 - **Jerrico Garcia:** Nee
-- **Jonathan Roemers:** Zetels tonen nog niet gelukt en tijd
+- **Jonathan Roemers:** Zetels tonen nog niet gelukt, tests en tijd
 
 ---
 
