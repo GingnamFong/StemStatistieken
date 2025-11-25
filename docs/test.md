@@ -1,6 +1,8 @@
 ## Controller and service tests natonal controller and service
 ### Controller
 9 tests failed
+![img_1.png](img_1.png)
+
 #### Happy flow
 
 #### Invalid input
