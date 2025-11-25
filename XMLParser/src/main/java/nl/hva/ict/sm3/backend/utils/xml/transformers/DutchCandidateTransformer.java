@@ -24,6 +24,19 @@ public class DutchCandidateTransformer implements CandidateTransformer {
         this.election = election;
     }
 
+    /**
+     * Registers a candidate from parsed election data.
+     * <p>
+     * Extracts candidate information from the provided election data map and creates
+     * a new Candidate instance. The candidate is added to the election if it doesn't
+     * already exist (based on unique ID). Duplicate candidates are skipped.
+     * <p>
+     * The unique ID is composed as "partyId-candidateId" to ensure uniqueness
+     * across different parties, as ranking numbers repeat per party.
+     *
+     * @param electionData a map containing candidate data extracted from XML tags,
+     *                     including candidate ID, name, initials, residence, party information, etc.
+     */
     @Override
     public void registerCandidate(Map<String, String> electionData) {
 

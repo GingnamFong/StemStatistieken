@@ -21,6 +21,11 @@ import java.nio.charset.StandardCharsets;
 public class CandidateListService {
     private final DutchElectionService electionService;
 
+    /**
+     * Constructs a new CandidateListService with the required election service.
+     *
+     * @param electionService the service for managing elections and caching
+     */
     public CandidateListService(DutchElectionService electionService) {
         this.electionService = electionService;
     }
