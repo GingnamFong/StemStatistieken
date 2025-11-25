@@ -3,9 +3,12 @@ package nl.hva.ict.sm3.backend.utils.xml.transformers;
 import nl.hva.ict.sm3.backend.model.Constituency;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.model.Municipality;
+import nl.hva.ict.sm3.backend.model.PollingStation;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
 
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Just prints to content of electionData to the standard output.>br/>
@@ -43,6 +46,7 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
         if (aggregated) {
             handleMunicipalityVotes(data);
         }
+        handleSBPartyVotes(data);
     }
 
     // ---------------------------------------------------------
@@ -68,6 +72,43 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
 
         municipality.addVotesForParty(partyId, partyName, validVotes);
     }
+    private void handleSBPartyVotes(Map<String, String> data) {
+
+        String stationId = data.get("ReportingUnitIdentifier-Id");
+        if (stationId == null || !stationId.contains("SB")) return;
+
+        String fullName = data.get("ReportingUnitIdentifier");
+        if (fullName == null) return;
+
+        Matcher matcher = Pattern
+                .compile("^(.*?) \\(postcode: (.*?)\\)$")
+                .matcher(fullName);
+
+        if (!matcher.find()) return;
+
+        String stationName = matcher.group(1);
+        String postalCode = matcher.group(2).replace(" ", "").toUpperCase();
+
+        String partyId = data.get("AffiliationIdentifier-Id");
+        String partyName = data.get("RegisteredName");
+        int votes = Integer.parseInt(data.getOrDefault("ValidVotes", "0"));
+
+        if (partyId == null || partyName == null) return;
+
+        // Municipality ID extracted from prefix (e.g. "0363" from "0363::SB1")
+        String municipalityId = stationId.substring(0, 4);
+
+        Municipality municipality = election.getMunicipalityById(municipalityId);
+        if (municipality == null) return;
+
+        PollingStation station = municipality.getPollingStationById(stationId);
+        if (station == null) {
+            station = new PollingStation(stationId, stationName, postalCode);
+            municipality.addPollingStation(station);
+        }
+
+        station.addVotes(partyId, partyName, votes);
+    }
 
 
     @Override
@@ -76,7 +117,47 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
     }
 
     @Override
-    public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
-        // Not needed here
+    public void registerMetadata(boolean aggregated, Map<String, String> data) {
+
+        if (aggregated) {
+            // could be used for storing municipality cast/rejected, but your model doesn't store it
+            return;
+        }
+
+        // -------- SB LEVEL METADATA --------
+
+        String stationId = data.get("ReportingUnitIdentifier-Id");
+        String fullName = data.get("ReportingUnitIdentifier");
+
+        if (stationId == null || fullName == null || !stationId.contains("SB")) return;
+
+        Matcher matcher = Pattern
+                .compile("^(.*?) \\(postcode: (.*?)\\)$")
+                .matcher(fullName);
+
+        if (!matcher.find()) return;
+
+        String stationName = matcher.group(1);
+        String postalCode = matcher.group(2).replace(" ", "").toUpperCase();
+
+        int cast = Integer.parseInt(data.getOrDefault("Cast", "0"));
+
+        int rejected = data.entrySet().stream()
+                .filter(e -> e.getKey().startsWith("RejectedVotes"))
+                .mapToInt(e -> Integer.parseInt(e.getValue()))
+                .sum();
+
+        // Municipality ID prefix
+        String municipalityId = stationId.substring(0, 4);
+
+        Municipality municipality = election.getMunicipalityById(municipalityId);
+        if (municipality == null) return;
+
+        // Find or create SB
+        PollingStation station = municipality.getPollingStationById(stationId);
+        if (station == null) {
+            station = new PollingStation(stationId, stationName, postalCode);
+            municipality.addPollingStation(station);
+        }
     }
 }
