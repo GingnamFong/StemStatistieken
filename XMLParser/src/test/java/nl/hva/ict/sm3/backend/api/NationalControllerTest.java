@@ -256,9 +256,8 @@ class NationalControllerTest {
         verify(nationalService, times(1)).updateNationalRecordsWithSeats(eq(testElection), any());
     }
 
-    /**
-     * Helper method to create a National record for testing
-     */
+    // Helper method
+
     private National createNational(String partyId, String partyName, int validVotes) {
         String id = String.format("TK2023-%s-PARTY_VOTES", partyId);
         return National.forCombined(

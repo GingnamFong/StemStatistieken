@@ -11,9 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/*
-  Controller for national election votes and seat calculations.
- */
+// Controller for national election votes and seat calculations.
+
 
 @RestController
 @RequestMapping("/elections/{electionId}/national")
@@ -48,7 +47,6 @@ public class NationalController {
         
         return ResponseEntity.ok(response);
     }
-
 
     /*
       POST /elections/{electionId}/national/calculate-seats
