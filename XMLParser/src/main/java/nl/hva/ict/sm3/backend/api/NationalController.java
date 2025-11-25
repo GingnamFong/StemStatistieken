@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller for handling national election votes and seat calculations.
+/*
+  Controller for national election votes and seat calculations.
  */
 
 @RestController
@@ -27,17 +27,13 @@ public class NationalController {
         this.electionService = electionService;
         this.nationalService = nationalService;
     }
-    
-    /**
-     * GET /elections/{electionId}/national/results
-     * 
-     * Returns national vote results grouped into organized sections:
-     * - electionInfo: electionId, electionName
-     * - partyInfo: partyId, partyName
-     * - seatsData: validVotes, numberOfSeats
-     * - rejectedData: rejectedVotes, totalCounted
-     * 
-     * Example: GET http://localhost:8081/elections/TK2023/national/results
+
+
+    /*
+      GET /elections/{electionId}/national/results
+
+      Returns national vote results sections:
+      example link: GET http://localhost:8081/elections/TK2023/national/results
      */
     @GetMapping("/results")
     public ResponseEntity<List<NationalDto>> getNationalResults(@PathVariable String electionId) {
@@ -52,20 +48,12 @@ public class NationalController {
         
         return ResponseEntity.ok(response);
     }
-    
-    /**
-     * POST /elections/{electionId}/national/calculate-seats
-     * 
-     * Calculates seat allocations for all parties using the D'Hondt method.
-     * The D'Hondt method is the proportional representation system used in Dutch elections.
-     * 
-     * This endpoint:
-     * 1. Reads all national vote totals from the parsed XML data
-     * 2. Applies the D'Hondt algorithm to distribute 150 seats proportionally
-     * 3. Updates the numberOfSeats field in each National record
-     * 4. Returns a map showing partyId -> number of seats allocated
-     * 
-     * Example: POST http://localhost:8081/elections/TK2023/national/calculate-seats
+
+
+    /*
+      POST /elections/{electionId}/national/calculate-seats
+      Endpoint for seats calculations
+      example link: POST http://localhost:8081/elections/TK2023/national/calculate-seats
      */
     @PostMapping("/calculate-seats")
     public ResponseEntity<Map<String, Integer>> calculateSeats(@PathVariable String electionId) {
@@ -74,7 +62,7 @@ public class NationalController {
             return ResponseEntity.notFound().build();
         }
         
-        // Calculate seats using D'Hondt method
+        // Calculate seats
         Map<String, Integer> seatAllocations = nationalService.calculateSeatsDHondt(election);
         
         // Update the National records with calculated seats
@@ -82,14 +70,15 @@ public class NationalController {
         
         return ResponseEntity.ok(seatAllocations);
     }
-    
-    /**
-     * GET /elections/{electionId}/national/seats
-     * 
-     * Returns the current seat allocation per party as a simple map.
-     * If seats haven't been calculated yet, returns an empty map.
-     * 
-     * Example: GET http://localhost:8081/elections/TK2023/national/seats
+
+
+    /*
+      GET /elections/{electionId}/national/seats
+
+      Returns the current seat allocation per party as a map.
+      If seats haven't been calculated yet, returns an empty map.
+
+      Example link: GET http://localhost:8081/elections/TK2023/national/seats
      */
     @GetMapping("/seats")
     public ResponseEntity<Map<String, Integer>> getSeatAllocations(@PathVariable String electionId) {
@@ -101,14 +90,15 @@ public class NationalController {
         Map<String, Integer> seatAllocations = nationalService.getSeatAllocations(election);
         return ResponseEntity.ok(seatAllocations);
     }
-    
-    /**
-     * GET /elections/{electionId}/national/results-with-seats
-     * 
-     * Returns national results with seats already calculated.
-     * If seats haven't been calculated, it will calculate them first.
-     * 
-     * Example: GET http://localhost:8081/elections/TK2023/national/results-with-seats
+
+
+    /*
+      GET /elections/{electionId}/national/results-with-seats
+
+      Returns national results with seats already calculated.
+      If seats haven't been calculated, it will calculate them first.
+
+      Example link: GET http://localhost:8081/elections/TK2023/national/results-with-seats
      */
     @GetMapping("/results-with-seats")
     public ResponseEntity<List<NationalDto>> getNationalResultsWithSeats(@PathVariable String electionId) {
@@ -132,8 +122,8 @@ public class NationalController {
         return ResponseEntity.ok(response);
     }
     
-    /**
-     * Helper method to get election from cache or load it if not present
+    /*
+      Helper method to get election from cache or load it if not present
      */
     private Election getOrLoadElection(String electionId) {
         Election election = electionService.getElectionById(electionId);
