@@ -11,10 +11,7 @@ const sortKey = ref('lastName')
 const sortDir = ref('asc')
 const selectedYear = ref(2023)
 
-const API_BASE_URL =
-  (location.origin === 'https://hva-frontend.onrender.com')
-    ? 'https://hva-backend-c647.onrender.com'
-    : 'http://localhost:8081'
+import { API_BASE_URL } from '@/config/api'
 
 const availableYears = [2021, 2023, 2025]
 
@@ -135,10 +132,20 @@ const filteredCandidates = computed(() => {
   return [...result].sort((a, b) => {
     const dir = sortDir.value === 'asc' ? 1 : -1
     if (sortKey.value === 'candidateIdentifier') return (a.candidateIdentifier - b.candidateIdentifier) * dir
-    if (sortKey.value === 'partyName') return a.partyName.localeCompare(b.partyName) * dir
-    if (sortKey.value === 'residence') return a.residence.localeCompare(b.residence) * dir
+    if (sortKey.value === 'partyName') {
+      const aParty = filterUnknown(a.partyName) || ''
+      const bParty = filterUnknown(b.partyName) || ''
+      return aParty.localeCompare(bParty) * dir
+    }
+    if (sortKey.value === 'residence') {
+      const aRes = filterUnknown(a.residence) || ''
+      const bRes = filterUnknown(b.residence) || ''
+      return aRes.localeCompare(bRes) * dir
+    }
     if (sortKey.value === 'votes') return (a.votes - b.votes) * dir
-    return a.lastName.localeCompare(b.lastName) * dir
+    const aLastName = filterUnknown(a.lastName) || ''
+    const bLastName = filterUnknown(b.lastName) || ''
+    return aLastName.localeCompare(bLastName) * dir
   })
 })
 
@@ -146,6 +153,24 @@ function viewCandidate(candidate) {
   if (candidate && candidate.id) {
     router.push(`/Candidate/${encodeURIComponent(candidate.id)}?year=${selectedYear.value}`)
   }
+}
+
+// filter out "unknown" value
+function filterUnknown(value) {
+  if (!value) return ''
+  const str = String(value).trim()
+  if (str.toLowerCase() === 'unknown') return ''
+  return str
+}
+
+// format candidate name
+function formatCandidateName(candidate) {
+  const parts = [
+    candidate.initials ? filterUnknown(candidate.initials) : '',
+    filterUnknown(candidate.firstName),
+    filterUnknown(candidate.lastName)
+  ].filter(part => part && part.trim())
+  return parts.join(' ') || ''
 }
 </script>
 
@@ -223,7 +248,7 @@ function viewCandidate(candidate) {
             <div v-for="c in candidates" :key="c.id" class="top3-item" @click="viewCandidate(c)">
               <div class="candidate-info">
                 <span class="candidate-name">
-                  {{ c.candidateIdentifier }} {{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}
+                  {{ c.candidateIdentifier }} {{ formatCandidateName(c) || '-' }}
                 </span>
                 <span class="candidate-votes">
                   {{ c.votes ? c.votes.toLocaleString() : '0' }} stemmen
@@ -261,9 +286,9 @@ function viewCandidate(candidate) {
           <tr v-for="(c, index) in filteredCandidates" :key="c.id" @click="viewCandidate(c)" class="clickable-row">
             <td class="index-col">{{ index + 1 }}</td>
             <td>{{ c.candidateIdentifier }}</td>
-            <td>{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</td>
-            <td>{{ c.partyName }}</td>
-            <td>{{ c.residence }}</td>
+            <td>{{ formatCandidateName(c) || '-' }}</td>
+            <td>{{ filterUnknown(c.partyName) || '-' }}</td>
+            <td>{{ filterUnknown(c.residence) || '-' }}</td>
             <td class="votes-cell">{{ c.votes ? c.votes.toLocaleString('nl-NL') : '0' }}</td>
           </tr>
           </tbody>
@@ -301,8 +326,8 @@ function viewCandidate(candidate) {
           <div class="card-header">
             <span class="card-number">{{ index + 1 }}</span>
             <div class="card-name-section">
-              <h3 class="card-name">{{ c.initials ? c.initials + ' ' : '' }}{{ c.firstName }} {{ c.lastName }}</h3>
-              <span class="card-party">{{ c.partyName }}</span>
+              <h3 class="card-name">{{ formatCandidateName(c) || '-' }}</h3>
+              <span class="card-party">{{ filterUnknown(c.partyName) || '-' }}</span>
             </div>
           </div>
           <div class="card-body">
@@ -312,7 +337,7 @@ function viewCandidate(candidate) {
             </div>
             <div class="card-row">
               <span class="card-label">Woonplaats:</span>
-              <span class="card-value">{{ c.residence }}</span>
+              <span class="card-value">{{ filterUnknown(c.residence) || '-' }}</span>
             </div>
             <div class="card-row votes-row">
               <span class="card-label">Stemmen:</span>

@@ -92,11 +92,17 @@
       <!-- Empty State -->
       <section v-else class="empty-card">
         <div class="empty-state">
-          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          <h3 class="empty-title">Geen gegevens om te vergelijken</h3>
-          <p class="empty-description">Selecteer regio's hierboven om de resultaten te vergelijken</p>
+          <div v-if="isLoadingData" class="loading-container">
+            <div class="spinner"></div>
+            <p class="loading-text">{{ loadingText }}</p>
+          </div>
+          <template v-else>
+            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <h3 class="empty-title">Geen gegevens om te vergelijken</h3>
+            <p class="empty-description">Selecteer regio's hierboven om de resultaten te vergelijken</p>
+          </template>
         </div>
       </section>
     </div>
@@ -107,6 +113,8 @@
 import { ref, onMounted, computed } from 'vue'
 import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
+import MunicipalityService from '@/services/MunicipalityService'
+import ConstituencyService from '@/services/ConstituencyService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
@@ -120,7 +128,7 @@ onMounted(async () => {
     await ElectionService.getElection('TK2023')
     console.log('✅ Election data ready')
 
-    const gemeentes = await ElectionService.getMunicipalities   ('TK2023')
+    const gemeentes = await MunicipalityService.getMunicipalities('TK2023')
     console.log('✅ Loaded municipalities:', gemeentes.length)
     availableSelections.value[0] = gemeentes
 
@@ -140,6 +148,8 @@ const columns = ref([
   { type: '', year: '', selection: '', data: null }
 ])
 const availableSelections = ref([[], [], []])
+const isLoadingData = ref(false)
+const loadingText = ref('Data laden...')
 
 const selectedType = computed(() => {
   // Find the first column that has a type selected
@@ -158,6 +168,17 @@ const activeColumns = computed(() => {
 const hasAnyResults = computed(() => {
   return activeColumns.value.length > 0
 })
+
+function setLoadingState(type) {
+  isLoadingData.value = true
+  if (type === 'provincie') {
+    loadingText.value = 'Provincie data laden...'
+  } else if (type === 'gemeente') {
+    loadingText.value = 'Gemeente data laden...'
+  } else if (type === 'kieskring') {
+    loadingText.value = 'Kieskring data laden...'
+  }
+}
 
 async function addThirdColumn() {
   showThirdColumn.value = true
@@ -211,22 +232,27 @@ async function handleYearChange(index, year) {
 
   if (!type || !year) return
 
+  setLoadingState(type)
+
   try {
     await ElectionService.getElection(year).catch(() => null)
 
     if (type === 'provincie') {
-      const provincies = await ProvincieService.getAllProvincies()
+      const electionId = `TK${year}`
+      const provincies = await ProvincieService.getAllProvincies(electionId)
       availableSelections.value[index] = provincies
     } else if (type === 'gemeente') {
-      const gemeentes = await ElectionService.getMunicipalities(year)
+      const gemeentes = await MunicipalityService.getMunicipalities(year)
       availableSelections.value[index] = gemeentes
     } else if (type === 'kieskring') {
-      const kieskringen = await ElectionService.getConstituencies(year)
+      const kieskringen = await ConstituencyService.getConstituencies(year)
       availableSelections.value[index] = kieskringen
     }
   } catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
     availableSelections.value[index] = []
+  } finally {
+    isLoadingData.value = false
   }
 }
 
@@ -238,13 +264,16 @@ async function loadColumnData(index) {
     return
   }
 
+  setLoadingState(col.type)
+
   try {
     if (col.type === 'provincie') {
-      const data = await ProvincieService.getProvincieResultaten(col.selection)
+      const electionId = `TK${col.year}`
+      const data = await ProvincieService.getProvincieResultaten(col.selection, electionId)
       col.data = data
 
     } else if (col.type === 'gemeente') {
-      const data = await ElectionService.getMunicipality(col.year, col.selection)
+      const data = await MunicipalityService.getMunicipality(col.year, col.selection)
       col.data = {
         totaalStemmen: data.validVotes || 0,
         partijen: (data.allParties || []).map(p => ({
@@ -255,39 +284,40 @@ async function loadColumnData(index) {
       }
 
     } else if (col.type === 'kieskring') {
-      const allConstituencies = await ElectionService.getConstituencies(col.year)
+      const allConstituencies = await ConstituencyService.getConstituencies(col.year)
       const constituency = allConstituencies.find(c => c.id === col.selection || c.name === col.selection)
 
       if (!constituency) {
         col.data = null
-        return
-      }
+      } else {
+        const partijTotaal = {}
 
-      const partijTotaal = {}
-
-      for (const gemeente of constituency.municipalities || []) {
-        for (const partij of gemeente.allParties || []) {
-          if (!partijTotaal[partij.name]) partijTotaal[partij.name] = 0
-          partijTotaal[partij.name] += partij.votes
+        for (const gemeente of constituency.municipalities || []) {
+          for (const partij of gemeente.allParties || []) {
+            if (!partijTotaal[partij.name]) partijTotaal[partij.name] = 0
+            partijTotaal[partij.name] += partij.votes
+          }
         }
-      }
 
-      const totaalStemmen = constituency.totalVotes || 0
-      const partijen = Object.entries(partijTotaal).map(([naam, stemmen]) => ({
-        naam,
-        stemmen,
-        percentage: totaalStemmen > 0 ? ((stemmen / totaalStemmen) * 100).toFixed(1) : '0.0'
-      }))
+        const totaalStemmen = constituency.totalVotes || 0
+        const partijen = Object.entries(partijTotaal).map(([naam, stemmen]) => ({
+          naam,
+          stemmen,
+          percentage: totaalStemmen > 0 ? ((stemmen / totaalStemmen) * 100).toFixed(1) : '0.0'
+        }))
 
-      col.data = {
-        totaalStemmen,
-        partijen
+        col.data = {
+          totaalStemmen,
+          partijen
+        }
       }
     }
 
   } catch (error) {
     console.error(`Failed to load data for column ${index}:`, error)
     col.data = null
+  } finally {
+    isLoadingData.value = false
   }
 }
 
@@ -493,6 +523,37 @@ function resetAll() {
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-icon {

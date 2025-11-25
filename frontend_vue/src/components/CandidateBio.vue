@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElectionService } from '@/services/ElectionService'
+import { CandidateService } from '@/services/CandidateService'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,7 +25,7 @@ onMounted(async () => {
   loading.value = true
   error.value = null
   try {
-    candidate.value = await ElectionService.getCandidate(electionId.value, candidateId.value)
+    candidate.value = await CandidateService.getCandidate(electionId.value, candidateId.value)
   } catch (err) {
     error.value = err.message
   } finally {

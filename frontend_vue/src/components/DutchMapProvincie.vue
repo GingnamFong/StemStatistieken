@@ -17,7 +17,7 @@
           </p>
           <p><strong>Stemmen:</strong> {{ selectedProvincie.stemmen || 'Laden...' }}</p>
           <div v-if="selectedProvincie.resultaten && selectedProvincie.resultaten.length > 0" class="resultaten">
-            <h4>Verkiezingsresultaten 2023:</h4>
+            <h4>Verkiezingsresultaten {{ props.year }}:</h4>
             <div class="partij-lijst">
               <div
                 v-for="partij in selectedProvincie.resultaten"
@@ -44,6 +44,7 @@
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue'
 import { ProvincieService } from '../services/ProvincieService.js'
+import { watch } from 'vue'
 
 const mapContainer = ref(null)
 const svgContainer = ref(null)
@@ -54,6 +55,10 @@ const props = defineProps({
   showDataSection: {
     type: Boolean,
     default: true
+  },
+  year: {
+    type: Number,
+    default: 2023
   }
 })
 
@@ -69,7 +74,11 @@ onMounted(async () => {
     svgContent.value = '<div style="text-align: center; padding: 50px; color: #666;">Kon SVG niet laden. Controleer of /images/NederlandSVG.svg bestaat.</div>'
   }
 })
-
+watch(() => props.year, () => {
+  if (selectedProvincie.value) {
+    loadProvincieData(selectedProvincie.value.name) // reload with new year
+  }
+})
 const addPathListeners = () => {
   if (!svgContainer.value) return
 
@@ -105,7 +114,7 @@ const addPathListeners = () => {
         path.style.fillOpacity = '0.8'
         emit('provincie-selected', provincieNaam)
         await loadProvincieData(provincieNaam)
-        
+
         // Emit data in format voor ChartsPanel
         if (selectedProvincie.value.resultaten && selectedProvincie.value.resultaten.length > 0) {
           const chartData = {
@@ -163,7 +172,24 @@ const cleanKieskringName = (name) => {
 
 const loadProvincieData = async (provincieNaam) => {
   try {
-    const provincieData = await ProvincieService.getProvincieData(provincieNaam)
+    // Use the year prop to construct electionId (e.g., 2021 -> "TK2021")
+    const electionId = `TK${props.year}`
+    const API_BASE_URL = (location.origin === 'https://hva-frontend.onrender.com')
+      ? 'https://hva-backend-c647.onrender.com'
+      : 'http://localhost:8081'
+    
+    console.log(`Loading province data for ${provincieNaam} in election ${electionId}`)
+    
+    // Use the province endpoint with electionId query parameter
+    const response = await fetch(`${API_BASE_URL}/provincies/${encodeURIComponent(provincieNaam)}?electionId=${electionId}`)
+    if (!response.ok) {
+      console.error(`Failed to fetch province data: ${response.status}`)
+      throw new Error('Failed to fetch province data')
+    }
+    
+    const provincieData = await response.json()
+    console.log('Province data received:', provincieData)
+    
     selectedProvincie.value = {
       ...selectedProvincie.value,
       stemmen: provincieData.resultaten?.totaalStemmen?.toLocaleString() || '0',
@@ -177,7 +203,8 @@ const loadProvincieData = async (provincieNaam) => {
     } catch {
       kieskringen.value = []
     }
-  } catch {
+  } catch (error) {
+    console.error('Error loading province data:', error)
     selectedProvincie.value = {
       ...selectedProvincie.value,
       stemmen: 'Error',

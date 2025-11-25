@@ -135,46 +135,4 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
-    @PostMapping("/{electionId}/candidatelists")
-    public ResponseEntity<Election> loadCandidateLists(
-            @PathVariable String electionId,
-            @RequestParam(required = false) String folderName) {
-
-        String folder = folderName != null ? folderName : electionId;
-
-        // Check if election already exists in cache to preserve existing data
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            // Only create new election if it doesn't exist in cache
-            election = new Election(electionId);
-        }
-
-        // Load candidate lists into the election (preserves existing data if election was already cached)
-        electionService.loadCandidateLists(election, folder);
-
-        return ResponseEntity.ok(election);
-    }
-
-    @GetMapping("/{electionId}/candidates/{candidateId}")
-    public ResponseEntity<Candidate> getCandidateById(
-            @PathVariable String electionId,
-            @PathVariable String candidateId) {
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            // Try to load candidate lists if election not in cache
-            election = new Election(electionId);
-            electionService.loadCandidateLists(election, electionId);
-            // Election is now cached by loadCandidateLists method
-            // If loading failed, election will still exist but may be empty
-        }
-
-        Candidate candidate = election.getCandidateById(candidateId);
-        if (candidate == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(candidate);
-    }
-
 }
