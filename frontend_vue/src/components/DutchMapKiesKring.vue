@@ -25,6 +25,9 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
+import { API_BASE_URL } from '@/config/api'
+import { watch } from 'vue'
+import svgRaw from "@/assets/kieskringen.svg?raw"
 
 const emit = defineEmits(['regionSelected'])
 const container = ref(null)
@@ -32,6 +35,15 @@ const svgContainer = ref(null)
 const svgContent = ref('')
 
 const constituencies = ref([])
+
+const props = defineProps({
+  year: {
+    type: Number,
+    required: true
+  }
+})
+
+
 
 const tooltip = ref({
   visible: false,
@@ -136,28 +148,31 @@ function attachInteractivity() {
   })
 }
 
-onMounted(async () => {
+async function loadData() {
   // 1) load backend data
   try {
-    const res = await fetch('http://localhost:8081/elections/TK2023/constituencies')
+    const res = await fetch(
+      `${API_BASE_URL}/elections/TK${props.year}/constituencies`
+    )
     if (!res.ok) throw new Error('Network error')
     constituencies.value = await res.json()
   } catch (err) {
     console.error('Failed to load constituencies:', err)
   }
 
-  // 2) load raw SVG & inject
-  try {
-    const file = await fetch('/src/assets/kieskringen2023.svg')
-    svgContent.value = await file.text()
-  } catch (e) {
-    console.error('Failed to load kieskringen SVG:', e)
-    return
-  }
+  svgContent.value = svgRaw
 
   // 3) after injection, attach logic
   await nextTick()
   attachInteractivity()
+}
+
+// Load initial data
+  onMounted(loadData)
+
+// Watch year change
+  watch(() => props.year, async () => {
+    await loadData()
 })
 </script>
 
@@ -179,17 +194,10 @@ onMounted(async () => {
   height: auto;
 }
 
-/* default path look (overrides “fully black”) */
-:deep(svg path) {
-  fill: #e6e6e6 !important;
-  stroke: #777 !important;
-  stroke-width: 0.5;
-  transition: fill 0.15s ease, stroke 0.15s ease;
-  cursor: pointer;
-}
 :deep(svg path:hover) {
   fill: #ffd24d !important;
   stroke: #555 !important;
+  stroke-width: 1.1 !important;
 }
 
 .tooltip {

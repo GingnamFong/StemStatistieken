@@ -1,3 +1,8 @@
+<!--
+  Component voor interactieve provinciekaart van Nederland.
+  Toont SVG kaart waar gebruikers op provincies kunnen klikken.
+  Laadt en toont verkiezingsresultaten per provincie.
+-->
 <template>
   <div class="dutch-map-wrapper">
     <div class="map-layout" :class="{ 'no-data-section': !showDataSection }">
@@ -17,7 +22,7 @@
           </p>
           <p><strong>Stemmen:</strong> {{ selectedProvincie.stemmen || 'Laden...' }}</p>
           <div v-if="selectedProvincie.resultaten && selectedProvincie.resultaten.length > 0" class="resultaten">
-            <h4>Verkiezingsresultaten 2023:</h4>
+            <h4>Verkiezingsresultaten {{ props.year }}:</h4>
             <div class="partij-lijst">
               <div
                 v-for="partij in selectedProvincie.resultaten"
@@ -44,6 +49,7 @@
 <script setup>
 import { ref, onMounted, defineEmits } from 'vue'
 import { ProvincieService } from '../services/ProvincieService.js'
+import { watch } from 'vue'
 
 const mapContainer = ref(null)
 const svgContainer = ref(null)
@@ -54,6 +60,10 @@ const props = defineProps({
   showDataSection: {
     type: Boolean,
     default: true
+  },
+  year: {
+    type: Number,
+    default: 2023
   }
 })
 
@@ -69,7 +79,11 @@ onMounted(async () => {
     svgContent.value = '<div style="text-align: center; padding: 50px; color: #666;">Kon SVG niet laden. Controleer of /images/NederlandSVG.svg bestaat.</div>'
   }
 })
-
+watch(() => props.year, () => {
+  if (selectedProvincie.value) {
+    loadProvincieData(selectedProvincie.value.name) // reload with new year
+  }
+})
 const addPathListeners = () => {
   if (!svgContainer.value) return
 
@@ -105,7 +119,7 @@ const addPathListeners = () => {
         path.style.fillOpacity = '0.8'
         emit('provincie-selected', provincieNaam)
         await loadProvincieData(provincieNaam)
-        
+
         // Emit data in format voor ChartsPanel
         if (selectedProvincie.value.resultaten && selectedProvincie.value.resultaten.length > 0) {
           const chartData = {
@@ -163,11 +177,19 @@ const cleanKieskringName = (name) => {
 
 const loadProvincieData = async (provincieNaam) => {
   try {
-    const provincieData = await ProvincieService.getProvincieData(provincieNaam)
+    // Use the year prop to construct electionId (e.g., 2021 -> "TK2021")
+    const electionId = `TK${props.year}`
+
+    console.log(`Loading province data for ${provincieNaam} in election ${electionId}`)
+
+    // Use the ProvincieService instead of direct fetch
+    const resultaten = await ProvincieService.getProvincieResultaten(provincieNaam, electionId)
+    console.log('Province results received:', resultaten)
+
     selectedProvincie.value = {
       ...selectedProvincie.value,
-      stemmen: provincieData.resultaten?.totaalStemmen?.toLocaleString() || '0',
-      resultaten: provincieData.resultaten?.partijen || []
+      stemmen: resultaten.totaalStemmen?.toLocaleString() || '0',
+      resultaten: resultaten.partijen || []
     }
 
     // Haal ook de kieskringen op voor deze provincie
@@ -177,7 +199,8 @@ const loadProvincieData = async (provincieNaam) => {
     } catch {
       kieskringen.value = []
     }
-  } catch {
+  } catch (error) {
+    console.error('Error loading province data:', error)
     selectedProvincie.value = {
       ...selectedProvincie.value,
       stemmen: 'Error',

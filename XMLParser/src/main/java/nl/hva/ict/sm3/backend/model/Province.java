@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Domeinmodel voor een provincie met bijbehorende kieskringen en partijstemmen.
+ * Domeinmodel voor een provincie.
+ * Bevat naam, kieskringen en verkiezingsresultaten (partijen met stemmen).
  */
 public class Province {
     private final String name;
@@ -102,16 +103,6 @@ public class Province {
     public int getConstituencyCount() {
         // Geeft het aantal kieskringen
         return constituencyIds.size();
-    }
-    
-    /**
-     * Returns the number of parties in this province.
-     * 
-     * @return the count of parties
-     */
-    public int getPartyCount() {
-        // Geeft het aantal partijen
-        return parties.size();
     }
 
     @Override

@@ -46,10 +46,16 @@ public class ElectionController {
         List<Municipality> municipalities = election.getAllMunicipalities();
         return ResponseEntity.ok(municipalities);
     }
-    @GetMapping("{electionId}/constituencies")
+    @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         Election election = electionService.getElectionById(electionId);
-        if (election == null) return ResponseEntity.notFound().build();
+        if (election == null) {
+
+            election = electionService.readResults(electionId, electionId);
+            if (election == null) {
+                return ResponseEntity.notFound().build();
+            }
+        }
 
         return ResponseEntity.ok(election.getConstituencies());
     }
@@ -106,21 +112,6 @@ public class ElectionController {
                                                  @RequestParam(required = false) String folderName) {
         Election election = electionService.readResults(electionId, folderName != null ? folderName : electionId);
         if (election == null) return ResponseEntity.status(500).build();
-        return ResponseEntity.ok(election);
-    }
-
-    @PostMapping("/{electionId}/candidatelists")
-    public ResponseEntity<Election> loadCandidateLists(
-            @PathVariable String electionId,
-            @RequestParam(required = false) String folderName) {
-
-        String folder = folderName != null ? folderName : electionId;
-
-        Election election = new Election(electionId);
-
-        //  fill this instance
-        electionService.loadCandidateLists(election, folder);
-
         return ResponseEntity.ok(election);
     }
 

@@ -1,0 +1,87 @@
+#########################################################################
+#
+# Gebruik OSV2020 in kieskring Bonaire
+#
+#########################################################################
+
+Saba en Sint Eustatius hebben geen digitaal tellingsbestand gemaakt, deze gemeenten zijn opgenomen in het tellingsbestand van kieskring 20 (Bonaire).
+Het Centraal stembureau heeft de GSB bestanden van Saba en Sint Eustatius op basis van de papieren processen-verbaal gemaakt en toegevoegd voor de volledigheid.
+Het HSB bestand van kieskring 20 (Bonaire) is aangeleverd door Bonaire en gebruikt voor het vaststellen van de uitslag.
+
+#########################################################################
+#
+# Verwerking resultaten NBSB
+#
+#########################################################################
+ 
+De resultaten van het NBSB zijn als GSB-telling terug te vinden, en zijn samen met de resultaten van HSB-Den Haag gecombineerd in de uitslag van Kieskring 12. Het combineren van de resultaten van HSB-Den Haag met de uitslag van het NBSB is door het centraal stembureau gebeurd.
+
+#########################################################################
+#
+# Verschillen EML-bestanden op GSB- en HSB-niveau
+#
+#########################################################################
+
+Bij een aantal gemeenten was er een verschil tussen het proces-verbaal van de GSB-uitslag in EML-formaat. Hierdoor is het proces-verbaal gebruikt op het hoofdstembureau (papier is leidend), en is er een verschil ontstaan tussen de GSB-uitslag in EML-formaat en de HSB-uitslag in EML-formaat van de kieskring waartoe de gemeente behoort. De betreffende verschillen zijn hieronder terug te vinden:
+
+In Purmerend is het aantal stemmen voor lijst 3 kandidaat 32 niet gelijk. Waarde was 4 maar is overgenomen als 5
+In Purmerend is het aantal stemmen voor lijst 3 kandidaat 33 niet gelijk. Waarde was 5 maar is overgenomen als 4
+In Purmerend is het aantal stemmen voor lijst 13 kandidaat 4 niet gelijk. Waarde was 1 maar is overgenomen als 2
+In Purmerend is het aantal stemmen voor lijst 13 kandidaat 5 niet gelijk. Waarde was 6 maar is overgenomen als 5
+In Almelo is andere verklaring niet gelijk. Waarde was 3 maar is overgenomen als 1
+In Amsterdam is het aantal kiesgerechtigden niet gelijk. Waarde was 603252 maar is overgenomen als 606766
+In Amsterdam is geldige volmachtbewijzen niet gelijk. Waarde was 45567 maar is overgenomen als 45577
+In Assen is te veel uitgereikte stembiljetten niet gelijk. Waarde was 1 maar is overgenomen als 0
+In Barneveld is andere verklaring niet gelijk. Waarde was 0 maar is overgenomen als 21
+In Bergeijk is meegenomen stembiljetten niet gelijk. Waarde was 1 maar is overgenomen als 0
+In Borsele is andere verklaring niet gelijk. Waarde was 0 maar is overgenomen als 1
+In Dalfsen is te veel uitgereikte stembiljetten niet gelijk. Waarde was 2 maar is overgenomen als 0
+In Eindhoven is meegenomen stembiljetten niet gelijk. Waarde was 3 maar is overgenomen als 4
+In Enschede is meegenomen stembiljetten niet gelijk. Waarde was 2 maar is overgenomen als 4
+In Enschede is te veel uitgereikte stembiljetten niet gelijk. Waarde was 0 maar is overgenomen als 3
+In Enschede is geen verklaring niet gelijk. Waarde was 8 maar is overgenomen als 17
+In Enschede is andere verklaring niet gelijk. Waarde was 4 maar is overgenomen als 0
+In Goes is meegenomen stembiljetten niet gelijk. Waarde was 16 maar is overgenomen als 17
+In Gulpen-Wittem is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 1
+In Hardinxveld-Giessendam is geen verklaring niet gelijk. Waarde was 1 maar is overgenomen als 2
+In Hattem is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 2
+In Hilvarenbeek is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 3
+In Kapelle is andere verklaring niet gelijk. Waarde was 1 maar is overgenomen als 0
+In Landgraaf is meegenomen stembiljetten niet gelijk. Waarde was 0 maar is overgenomen als 2
+In Landsmeer is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 1
+In Lochem is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 1
+In Meerssen is andere verklaring niet gelijk. Waarde was 2 maar is overgenomen als 4
+In Midden-Delfland is geen verklaring niet gelijk. Waarde was 1 maar is overgenomen als 2
+In Moerdijk is geen verklaring niet gelijk. Waarde was 13 maar is overgenomen als 14
+In Molenlanden is minder getelde stembiljetten niet gelijk. Waarde was 19 maar is overgenomen als 22
+In Molenlanden is geen verklaring niet gelijk. Waarde was 21 maar is overgenomen als 24
+In Nunspeet is andere verklaring niet gelijk. Waarde was 0 maar is overgenomen als 1
+In Reimerswaal is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 3
+In Stein is te veel uitgereikte stembiljetten niet gelijk. Waarde was 1 maar is overgenomen als 0
+In Velsen is te weinig uitgereikte stembiljetten niet gelijk. Waarde was 0 maar is overgenomen als 1
+In Voerendaal is geen verklaring niet gelijk. Waarde was 0 maar is overgenomen als 2
+In Westland is meegenomen stembiljetten niet gelijk. Waarde was 1 maar is overgenomen als 2
+
+#########################################################################
+#
+# Verschillen EML-bestanden op HSB- en CSB-niveau
+#
+#########################################################################
+
+Bij een aantal kieskringen was er een verschil tussen het proces-verbaal van de HSB-uitslag in EML-formaat. Hierdoor is het proces-verbaal gebruikt op het centraal stembureau (papier is leidend), en is er een verschil ontstaan tussen de HSB-uitslag in EML-formaat en de CSB-uitslag in EML-formaat. De betreffende verschillen zijn hieronder terug te vinden:
+
+In Amsterdam is geen verklaring niet gelijk. Waarde was 649 maar is overgenomen als 646
+In Arnhem is geen verklaring niet gelijk. Waarde was 324 maar is overgenomen als 322
+In Assen is geen verklaring niet gelijk. Waarde was 198 maar is overgenomen als 228
+In Assen is andere verklaring niet gelijk. Waarde was 5 maar is overgenomen als 10
+In Dordrecht is geen verklaring niet gelijk. Waarde was 280 maar is overgenomen als 274
+In Leiden is meegenomen stembiljetten niet gelijk. Waarde was 10 maar is overgenomen als 12
+In Leiden is geen verklaring niet gelijk. Waarde was 335 maar is overgenomen als 333
+In Maastricht is geen verklaring niet gelijk. Waarde was 210 maar is overgenomen als 215
+In Middelburg is andere verklaring niet gelijk. Waarde was 6 maar is overgenomen als 7
+In Nijmegen is geen verklaring niet gelijk. Waarde was 123 maar is overgenomen als 119
+In Rotterdam is geen verklaring niet gelijk. Waarde was 522 maar is overgenomen als 523
+In 's-Hertogenbosch is geen verklaring niet gelijk. Waarde was 190 maar is overgenomen als 191
+In Tilburg is geen verklaring niet gelijk. Waarde was 248 maar is overgenomen als 265
+In Utrecht is geen verklaring niet gelijk. Waarde was 309 maar is overgenomen als 311
+In Zwolle is geen verklaring niet gelijk. Waarde was 277 maar is overgenomen als 273

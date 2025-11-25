@@ -1,29 +1,30 @@
 package nl.hva.ict.sm3.backend.service;
 
-import nl.hva.ict.sm3.backend.model.Party;
-import nl.hva.ict.sm3.backend.model.Province;
-import nl.hva.ict.sm3.backend.model.ProvinceResults;
+import nl.hva.ict.sm3.backend.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Service-laag voor provincies: laden, aggregeren en aanbieden van resultaten.
+ * Service voor provincies.
+ * Haalt provincie data op en aggregeert verkiezingsresultaten uit kieskringen.
+ * Provincies worden opgebouwd door alle gemeenten in de bijbehorende kieskringen samen te voegen.
  */
 @Service
-public class ProvincieService implements ProvincieServiceInterface {
+public class ProvincieService {
     
     private static final Logger logger = LoggerFactory.getLogger(ProvincieService.class);
-    private static final String XML_RESOURCE_PATH = "TK2023/Telling_TK2023_kieskring_%s.eml.xml";
     
     private final Map<String, List<String>> provincieKieskringenMap;
-    private final Map<String, Province> provinceCache = new HashMap<>();
+    // Cache per election: electionId -> (provinceName -> Province)
+    private final Map<String, Map<String, Province>> electionProvinceCache = new HashMap<>();
+    private final DutchElectionService electionService;
 
-    public ProvincieService() {
+    public ProvincieService(DutchElectionService electionService) {
+        this.electionService = electionService;
         this.provincieKieskringenMap = new HashMap<>();
         provincieKieskringenMap.put("Groningen", List.of("Groningen"));
         provincieKieskringenMap.put("Friesland", List.of("Leeuwarden"));
@@ -40,54 +41,76 @@ public class ProvincieService implements ProvincieServiceInterface {
         logger.info("ProvincieService initialized with {} provinces", provincieKieskringenMap.size());
     }
 
-    public List<Province> getAllProvincies() {
-        // Geeft alle provincies terug (met basisinfo)
-        logger.debug("Retrieving all provinces");
+    /**
+     * Haalt alle provincies op voor een verkiezing.
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @return Lijst van alle provincies
+     */
+    public List<Province> getAllProvinciesForElection(String electionId) {
+        logger.debug("Retrieving all provinces for election: {}", electionId);
         return provincieKieskringenMap.keySet().stream()
-                .map(this::getOrCreateProvince)
+                .map(name -> getOrCreateProvinceForElection(electionId, name))
                 .collect(Collectors.toList());
     }
 
-    public Province getProvincieData(String provincieNaam) {
-        // Geeft één provincie terug inclusief (berekende) resultaten
-        logger.debug("Retrieving data for province: {}", provincieNaam);
+    /**
+     * Haalt provincie data op inclusief verkiezingsresultaten.
+     * Laadt resultaten automatisch als ze nog niet geladen zijn.
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @param provincieNaam Naam van de provincie
+     * @return Provincie object met resultaten
+     */
+    public Province getProvincieDataForElection(String electionId, String provincieNaam) {
+        logger.debug("Retrieving data for province: {} in election: {}", provincieNaam, electionId);
         
-        Province province = getOrCreateProvince(provincieNaam);
+        Province province = getOrCreateProvinceForElection(electionId, provincieNaam);
         if (province.getParties().isEmpty()) {
-            logger.debug("Loading election results for province: {}", provincieNaam);
-            loadProvinceResults(province);
+            logger.debug("Loading election results for province: {} in election: {}", provincieNaam, electionId);
+            loadProvinceResultsForElection(electionId, province);
         }
         return province;
     }
 
-    public ProvinceResults getProvincieResultaten(String provincieNaam) {
-        // Geeft alleen de resultaten (totaal + partijen) van een provincie
-        logger.debug("Retrieving results for province: {}", provincieNaam);
+    /**
+     * Haalt alleen de verkiezingsresultaten op van een provincie.
+     * 
+     * @param electionId Verkiezing ID (bijv. TK2021)
+     * @param provincieNaam Naam van de provincie
+     * @return ProvinceResults met totaalStemmen en partijen
+     */
+    public ProvinceResults getProvincieResultatenForElection(String electionId, String provincieNaam) {
+        logger.debug("Retrieving results for province: {} in election: {}", provincieNaam, electionId);
         
-        Province province = getProvincieData(provincieNaam);
+        Province province = getProvincieDataForElection(electionId, provincieNaam);
         return new ProvinceResults(province.getTotalVotes(), province.getParties());
     }
 
+    /**
+     * Geeft alle kieskringen terug die bij een provincie horen.
+     * 
+     * @param provincieNaam Naam van de provincie
+     * @return Lijst van kieskring namen
+     */
     public List<String> getKieskringenInProvincie(String provincieNaam) {
-        // Geeft alle kieskringen van een provincie
         logger.debug("Retrieving constituencies for province: {}", provincieNaam);
         
         List<String> kieskringen = provincieKieskringenMap.get(provincieNaam);
-        return kieskringen != null ? new ArrayList<>(kieskringen) : new ArrayList<>();
+        return kieskringen != null ? List.copyOf(kieskringen) : List.of();
     }
 
-    // Validation is handled in the controller for a minimal setup
-
     /**
-     * Gets or creates a province instance from cache.
+     * Haalt provincie uit cache of maakt nieuwe aan voor een verkiezing.
      * 
-     * @param provincieNaam the province name
-     * @return Province instance
+     * @param electionId Verkiezing ID
+     * @param provincieNaam Naam van de provincie
+     * @return Province object
      */
-    private Province getOrCreateProvince(String provincieNaam) {
-        // Haalt provincie uit cache of maakt een nieuwe aan met de juiste kieskringen
-        return provinceCache.computeIfAbsent(provincieNaam, name -> {
-            logger.debug("Creating new Province instance for: {}", name);
+    private Province getOrCreateProvinceForElection(String electionId, String provincieNaam) {
+        Map<String, Province> electionCache = electionProvinceCache.computeIfAbsent(electionId, k -> new HashMap<>());
+        return electionCache.computeIfAbsent(provincieNaam, name -> {
+            logger.debug("Creating new Province instance for: {} in election: {}", name, electionId);
             Province province = new Province(name);
             List<String> kieskringen = provincieKieskringenMap.get(name);
             if (kieskringen != null) {
@@ -98,158 +121,65 @@ public class ProvincieService implements ProvincieServiceInterface {
     }
 
     /**
-     * Loads and aggregates election results for a province from XML files.
+     * Laadt en aggregeert provincie resultaten uit Election data.
+     * Loopt door alle kieskringen van de provincie en telt stemmen van alle gemeenten bij elkaar op.
      * 
-     * @param province the province to load results for
+     * @param electionId Verkiezing ID
+     * @param province Provincie object om resultaten aan toe te voegen
      */
-    private void loadProvinceResults(Province province) {
-        // Leest stemmen uit XML per kieskring en telt per partij op
-        List<String> kieskringen = provincieKieskringenMap.get(province.getName());
-        if (kieskringen == null || kieskringen.isEmpty()) {
+    private void loadProvinceResultsForElection(String electionId, Province province) {
+        // Haal de Election op (laadt automatisch als nog niet in cache)
+        Election election = Optional.ofNullable(electionService.getElectionById(electionId))
+                .orElseGet(() -> electionService.readResults(electionId, electionId));
+        
+        if (election == null) {
+            logger.error("Could not load election: {}", electionId);
+            return;
+        }
+
+        // Haal de kieskring namen op die bij deze provincie horen
+        List<String> kieskringNamen = provincieKieskringenMap.get(province.getName());
+        if (kieskringNamen == null || kieskringNamen.isEmpty()) {
             logger.warn("No constituencies found for province: {}", province.getName());
             return;
         }
 
-        logger.debug("Aggregating votes from {} constituencies for province: {}", 
-                kieskringen.size(), province.getName());
+        logger.debug("Aggregating votes from {} constituencies for province: {} in election: {}", 
+                kieskringNamen.size(), province.getName(), electionId);
 
-        // Aggregate votes per party across all constituencies using Streams
-        kieskringen.stream()
-                .map(this::parseKieskringXML)
-                .flatMap(votesMap -> votesMap.entrySet().stream())
-                .forEach(entry -> {
-                    String partyName = entry.getKey();
-                    int votes = entry.getValue();
-                    String partyId = partyName; // Use party name as ID
-                    province.addPartyVotes(partyId, partyName, votes);
-                });
+        // Voor elke kieskring die bij deze provincie hoort
+        for (String kieskringNaam : kieskringNamen) {
+            // Zoek de constituency in de Election data (match op ID of naam, case-insensitive)
+            Constituency constituency = election.getConstituencies().stream()
+                    .filter(c -> {
+                        String cName = c.getName() != null ? c.getName().trim() : "";
+                        String cId = c.getId() != null ? c.getId().trim() : "";
+                        String searchName = kieskringNaam.trim();
+                        return cName.equalsIgnoreCase(searchName) || 
+                               cId.equalsIgnoreCase(searchName) ||
+                               cName.replace("_", "").equalsIgnoreCase(searchName.replace("_", ""));
+                    })
+                    .findFirst()
+                    .orElse(null);
+
+            if (constituency == null) {
+                logger.warn("Constituency '{}' not found in election {} for province {}. Available: {}", 
+                        kieskringNaam, electionId, province.getName(),
+                        election.getConstituencies().stream()
+                                .map(c -> c.getName() + "(" + c.getId() + ")")
+                                .collect(Collectors.joining(", ")));
+                continue;
+            }
+
+            // Aggregeer alle partijen uit alle gemeenten in deze kieskring
+            constituency.getMunicipalities().stream()
+                    .flatMap(municipality -> municipality.getAllParties().stream())
+                    .forEach(party -> province.addPartyVotes(party.getId(), party.getName(), party.getVotes()));
+        }
 
         province.calculateTotalVotes();
-        logger.debug("Loaded results for province {}: {} parties, {} total votes", 
-                province.getName(), province.getParties().size(), province.getTotalVotes());
+        logger.debug("Loaded results for province {} in election {}: {} parties, {} total votes", 
+                province.getName(), electionId, province.getParties().size(), province.getTotalVotes());
     }
 
-    /**
-     * Parses XML file for a specific constituency (kieskring) and extracts party votes.
-     * 
-     * @param kieskring the constituency name
-     * @return Map of party names to vote counts
-     */
-    private Map<String, Integer> parseKieskringXML(String kieskring) {
-        // Leest XML van één kieskring in en haalt partijstemmen eruit
-        String fileName = String.format(XML_RESOURCE_PATH, kieskring);
-        Map<String, Integer> partijStemmen = new HashMap<>();
-        
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName)) {
-            if (inputStream == null) {
-                logger.warn("XML file not found for constituency: {}", kieskring);
-                return partijStemmen;
-            }
-            
-            String xmlContent = new String(inputStream.readAllBytes());
-            Map<String, Integer> votes = extractVotesFromXML(xmlContent);
-            logger.debug("Parsed {} parties from constituency: {}", votes.size(), kieskring);
-            return votes;
-            
-        } catch (Exception e) {
-            logger.error("Error parsing XML for constituency: {}", kieskring, e);
-            return partijStemmen;
-        }
-    }
-
-    /**
-     * Extracts party votes from XML content.
-     * Separated for better testability and SRP.
-     * 
-     * @param xmlContent the XML content as string
-     * @return Map of party names to vote counts
-     */
-    private Map<String, Integer> extractVotesFromXML(String xmlContent) {
-        // Parser: zoekt per partij de naam en bijbehorende <ValidVotes>
-        Map<String, Integer> partijStemmen = new HashMap<>();
-        
-        int totalVotesStart = xmlContent.indexOf("<TotalVotes>");
-        int totalVotesEnd = xmlContent.indexOf("</TotalVotes>");
-        
-        if (totalVotesStart == -1 || totalVotesEnd == -1) {
-            logger.warn("TotalVotes section not found in XML");
-            return partijStemmen;
-        }
-        
-        String totalVotesSection = xmlContent.substring(totalVotesStart, totalVotesEnd);
-        int searchPos = 0;
-        
-        while (true) {
-            PartyVoteData voteData = extractNextPartyVote(totalVotesSection, searchPos);
-            if (voteData == null) {
-                break;
-            }
-            
-            partijStemmen.put(voteData.partyName, voteData.votes);
-            searchPos = voteData.nextSearchPosition;
-        }
-        
-        return partijStemmen;
-    }
-
-    /**
-     * Extracts the next party vote from XML section.
-     * Uses inner class for better organization.
-     * 
-     * @param xmlSection the XML section to parse
-     * @param startPos the starting position
-     * @return PartyVoteData or null if no more parties found
-     */
-    private PartyVoteData extractNextPartyVote(String xmlSection, int startPos) {
-        // Parser-hulp: haalt de volgende partij met stemmen uit de XML-sectie
-        int affStart = xmlSection.indexOf("<AffiliationIdentifier", startPos);
-        if (affStart == -1) {
-            return null;
-        }
-        
-        int nameStart = xmlSection.indexOf("<RegisteredName>", affStart) + 16;
-        int nameEnd = xmlSection.indexOf("</RegisteredName>", nameStart);
-        if (nameEnd == -1) {
-            return null;
-        }
-        
-        String partijNaam = xmlSection.substring(nameStart, nameEnd).trim();
-        int affEnd = xmlSection.indexOf("</AffiliationIdentifier>", nameEnd);
-        if (affEnd == -1) {
-            return null;
-        }
-        
-        int votesStart = xmlSection.indexOf("<ValidVotes>", affEnd);
-        if (votesStart == -1 || votesStart > affEnd + 100) {
-            return new PartyVoteData(null, 0, affEnd + 1);
-        }
-        
-        int votesEnd = xmlSection.indexOf("</ValidVotes>", votesStart + 12);
-        if (votesEnd == -1) {
-            return null;
-        }
-        
-        try {
-            int votes = Integer.parseInt(xmlSection.substring(votesStart + 12, votesEnd).trim());
-            return new PartyVoteData(partijNaam, votes, votesEnd + 1);
-        } catch (NumberFormatException e) {
-            logger.warn("Invalid vote count format for party: {}", partijNaam);
-            return new PartyVoteData(null, 0, votesEnd + 1);
-        }
-    }
-
-    /**
-     * Inner class to hold party vote extraction data.
-     */
-    private static class PartyVoteData {
-        final String partyName;
-        final int votes;
-        final int nextSearchPosition;
-
-        PartyVoteData(String partyName, int votes, int nextSearchPosition) {
-            this.partyName = partyName;
-            this.votes = votes;
-            this.nextSearchPosition = nextSearchPosition;
-        }
-    }
 }
