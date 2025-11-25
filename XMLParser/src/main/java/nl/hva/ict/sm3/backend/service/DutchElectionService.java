@@ -112,6 +112,16 @@ public class DutchElectionService {
         return entry.getElection();
     }
 
+    /**
+     * Caches an election in the service cache.
+     *
+     * @param electionId the id of the election to cache
+     * @param election the election object to cache
+     */
+    public void cacheElection(String electionId, Election election) {
+        electionCache.put(electionId, new CacheEntry(election, Instant.now()));
+    }
+
     public void loadCandidateLists(Election election, String folderName) {
         String electionId = election.getId().trim();
         folderName = folderName.trim();
