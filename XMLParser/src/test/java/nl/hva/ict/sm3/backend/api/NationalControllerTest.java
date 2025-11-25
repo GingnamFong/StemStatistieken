@@ -141,9 +141,9 @@ class NationalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect((ResultMatcher) jsonPath("$", isA(Map.class)))
-                .andExpect(jsonPath("$.1", is(24)))
-                .andExpect(jsonPath("$.2", is(10)))
-                .andExpect(jsonPath("$.3", is(37)));
+                .andExpect(jsonPath("$", is(24)))
+                .andExpect(jsonPath("$", is(10)))
+                .andExpect(jsonPath("$", is(37)));
 
         verify(nationalService, times(1)).calculateSeatsDHondt(testElection);
         verify(nationalService, times(1)).updateNationalRecordsWithSeats(eq(testElection), eq(seatAllocations));
@@ -180,8 +180,8 @@ class NationalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect((ResultMatcher) jsonPath("$", isA(Map.class)))
-                .andExpect(jsonPath("$.1", is(24)))
-                .andExpect(jsonPath("$.2", is(10)));
+                .andExpect(jsonPath("$", is(24)))
+                .andExpect(jsonPath("$", is(10)));
 
         verify(nationalService, times(1)).getSeatAllocations(testElection);
     }
