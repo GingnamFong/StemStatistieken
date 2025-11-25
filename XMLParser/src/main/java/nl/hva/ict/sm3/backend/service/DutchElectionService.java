@@ -64,7 +64,8 @@ public class DutchElectionService {
                 new DutchResultTransformer(election),
                 new DutchNationalVotesTransformer(election),
                 new DutchConstituencyVotesTransformer(election),
-                new DutchMunicipalityVotesTransformer(election)
+                new DutchMunicipalityVotesTransformer(election),
+                new DutchPollingStationVotesTransformer(election)
         );
 
         try {
@@ -111,14 +112,62 @@ public class DutchElectionService {
         return entry.getElection();
     }
 
-    /**
-     * Caches an election for later retrieval.
-     * This method is used by CandidateListService to cache elections.
-     *
-     * @param electionId the id of the election to cache
-     * @param election the election object to cache
-     */
-    public void cacheElection(String electionId, Election election) {
-        electionCache.put(electionId, new CacheEntry(election, Instant.now()));
+    public void loadCandidateLists(Election election, String folderName) {
+        String electionId = election.getId().trim();
+        folderName = folderName.trim();
+
+        // Check election already exists in cache
+        CacheEntry cachedEntry = electionCache.get(electionId);
+        if (cachedEntry != null && !cachedEntry.isExpired(CACHE_EXPIRATION_HOURS)) {
+            Election cachedElection = cachedEntry.getElection();
+            // candidates are already loaded, skip parsing 
+            if (cachedElection != null && !cachedElection.getCandidates().isEmpty()) {
+                System.out.println("Candidate lists already cached for election: " + electionId + 
+                    " (candidates: " + cachedElection.getCandidates().size() + ") - using cache");
+                return;
+            }
+        }
+
+        System.out.println("Candidates not in cache - parsing candidate lists and total votes...");
+
+        DutchElectionParser electionParser = new DutchElectionParser(
+                new DutchDefinitionTransformer(election),
+                new DutchCandidateTransformer(election),
+                new DutchResultTransformer(election),
+                new DutchNationalVotesTransformer(election),
+                new DutchConstituencyVotesTransformer(election),
+                new DutchMunicipalityVotesTransformer(election),
+                new DutchPollingStationVotesTransformer(election)
+        );
+
+        try {
+            String safeFolderName = URLEncoder.encode(folderName, StandardCharsets.UTF_8);
+            System.out.println("Resolved folder name: " + safeFolderName);
+
+            // Parse only candidate lists (from Kandidatenlijsten folder) and Totaaltelling
+            // This will load both candidates and their vote counts without loading all other data
+            System.out.println("Step 1: Loading candidate lists...");
+            electionParser.parseCandidateListsAndTotalVotes(electionId,
+                    PathUtils.getResourcePath("/" + safeFolderName));
+            
+            // Debug: Print summary of loaded candidates
+            System.out.println("Step 2: Summary - Loaded " + election.getCandidates().size() + " candidates");
+            long candidatesWithShortCode = election.getCandidates().stream()
+                    .filter(c -> c.getShortCode() != null && !c.getShortCode().trim().isEmpty())
+                    .count();
+            System.out.println("  - Candidates with shortCode: " + candidatesWithShortCode);
+            long candidatesWithVotes = election.getCandidates().stream()
+                    .filter(c -> c.getVotes() > 0)
+                    .count();
+            System.out.println("  - Candidates with votes > 0: " + candidatesWithVotes);
+
+            electionCache.put(electionId, new CacheEntry(election, Instant.now()));
+            System.out.println("Candidate lists and total votes loaded for election: " + electionId);
+
+        } catch (IOException | XMLStreamException | ParserConfigurationException |
+                 SAXException | NullPointerException e) {
+            System.err.println("Failed to load candidate lists!");
+            e.printStackTrace();
+        }
     }
 }

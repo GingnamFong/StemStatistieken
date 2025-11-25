@@ -40,6 +40,7 @@ public class DutchElectionParser {
     private final VotesTransformer nationalVotesTransformer;
     private final VotesTransformer constituencyVotesTransformer;
     private final VotesTransformer municipalityVotesTransformer;
+    private final VotesTransformer pollingStationVotesTransformer;
 
     /**
      * Creates a new instance that will use the provided transformers for transforming the data into the
@@ -57,13 +58,17 @@ public class DutchElectionParser {
                                VotesTransformer resultTransformer,
                                VotesTransformer nationalVotesTransformer,
                                VotesTransformer constituencyVotesTransformer,
-                               VotesTransformer municipalityVotesTransformer) {
+                               VotesTransformer municipalityVotesTransformer,
+                               VotesTransformer pollingStationVotesTransformer
+
+    ) {
         this.definitionTransformer = definitionTransformer;
         this.candidateTransformer = candidateTransformer;
         this.resultTransformer = resultTransformer;
         this.nationalVotesTransformer = nationalVotesTransformer;
         this.constituencyVotesTransformer = constituencyVotesTransformer;
         this.municipalityVotesTransformer = municipalityVotesTransformer;
+        this.pollingStationVotesTransformer = pollingStationVotesTransformer;
     }
 
     /**
@@ -87,6 +92,7 @@ public class DutchElectionParser {
         parseFiles(folderName, "Totaaltelling_%s".formatted(electionId), new EMLHandler(nationalVotesTransformer));
         parseFiles(folderName, "Telling_%s_kieskring".formatted(electionId), new EMLHandler(constituencyVotesTransformer));
         parseFiles(folderName, "Telling_%s_gemeente".formatted(electionId), new EMLHandler(municipalityVotesTransformer));
+        parseFiles(folderName, "Telling_%s_stembureau".formatted(electionId), new EMLHandler(pollingStationVotesTransformer));
     }
 
     /**
