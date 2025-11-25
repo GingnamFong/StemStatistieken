@@ -1,8 +1,21 @@
 ## Controller and service tests natonal controller and service
-### Happy flow
+### Controller
+#### Happy flow
 
-### Invalid input
+#### Invalid input
 
-### Fouthandeling 
+#### Fouthandeling 
 
-### Business rules
+#### Business rules
+<br>
+
+### Service
+1 test failed, 8 passed
+
+#### Happy flow
+
+#### Invalid input
+
+#### Fouthandeling
+
+#### Business rules
