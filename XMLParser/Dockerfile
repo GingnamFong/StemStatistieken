@@ -29,8 +29,9 @@ COPY --from=build /app/target/*.jar app.jar
 # Java geheugen instellingen
 ENV JAVA_OPTS="-Xms256m -Xmx512m"
 
-# Poort 8080 alleen toegankelijk maken
-EXPOSE 8080
+# Poort 8081 alleen toegankelijk maken
+EXPOSE 8081
 
 # Start de Spring Boot applicatie
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+
