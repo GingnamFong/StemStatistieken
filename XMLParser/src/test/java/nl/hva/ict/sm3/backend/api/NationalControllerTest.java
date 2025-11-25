@@ -25,16 +25,8 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
+/*
  * Unit tests for NationalController.
- * 
- * These tests use MockMvc to test REST endpoints without starting a full server.
- * We mock the service dependencies to isolate controller logic.
- * 
- * Testing approach:
- * - Mock DutchElectionService and NationalService
- * - Use MockMvc to simulate HTTP requests
- * - Verify response status, content type, and JSON structure
  */
 @WebMvcTest(NationalController.class)
 class NationalControllerTest {
@@ -53,6 +45,10 @@ class NationalControllerTest {
 
     private Election testElection;
     private List<National> testNationals;
+
+    NationalControllerTest(NationalService nationalService) {
+        this.nationalService = nationalService;
+    }
 
     @BeforeEach
     void setUp() {
