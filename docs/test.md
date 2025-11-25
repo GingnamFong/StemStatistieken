@@ -11,6 +11,7 @@
 
 ### Service
 1 test failed, 8 passed
+![img.png](img.png)
 
 #### Happy flow
 
