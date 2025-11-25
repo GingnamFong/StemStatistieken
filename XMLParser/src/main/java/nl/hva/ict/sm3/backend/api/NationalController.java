@@ -36,10 +36,8 @@ public class NationalController {
     
     private final DutchElectionService electionService;
     private final NationalService nationalService;
-    
-    /**
-     * Constructor - Spring automatically provides these services (dependency injection)
-     */
+
+
     public NationalController(DutchElectionService electionService, NationalService nationalService) {
         this.electionService = electionService;
         this.nationalService = nationalService;

@@ -10,9 +10,7 @@ import java.util.stream.Collectors;
 
 /**
  * Service for handling national election data and seat calculations.
- * 
- * This service implements the D'Hondt method for proportional seat allocation,
- * which is the system used in Dutch parliamentary elections.
+ *
  */
 @Service
 public class NationalService {

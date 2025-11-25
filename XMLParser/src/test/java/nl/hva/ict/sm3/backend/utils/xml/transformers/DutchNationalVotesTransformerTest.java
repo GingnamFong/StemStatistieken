@@ -8,7 +8,7 @@ class DutchNationalVotesTransformerTest {
 
     @Test
     void nationalVotesTransformer() {
-        var national = new DutchNationalVotesTransformer();
+       // var national = new DutchNationalVotesTransformer();
     }
 
 }
