@@ -36,6 +36,7 @@ public class CandidateListService {
         String electionId = election.getId().trim();
         folderName = folderName.trim();
 
+
         // Check election already exists in cache
         Election cachedElection = electionService.getElectionById(electionId);
         if (cachedElection != null && !cachedElection.getCandidates().isEmpty()) {
@@ -52,7 +53,8 @@ public class CandidateListService {
                 new DutchResultTransformer(election),
                 new DutchNationalVotesTransformer(election),
                 new DutchConstituencyVotesTransformer(election),
-                new DutchMunicipalityVotesTransformer(election)
+                new DutchMunicipalityVotesTransformer(election),
+                new DutchPollingStationVotesTransformer(election)
         );
 
         try {
