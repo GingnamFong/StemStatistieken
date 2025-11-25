@@ -54,8 +54,12 @@ public class Election {
 
     /**
      * Adds a candidate to the election.
+     * <p>
+     * The candidate is added to the internal list of candidates.
+     * No duplicate checking is performed; use {@link #getCandidateById(String)}
+     * to check for existing candidates before adding.
      *
-     * @param candidate the candidate to add
+     * @param candidate the candidate to add to the election
      */
     public void addCandidate(Candidate candidate) {
         candidates.add(candidate);
@@ -130,7 +134,13 @@ public class Election {
     }
 
     /**
-     * Finds a candidate by their ID.
+     * Finds a candidate by their unique ID.
+     * <p>
+     * The candidate ID is typically formatted as "partyId-candidateId" to ensure
+     * uniqueness across different parties.
+     *
+     * @param candidateId the unique identifier of the candidate to find
+     * @return the matching candidate, or {@code null} if not found or if candidateId is null/empty
      */
     public Candidate getCandidateById(String candidateId) {
         if (candidateId == null || candidateId.trim().isEmpty()) {
@@ -144,8 +154,19 @@ public class Election {
 
 
     /**
-     * Finds a candidate by matching shortCode from votes file with lastName + all initials.
-     * Format: lastName + all initials without dots (e.g. "YeşilgözD" or "JettenRAA" for "R.A.A.")
+     * Finds a candidate by matching their short code.
+     * <p>
+     * The short code format is: lastName + all initials without dots or spaces.
+     * For example:
+     * <ul>
+     *   <li>"YeşilgözD" for a candidate with lastName "Yeşilgöz" and initials "D."</li>
+     *   <li>"JettenRAA" for a candidate with lastName "Jetten" and initials "R.A.A."</li>
+     * </ul>
+     * This method extracts all letters from the candidate's initials (removing dots, spaces, etc.)
+     * and constructs the expected short code for comparison.
+     *
+     * @param shortCode the short code to match (e.g., "YeşilgözD")
+     * @return the matching candidate, or {@code null} if not found or if shortCode is null/empty
      */
     public Candidate getCandidateByShortCode(String shortCode) {
         if (shortCode == null || shortCode.trim().isEmpty()) {
