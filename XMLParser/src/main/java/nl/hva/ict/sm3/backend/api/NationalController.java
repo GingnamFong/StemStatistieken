@@ -13,23 +13,8 @@ import java.util.Map;
 
 /**
  * Controller for handling national election votes and seat calculations.
- * 
- * This controller provides REST endpoints to:
- * - Get national vote results grouped by election info, party info, seats data, and rejected data
- * - Calculate seat allocations using the D'Hondt method
- * - Get seat allocation results per party
- * 
- * What is a Controller?
- * A controller in Spring Boot is a class that handles HTTP requests from clients (like your frontend).
- * It acts as a bridge between the web layer (HTTP) and your business logic (services).
- * 
- * Key annotations:
- * - @RestController: Tells Spring this class handles HTTP requests and automatically converts responses to JSON
- * - @RequestMapping: Sets the base URL path for all endpoints in this controller
- * - @GetMapping: Handles GET requests (reading data)
- * - @PostMapping: Handles POST requests (creating/updating data)
- * - @PathVariable: Extracts values from the URL path (e.g., /elections/TK2023 -> electionId = "TK2023")
  */
+
 @RestController
 @RequestMapping("/elections/{electionId}/national")
 public class NationalController {
