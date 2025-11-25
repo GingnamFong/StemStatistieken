@@ -32,7 +32,7 @@ public class NationalController {
       GET /elections/{electionId}/national/results
 
       Returns national vote results sections:
-      example link: GET http://localhost:8081/elections/TK2023/national/results
+      Link for national results: GET http://localhost:8081/elections/TK2023/national/results
      */
     @GetMapping("/results")
     public ResponseEntity<List<NationalDto>> getNationalResults(@PathVariable String electionId) {
@@ -51,7 +51,7 @@ public class NationalController {
     /*
       POST /elections/{electionId}/national/calculate-seats
       Endpoint for seats calculations
-      example link: POST http://localhost:8081/elections/TK2023/national/calculate-seats
+      Link for seats data: POST http://localhost:8081/elections/TK2023/national/calculate-seats
      */
     @PostMapping("/calculate-seats")
     public ResponseEntity<Map<String, Integer>> calculateSeats(@PathVariable String electionId) {
@@ -68,7 +68,6 @@ public class NationalController {
         
         return ResponseEntity.ok(seatAllocations);
     }
-
 
     /*
       GET /elections/{electionId}/national/seats
@@ -89,14 +88,13 @@ public class NationalController {
         return ResponseEntity.ok(seatAllocations);
     }
 
-
     /*
       GET /elections/{electionId}/national/results-with-seats
 
       Returns national results with seats already calculated.
       If seats haven't been calculated, it will calculate them first.
 
-      Example link: GET http://localhost:8081/elections/TK2023/national/results-with-seats
+      Link with party data and seats: GET http://localhost:8081/elections/TK2023/national/results-with-seats
      */
     @GetMapping("/results-with-seats")
     public ResponseEntity<List<NationalDto>> getNationalResultsWithSeats(@PathVariable String electionId) {
