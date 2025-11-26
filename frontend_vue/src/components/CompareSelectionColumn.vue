@@ -46,7 +46,8 @@
 
       <div class="form-group">
         <label class="form-label">
-          {{ modelValue.type === 'provincie' ? 'Provincie' : modelValue.type === 'gemeente' ? 'Gemeente' : modelValue.type === 'kieskring' ? 'Kieskring' : 'Selectie' }}
+          {{ modelValue.type === 'provincie' ? 'Provincie' : modelValue.type === 'gemeente' ? 'Gemeente' : modelValue.type === 'kieskring' ? 'Kieskring'  : modelValue.type === 'stembureau'
+          ? 'Postcode': 'Selectie' }}
 
         </label>
 
