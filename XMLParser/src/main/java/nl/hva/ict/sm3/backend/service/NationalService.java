@@ -17,13 +17,23 @@ public class NationalService {
     
     // Calculates seat allocations
     public Map<String, Integer> calculateSeatsDHondt(Election election) {
-        // Collect vote totals per party from National records
+        // Collect vote totals per party by aggregating from ALL municipalities
+        // This ensures we get the complete vote count, not just from National records
         Map<String, Integer> votesPerParty = new HashMap<>();
+        Map<String, String> partyNames = new HashMap<>(); // Store party names for reference
         
-        for (National national : election.getNationalVotes()) {
-            if (national.getValidVotes() > 0) {
-                String partyId = national.getPartyId();
-                votesPerParty.merge(partyId, national.getValidVotes(), Integer::sum);
+        // Aggregate votes from all municipalities across all constituencies
+        for (nl.hva.ict.sm3.backend.model.Constituency constituency : election.getConstituencies()) {
+            for (nl.hva.ict.sm3.backend.model.Municipality municipality : constituency.getMunicipalities()) {
+                for (nl.hva.ict.sm3.backend.model.Party party : municipality.getAllParties()) {
+                    String partyId = party.getId();
+                    int votes = party.getVotes();
+                    votesPerParty.merge(partyId, votes, Integer::sum);
+                    // Store party name if not already stored
+                    if (!partyNames.containsKey(partyId)) {
+                        partyNames.put(partyId, party.getName());
+                    }
+                }
             }
         }
         
@@ -103,45 +113,43 @@ public class NationalService {
     
     /**
      * Updates all National records in the election with calculated seat counts.
+     * Also recalculates vote totals from municipalities to ensure accuracy.
      * Since National objects are immutable, this replaces them with new objects.
      * 
      * @param election The election to update
      * @param seatAllocations Map of partyId -> number of seats
      */
     public void updateNationalRecordsWithSeats(Election election, Map<String, Integer> seatAllocations) {
-        List<National> updatedNationals = new ArrayList<>();
+        // First, recalculate vote totals from all municipalities to ensure accuracy
+        Map<String, Integer> recalculatedVotes = new HashMap<>();
+        Map<String, String> partyNames = new HashMap<>();
         
-        for (National national : election.getNationalVotes()) {
-            String partyId = national.getPartyId();
-            int seats = seatAllocations.getOrDefault(partyId, 0);
-            
-            // Create a new National object
-            National updated = National.forCombined(
-                    national.getId(),
-                    national.getElectionId(),
-                    national.getElectionName(),
-                    national.getPartyId(),
-                    national.getPartyName(),
-                    national.getShortCode(),
-                    national.getValidVotes(),
-                    national.getRejectedVotes(),
-                    national.getTotalCounted(),
-                    seats,
-                    national.getType()
-            );
-            
-            updatedNationals.add(updated);
+        // Aggregate votes from all municipalities
+        for (nl.hva.ict.sm3.backend.model.Constituency constituency : election.getConstituencies()) {
+            for (nl.hva.ict.sm3.backend.model.Municipality municipality : constituency.getMunicipalities()) {
+                for (nl.hva.ict.sm3.backend.model.Party party : municipality.getAllParties()) {
+                    String partyId = party.getId();
+                    recalculatedVotes.merge(partyId, party.getVotes(), Integer::sum);
+                    if (!partyNames.containsKey(partyId)) {
+                        partyNames.put(partyId, party.getName());
+                    }
+                }
+            }
         }
 
         election.setSeatAllocations(seatAllocations);
 
-        List<National> currentNationals = election.getNationalVotes();
-        for (int i = 0; i < currentNationals.size(); i++) {
-            National old = currentNationals.get(i);
+        // Update or create National records with correct vote totals and seat counts
+        List<National> currentNationals = new ArrayList<>(election.getNationalVotes());
+        Set<String> updatedPartyIds = new HashSet<>();
+        
+        for (National old : currentNationals) {
             String partyId = old.getPartyId();
             int seats = seatAllocations.getOrDefault(partyId, 0);
+            int validVotes = recalculatedVotes.getOrDefault(partyId, 0);
             
-            if (old.getNumberOfSeats() != seats) {
+            // Only update records that have votes or seats
+            if (validVotes > 0 || seats > 0) {
                 National updated = National.forCombined(
                         old.getId(),
                         old.getElectionId(),
@@ -149,13 +157,42 @@ public class NationalService {
                         old.getPartyId(),
                         old.getPartyName(),
                         old.getShortCode(),
-                        old.getValidVotes(),
+                        validVotes, // Use recalculated votes
                         old.getRejectedVotes(),
                         old.getTotalCounted(),
                         seats,
                         old.getType()
                 );
                 election.replaceNationalVote(old.getId(), updated);
+                updatedPartyIds.add(partyId);
+            }
+        }
+        
+        // Create National records for parties that have votes/seats but no National record yet
+        for (Map.Entry<String, Integer> entry : recalculatedVotes.entrySet()) {
+            String partyId = entry.getKey();
+            if (!updatedPartyIds.contains(partyId)) {
+                int validVotes = entry.getValue();
+                int seats = seatAllocations.getOrDefault(partyId, 0);
+                
+                if (validVotes > 0 || seats > 0) {
+                    String electionId = election.getId();
+                    String nationalId = String.format("%s-%s-PARTY_VOTES", electionId, partyId);
+                    National newNational = National.forCombined(
+                            nationalId,
+                            electionId,
+                            "Tweede Kamer",
+                            partyId,
+                            partyNames.getOrDefault(partyId, "Unknown Party"),
+                            null,
+                            validVotes,
+                            0,
+                            0,
+                            seats,
+                            null
+                    );
+                    election.addNationalVotes(newNational);
+                }
             }
         }
     }
