@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config/api.js'
 export const CandidateService = {
   async loadCandidateLists(electionId, folderName = null) {
     const params = folderName ? `?folderName=${encodeURIComponent(folderName)}` : ''
-    const response = await fetch(`${API_BASE_URL}/elections/${electionId}/candidatelists${params}`, {
+    const response = await fetch(`${API_BASE_URL}/elections/${electionId}/candidates/lists${params}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

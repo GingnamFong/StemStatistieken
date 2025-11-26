@@ -77,6 +77,7 @@ abstract class AbstractParserTests {
                 transformer,
                 transformer,
                 transformer,
+                transformer,
                 transformer );
     }
 

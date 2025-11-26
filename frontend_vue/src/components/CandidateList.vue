@@ -21,7 +21,7 @@ async function loadCandidates() {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch(`${API_BASE_URL}/elections/${electionId.value}/candidatelists`, {
+    const response = await fetch(`${API_BASE_URL}/elections/${electionId.value}/candidates/lists`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -152,53 +152,6 @@ public class ElectionController {
         return ResponseEntity.ok(election);
     }
 
-    @PostMapping("/{electionId}/candidatelists")
-    public ResponseEntity<Election> loadCandidateLists(
-            @PathVariable String electionId,
-            @RequestParam(required = false) String folderName) {
-
-        String folder = folderName != null ? folderName : electionId;
-
-        // Check if election already exists in cache 
-        Election election = electionService.getElectionById(electionId);
-        if (election != null && !election.getCandidates().isEmpty()) {
-            return ResponseEntity.ok(election);
-        }
-
-        if (election == null) {
-            election = new Election(electionId);
-        }
-
-        // Load candidate lists into the election (preserves existing data if election was already cached)
-        electionService.loadCandidateLists(election, folder);
-
-        // Get the election from cache after loading 
-        Election cachedElection = electionService.getElectionById(electionId);
-        return ResponseEntity.ok(cachedElection != null ? cachedElection : election);
-    }
-
-    @GetMapping("/{electionId}/candidates/{candidateId}")
-    public ResponseEntity<Candidate> getCandidateById(
-            @PathVariable String electionId,
-            @PathVariable String candidateId) {
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            // Try to load candidate lists if election not in cache
-            election = new Election(electionId);
-            electionService.loadCandidateLists(election, electionId);
-            // Election is now cached by loadCandidateLists method
-            // If loading failed, election will still exist but may be empty
-        }
-
-        Candidate candidate = election.getCandidateById(candidateId);
-        if (candidate == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(candidate);
-    }
-
     @GetMapping("/{electionId}/pollingstations/postcode/{postalCode}")
     public ResponseEntity<?> getPollingStationByPostalCode(
             @PathVariable String electionId,
@@ -257,7 +210,6 @@ public class ElectionController {
         if (postalCode == null || postalCode.trim().isEmpty()) {
             throw new IllegalArgumentException("Postal code cannot be empty");
         }
-
         // Nederlands format tolerant: letters/cijfers/spaties
         if (!postalCode.matches("^[A-Za-z0-9 ]+$")) {
             throw new IllegalArgumentException("Invalid postal code");
