@@ -80,7 +80,7 @@ import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
 import MunicipalityService from '@/services/MunicipalityService'
 import ConstituencyService from '@/services/ConstituencyService'
-import PollingstationService from '@/services/PollingstationService'
+import PollingstationService, {PollingStationService} from '@/services/PollingstationService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
@@ -214,10 +214,15 @@ async function handleYearChange(index, year) {
       const kieskringen = await ConstituencyService.getConstituencies(`TK${year}`)
       availableSelections.value[index] = kieskringen
     } else if (type === 'stembureau') {
-    // User types postal code manually → no dropdown list needed
-    availableSelections.value[index] = []
-  }
-} catch (error) {
+      // Load ALL polling stations and extract unique postal codes
+      const all = await PollingStationService.getAll(`TK${year}`)
+
+      const postcodes = [...new Set(all.map(sb => sb.postalCode))]
+
+      availableSelections.value[index] = postcodes.map(pc => ({ id: pc, name: pc }))
+    }
+
+  } catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
     availableSelections.value[index] = []
   } finally {
@@ -281,36 +286,15 @@ async function loadColumnData(index) {
         }
       }
     } else if (col.type === 'stembureau') {
-      // User entered a postal code
-      const stations = await PollingstationService.getByPostalCode(
-        `TK${col.year}`,
-        col.selection
-      )
+      const data = await PollingstationService.getByPostalCode(`TK${col.year}`, col.selection)
 
-      if (!stations || stations.length === 0) {
-        col.data = null
-      } else {
-        const partyTotals = {}
-
-        stations.forEach(station => {
-          station.allParties?.forEach(p => {
-            if (!partyTotals[p.name]) partyTotals[p.name] = 0
-            partyTotals[p.name] += p.votes
-          })
-        })
-
-        const totalVotes = Object.values(partyTotals).reduce((a, b) => a + b, 0)
-
-        col.data = {
-          totaalStemmen: totalVotes,
-          partijen: Object.entries(partyTotals).map(([naam, stemmen]) => ({
-            naam,
-            stemmen,
-            percentage: totalVotes > 0
-              ? ((stemmen / totalVotes) * 100).toFixed(1)
-              : '0.0'
-          }))
-        }
+      col.data = {
+        totaalStemmen: data.validVotes || 0,
+        partijen: (data.allParties || []).map(p => ({
+          naam: p.name,
+          stemmen: p.votes,
+          percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
+        }))
       }
     }
 
