@@ -64,7 +64,7 @@
               <div class="year-indicator">
                 Bekijk gegevens voor <strong>{{ selectedYear }}</strong>
               </div>
-              <SeatsDisplay v-if="selectedType === 'seats'" :year="selectedYear" />
+              <SeatsResult v-if="selectedType === 'seats'" :year="selectedYear" />
               <component
                 v-else
                 :is="currentMapComponent"
@@ -112,7 +112,7 @@ import DutchMapGemeente2021 from '@/components/DutchMapGemeente2021.vue'
 import DutchMapProvincie from '@/components/DutchMapProvincie.vue'
 import ChartsPanel from '@/components/ChartsPanel.vue'
 import DutchMapKiesKring from '@/components/DutchMapKiesKring.vue'
-import SeatsDisplay from '@/components/SeatsDisplay.vue'
+import SeatsResult from '@/components/SeatsResult.vue'
 
 /* --- View Types --- */
 const viewTypes = [
