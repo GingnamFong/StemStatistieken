@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-// Controller for national election votes and seat calculations.
-
-
 @RestController
 @RequestMapping("/elections/{electionId}/national")
 public class NationalController {
@@ -21,16 +18,13 @@ public class NationalController {
     private final DutchElectionService electionService;
     private final NationalService nationalService;
 
-
     public NationalController(DutchElectionService electionService, NationalService nationalService) {
         this.electionService = electionService;
         this.nationalService = nationalService;
     }
 
-
     /*
       GET /elections/{electionId}/national/results
-
       Returns national vote results sections:
       Link for national results: GET http://localhost:8081/elections/TK2023/national/results
      */
@@ -71,10 +65,8 @@ public class NationalController {
 
     /*
       GET /elections/{electionId}/national/seats
-
       Returns the current seat allocation per party as a map.
       If seats haven't been calculated yet, returns an empty map.
-
       Example link: GET http://localhost:8081/elections/TK2023/national/seats
      */
     @GetMapping("/seats")
@@ -90,10 +82,8 @@ public class NationalController {
 
     /*
       GET /elections/{electionId}/national/results-with-seats
-
       Returns national results with seats already calculated.
       If seats haven't been calculated, it will calculate them first.
-
       Link with party data and seats: GET http://localhost:8081/elections/TK2023/national/results-with-seats
      */
     @GetMapping("/results-with-seats")
@@ -118,9 +108,7 @@ public class NationalController {
         return ResponseEntity.ok(response);
     }
     
-    /*
-      Helper method to get election from cache or load it if not present
-     */
+    // Helper class
     private Election getOrLoadElection(String electionId) {
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
