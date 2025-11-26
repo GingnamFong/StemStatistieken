@@ -193,6 +193,7 @@ public class NationalService {
                     );
                     election.addNationalVotes(newNational);
                 }
+
             }
         }
     }
@@ -231,3 +232,4 @@ public class NationalService {
         }
     }
 }
+
