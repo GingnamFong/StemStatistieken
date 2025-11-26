@@ -80,6 +80,7 @@ import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
 import MunicipalityService from '@/services/MunicipalityService'
 import ConstituencyService from '@/services/ConstituencyService'
+import PollingstationService from '@/services/PollingstationService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
@@ -122,7 +123,9 @@ function setLoadingState(type) {
     loadingText.value = 'Gemeente data laden...'
   } else if (type === 'kieskring') {
     loadingText.value = 'Kieskring data laden...'
-  }
+  } else if (type === 'stembureau') {
+  loadingText.value = 'Stembureau data laden...'
+}
 }
 
 async function preloadData() {
@@ -210,8 +213,11 @@ async function handleYearChange(index, year) {
     } else if (type === 'kieskring') {
       const kieskringen = await ConstituencyService.getConstituencies(`TK${year}`)
       availableSelections.value[index] = kieskringen
-    }
-  } catch (error) {
+    } else if (type === 'stembureau') {
+    // User types postal code manually → no dropdown list needed
+    availableSelections.value[index] = []
+  }
+} catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
     availableSelections.value[index] = []
   } finally {
@@ -272,6 +278,38 @@ async function loadColumnData(index) {
         col.data = {
           totaalStemmen,
           partijen
+        }
+      }
+    } else if (col.type === 'stembureau') {
+      // User entered a postal code
+      const stations = await PollingstationService.getByPostalCode(
+        `TK${col.year}`,
+        col.selection
+      )
+
+      if (!stations || stations.length === 0) {
+        col.data = null
+      } else {
+        const partyTotals = {}
+
+        stations.forEach(station => {
+          station.allParties?.forEach(p => {
+            if (!partyTotals[p.name]) partyTotals[p.name] = 0
+            partyTotals[p.name] += p.votes
+          })
+        })
+
+        const totalVotes = Object.values(partyTotals).reduce((a, b) => a + b, 0)
+
+        col.data = {
+          totaalStemmen: totalVotes,
+          partijen: Object.entries(partyTotals).map(([naam, stemmen]) => ({
+            naam,
+            stemmen,
+            percentage: totalVotes > 0
+              ? ((stemmen / totalVotes) * 100).toFixed(1)
+              : '0.0'
+          }))
         }
       }
     }
