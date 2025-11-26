@@ -213,7 +213,7 @@ async function loadData() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .tooltip strong {
-  color: #ffd24d;
+  color: white;
 }
 .tooltip ul {
   margin: 6px 0 0;

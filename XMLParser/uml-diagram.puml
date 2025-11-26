@@ -1,0 +1,191 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+
+title UML Class Diagram - Election Domain Model
+
+class Election {
+    -String id
+    -List<Constituency> constituencies
+    -Map<String, Party> parties
+    -List<Candidate> candidates
+    --
+    +Election(String id)
+    +String getId()
+    +List<Constituency> getConstituencies()
+    +List<Candidate> getCandidates()
+    +void addConstituency(Constituency)
+    +void addCandidate(Candidate)
+    +void addParty(Party)
+    +Constituency getConstituencyById(String)
+    +Municipality getMunicipalityById(String)
+    +Party getPartyById(String)
+}
+
+class Constituency {
+    -String id
+    -String name
+    -List<Municipality> municipalities
+    -int totalVotes
+    --
+    +Constituency(String id, String name)
+    +String getId()
+    +String getName()
+    +List<Municipality> getMunicipalities()
+    +int getTotalVotes()
+    +void addMunicipality(Municipality)
+    +Municipality getMunicipalityById(String)
+    +void addToTotalVotes(int)
+}
+
+class Municipality {
+    -String id
+    -String name
+    -int validVotes
+    -Map<String, Integer> partyVotes
+    -Map<String, String> partyNames
+    -List<PollingStation> pollingStations
+    --
+    +Municipality(String id, String name, int validVotes)
+    +String getId()
+    +String getName()
+    +int getValidVotes()
+    +List<PollingStation> getPollingStations()
+    +List<Party> getAllParties()
+    +void addVotesForParty(String, String, int)
+    +void addPollingStation(PollingStation)
+    +PollingStation getPollingStationById(String)
+}
+
+class PollingStation {
+    -String id
+    -String name
+    -String postalCode
+    -int validVotes
+    -Map<String, Integer> partyVotes
+    -Map<String, String> partyNames
+    --
+    +PollingStation(String id, String name, String postalCode)
+    +String getId()
+    +String getName()
+    +String getPostalCode()
+    +int getValidVotes()
+    +List<Party> getAllParties()
+    +void addVotes(String, String, int)
+}
+
+class Party {
+    -String id
+    -String name
+    -int votes
+    --
+    +Party(String id, String name)
+    +Party(String id, String name, int votes)
+    +String getId()
+    +String getName()
+    +int getVotes()
+    +void addVotes(int)
+}
+
+class Candidate {
+    -String id
+    -String firstName
+    -String lastName
+    -String initials
+    -String residence
+    -String partyId
+    -String partyName
+    -int candidateIdentifier
+    -String shortCode
+    -int votes
+    --
+    +Candidate(String, String, String, String, String, String, String, int)
+    +String getId()
+    +String getFirstName()
+    +String getLastName()
+    +String getPartyId()
+    +String getPartyName()
+    +int getVotes()
+    +void setVotes(int)
+    +void addVotes(int)
+}
+
+class Province {
+    -String name
+    -List<String> constituencyIds
+    -Map<String, Party> parties
+    -int totalVotes
+    --
+    +Province(String name)
+    +String getName()
+    +List<String> getConstituencyIds()
+    +int getTotalVotes()
+    +List<Party> getParties()
+    +List<Party> getTopParties(int)
+    +Party getPartyById(String)
+    +void addConstituencyId(String)
+    +void addPartyVotes(String, String, int)
+    +void calculateTotalVotes()
+    +boolean hasConstituency(String)
+    +int getConstituencyCount()
+}
+
+class ProvinceResults {
+    -int totalVotes
+    -List<PartyResult> parties
+    --
+    +ProvinceResults(int, List<Party>)
+    +int getTotalVotes()
+    +List<PartyResult> getParties()
+}
+
+class "ProvinceResults.PartyResult" as PartyResult {
+    -String name
+    -int votes
+    -double percentage
+    --
+    +PartyResult(String, int, double)
+    +String getName()
+    +int getVotes()
+    +double getPercentage()
+    +String getPercentageFormatted()
+}
+
+class National {
+    -String id
+    -String name
+    -String region
+    --
+    +National()
+    +National(String, String, String)
+    +String getName()
+}
+
+class VoteResult {
+    -String partyId
+    -int votes
+    --
+    +String getPartyId()
+    +int getVotes()
+}
+
+' Relationships - Compositie (filled diamond)
+Election "1" *-- "*" Constituency : contains
+Constituency "1" *-- "*" Municipality : contains
+Municipality "1" *-- "*" PollingStation : contains
+Election "1" *-- "*" Candidate : contains
+
+' Relationships - Aggregatie (empty diamond)
+Election "1" o-- "*" Party : references
+Municipality "1" o-- "*" Party : aggregates
+PollingStation "1" o-- "*" Party : aggregates
+Province "1" o-- "*" Party : aggregates
+
+' Relationships - Associatie (arrow)
+Province "1" ..> "*" Constituency : references by ID
+Candidate "1" ..> "1" Party : belongs to
+ProvinceResults "1" *-- "*" PartyResult : contains
+
+@enduml

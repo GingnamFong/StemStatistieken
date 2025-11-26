@@ -21,6 +21,11 @@ import java.nio.charset.StandardCharsets;
 public class CandidateListService {
     private final DutchElectionService electionService;
 
+    /**
+     * Constructs a new CandidateListService with the required election service.
+     *
+     * @param electionService the service for managing elections and caching
+     */
     public CandidateListService(DutchElectionService electionService) {
         this.electionService = electionService;
     }
@@ -35,6 +40,7 @@ public class CandidateListService {
     public void loadCandidateLists(Election election, String folderName) {
         String electionId = election.getId().trim();
         folderName = folderName.trim();
+
 
         // Check election already exists in cache
         Election cachedElection = electionService.getElectionById(electionId);
@@ -52,7 +58,8 @@ public class CandidateListService {
                 new DutchResultTransformer(election),
                 new DutchNationalVotesTransformer(election),
                 new DutchConstituencyVotesTransformer(election),
-                new DutchMunicipalityVotesTransformer(election)
+                new DutchMunicipalityVotesTransformer(election),
+                new DutchPollingStationVotesTransformer(election)
         );
 
         try {

@@ -16,6 +16,12 @@ public class CandidateController {
     private final DutchElectionService electionService;
     private final CandidateListService candidateListService;
 
+    /**
+     * Constructs a new CandidateController with the required services.
+     *
+     * @param electionService the service for managing elections
+     * @param candidateListService the service for loading candidate lists
+     */
     public CandidateController(DutchElectionService electionService, CandidateListService candidateListService) {
         this.electionService = electionService;
         this.candidateListService = candidateListService;
