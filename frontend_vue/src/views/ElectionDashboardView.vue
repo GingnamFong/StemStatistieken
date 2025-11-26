@@ -38,7 +38,7 @@
       </div>
 
       <!-- Main Content Grid -->
-      <div class="content-grid">
+      <div class="content-grid" :class="{ 'full-width': selectedType === 'seats' }">
         <!-- Map Section -->
         <section class="map-card">
           <div class="card-header">
@@ -64,7 +64,9 @@
               <div class="year-indicator">
                 Bekijk gegevens voor <strong>{{ selectedYear }}</strong>
               </div>
+              <SeatsDisplay v-if="selectedType === 'seats'" :year="selectedYear" />
               <component
+                v-else
                 :is="currentMapComponent"
                 :showDataSection="false"
                 :year="selectedYear"
@@ -77,7 +79,7 @@
         </section>
 
         <!-- Charts Section -->
-        <section class="charts-card">
+        <section v-if="selectedType !== 'seats'" class="charts-card">
           <div class="card-header">
             <div class="card-title-group">
               <h2 class="card-title">Resultaten</h2>
@@ -110,6 +112,7 @@ import DutchMapGemeente2021 from '@/components/DutchMapGemeente2021.vue'
 import DutchMapProvincie from '@/components/DutchMapProvincie.vue'
 import ChartsPanel from '@/components/ChartsPanel.vue'
 import DutchMapKiesKring from '@/components/DutchMapKiesKring.vue'
+import SeatsDisplay from '@/components/SeatsDisplay.vue'
 
 /* --- View Types --- */
 const viewTypes = [
@@ -127,6 +130,11 @@ const viewTypes = [
     value: 'municipality',
     label: 'Gemeenten',
     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+  },
+  {
+    value: 'seats',
+    label: 'Seats',
+    icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
   }
 ]
 
@@ -167,6 +175,9 @@ const currentTitle = computed(() => {
     case 'kieskring':
       return 'Kieskringenkaart'
     case 'municipality':
+      return 'Gemeentekaart'
+    case 'seats':
+      return 'Zetelverdeling'
     default:
       return 'Gemeentekaart'
   }
@@ -357,6 +368,10 @@ const currentMapComponent = computed(() => {
   grid-template-columns: 1.2fr 1fr;
   gap: 24px;
   margin-bottom: 24px;
+}
+
+.content-grid.full-width {
+  grid-template-columns: 1fr;
 }
 
 /* Card Styles */
