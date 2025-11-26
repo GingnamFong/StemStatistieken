@@ -1,13 +1,14 @@
-sequenceDiagram
-autonumber
-actor U as Gebruiker
-participant UI as Frontend
-participant API as ProvincieController
-participant SVC as ProvincieService
-participant ES as DutchElectionService
-participant DATA as XML dataset
 ```mermaid
-    U->>UI: Kies “Vergelijk kieskringen”
+sequenceDiagram
+    autonumber
+    actor U as Gebruiker
+    participant UI as Frontend
+    participant API as ProvincieController
+    participant SVC as ProvincieService
+    participant ES as DutchElectionService
+    participant DATA as XML dataset
+
+    U->>UI: Kies "Vergelijk kieskringen"
     UI->>API: GET /provincies/{provincie}/kieskringen
     API->>SVC: getKieskringenInProvincie(provincie)
     SVC-->>API: Lijst kieskringen
