@@ -51,4 +51,19 @@ public class UserService {
 
         return userRepository.save(u);
     }
+
+    @Transactional(readOnly = true)
+    public User login(String emailRaw, String passwordRaw) {
+        String email = emailRaw.trim().toLowerCase();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+
+        if (!passwordEncoder.matches(passwordRaw, user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
+        }
+
+        return user;
+    }
 }
