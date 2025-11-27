@@ -265,7 +265,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
             return byCompositeId.get();
         }
 
-        // Fall back to the short code present in the votes files (e.g., "YeşilgözD")
+        // Fall back to the short code present in the votes files
         if (shortCode != null && !shortCode.isBlank()) {
             return election.getCandidateByShortCode(shortCode);
         }
