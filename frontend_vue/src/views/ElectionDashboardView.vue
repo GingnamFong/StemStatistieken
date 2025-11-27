@@ -49,7 +49,7 @@
             <!-- 🔹 Year toggle buttons -->
             <div class="year-selector">
               <button
-                v-for="year in [2021, 2023]"
+                v-for="year in [2021, 2023, 2025]"
                 :key="year"
                 @click="selectedYear = year"
                 :class="['year-button', { active: selectedYear === year }]"
@@ -289,7 +289,7 @@ const currentMapComponent = computed(() => {
 }
 .year-button.active {
   background: #1e293b !important;
-  color: #ffd24d !important;
+  color: white !important;
   border-color: #1e293b !important;
   transform: scale(1.08);
   font-weight: 800;
@@ -568,7 +568,7 @@ const currentMapComponent = computed(() => {
 
 .year-button.active ~ .dashboard-header .election-badge span {
   transform: scale(1.05);
-  color: #ffd24d;
+  color: white;
 }
 /* === Year Selector Buttons === */
 .year-selector {

@@ -18,6 +18,7 @@
         <router-link to="/dashboard" class="nav-link" @click="closeMenu">Uitslagen</router-link>
         <router-link to="/Candidate" class="nav-link" @click="closeMenu">Kandidaten</router-link>
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
+        <router-link to="/forum" class="nav-link" @click="closeMenu">Forum</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
       </div>
 
