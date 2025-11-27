@@ -80,6 +80,7 @@ import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
 import MunicipalityService from '@/services/MunicipalityService'
 import ConstituencyService from '@/services/ConstituencyService'
+import PollingstationService, {PollingStationService} from '@/services/PollingstationService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
@@ -122,7 +123,9 @@ function setLoadingState(type) {
     loadingText.value = 'Gemeente data laden...'
   } else if (type === 'kieskring') {
     loadingText.value = 'Kieskring data laden...'
-  }
+  } else if (type === 'stembureau') {
+  loadingText.value = 'Stembureau data laden...'
+}
 }
 
 async function preloadData() {
@@ -210,7 +213,15 @@ async function handleYearChange(index, year) {
     } else if (type === 'kieskring') {
       const kieskringen = await ConstituencyService.getConstituencies(`TK${year}`)
       availableSelections.value[index] = kieskringen
+    } else if (type === 'stembureau') {
+      // Load ALL polling stations and extract unique postal codes
+      const all = await PollingStationService.getAll(`TK${year}`)
+
+      const postcodes = [...new Set(all.map(sb => sb.postalCode))]
+
+      availableSelections.value[index] = postcodes.map(pc => ({ id: pc, name: pc }))
     }
+
   } catch (error) {
     console.error(`Failed to load ${type} for column ${index}:`, error)
     availableSelections.value[index] = []
@@ -273,6 +284,17 @@ async function loadColumnData(index) {
           totaalStemmen,
           partijen
         }
+      }
+    } else if (col.type === 'stembureau') {
+      const data = await PollingstationService.getByPostalCode(`TK${col.year}`, col.selection)
+
+      col.data = {
+        totaalStemmen: data.validVotes || 0,
+        partijen: (data.allParties || []).map(p => ({
+          naam: p.name,
+          stemmen: p.votes,
+          percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
+        }))
       }
     }
 
