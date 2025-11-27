@@ -87,13 +87,6 @@ public class Constituency {
     public List<Municipality> getMunicipalities() { return municipalities; }
 
     /**
-     * @return the total number of valid votes in this constituency
-     */
-    public int getTotalVotes() {
-        return totalVotes;
-    }
-
-    /**
      * Provides a debug-friendly representation of the constituency,
      * including its ID, name, total votes, and municipalities.
      */
