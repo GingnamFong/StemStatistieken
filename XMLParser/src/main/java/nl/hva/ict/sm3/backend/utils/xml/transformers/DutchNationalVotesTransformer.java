@@ -1,23 +1,22 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
+import nl.hva.ict.sm3.backend.model.Candidate;
 import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
-import nl.hva.ict.sm3.backend.model.National;
-import nl.hva.ict.sm3.backend.model.NationalResult;
-import nl.hva.ict.sm3.backend.dto.NationalDto;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
-
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
- * Just prints to content of electionData to the standard output.>br/>
- * <b>This class needs heavy modification!</b>
+ * Handles national vote information and maps aggregated candidate votes
+ * back onto the in-memory election model.
  */
-
-
 public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAttributeNames {
     private final Election election;
 
@@ -222,7 +221,62 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s candidate votes: %s\n", aggregated ? "National" : "Constituency", electionData);
+        // Only process the aggregated (national) section of the total votes file
+        if (!aggregated || electionData == null || electionData.isEmpty()) {
+            return;
+        }
+
+        int votes = parseIntSafe(
+                electionData.getOrDefault(VALID_VOTES,
+                        electionData.getOrDefault(TOTAL_VOTES,
+                                electionData.getOrDefault(COUNT, "0"))));
+
+        if (votes < 0) {
+            votes = 0;
+        }
+
+        String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-" + ID, null);
+        String candidateRank = electionData.getOrDefault(CANDIDATE_IDENTIFIER_ID, null);
+        String shortCode = electionData.getOrDefault(CANDIDATE_IDENTIFIER_SHORT_CODE, null);
+
+        Candidate candidate = findCandidate(partyId, candidateRank, shortCode);
+        if (candidate == null) {
+            System.err.printf("Unable to map candidate votes (party=%s, rank=%s, shortCode=%s)%n",
+                    partyId, candidateRank, shortCode);
+            return;
+        }
+
+        candidate.setVotes(votes);
+        if (shortCode != null && (candidate.getShortCode() == null || candidate.getShortCode().isBlank())) {
+            candidate.setShortCode(shortCode);
+        }
+    }
+
+    private Candidate findCandidate(String partyId, String candidateRank, String shortCode) {
+        // Try matching by the same unique ID format that is used while parsing candidate lists
+        Optional<Candidate> byCompositeId = Optional.ofNullable(partyId)
+                .filter(Predicate.not(String::isBlank))
+                .flatMap(pid -> Optional.ofNullable(candidateRank)
+                        .filter(Predicate.not(String::isBlank))
+                        .map(rank -> pid.trim() + "-" + rank.trim()))
+                .flatMap(this::findCandidateById);
+
+        if (byCompositeId.isPresent()) {
+            return byCompositeId.get();
+        }
+
+        // Fall back to the short code present in the votes files (e.g., "YeşilgözD")
+        if (shortCode != null && !shortCode.isBlank()) {
+            return election.getCandidateByShortCode(shortCode);
+        }
+
+        return null;
+    }
+
+    private Optional<Candidate> findCandidateById(String candidateId) {
+        return election.getCandidates().stream()
+                .filter(c -> Objects.equals(candidateId, c.getId()))
+                .findFirst();
     }
 
     @Override
