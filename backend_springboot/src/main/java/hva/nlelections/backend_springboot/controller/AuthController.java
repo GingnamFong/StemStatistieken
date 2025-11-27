@@ -1,6 +1,7 @@
 // java
 package hva.nlelections.backend_springboot.controller;
 
+import hva.nlelections.backend_springboot.dto.LoginRequest;
 import hva.nlelections.backend_springboot.dto.RegisterRequest;
 import hva.nlelections.backend_springboot.model.User;
 import hva.nlelections.backend_springboot.service.UserService;
@@ -21,5 +22,11 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
         User saved = userService.register(req);
         return ResponseEntity.status(201).body("User registered with id: " + saved.getId());
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
+        User user = userService.login(req.getEmail(), req.getPassword());
+        return ResponseEntity.ok("Login successful for user id: " + user.getId());
     }
 }

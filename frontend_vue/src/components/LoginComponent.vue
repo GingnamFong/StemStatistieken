@@ -75,19 +75,39 @@ const password = ref('')
 const errorMessage = ref('')
 const router = useRouter()
 
-function onSubmit() {
-  // Clear previous error
+async function onSubmit() {
   errorMessage.value = ''
 
-  // Fake login, check if email is test@demo.com
-  if (email.value === 'test@demo.com' && password.value === 'password') {
-    localStorage.setItem('token', 'fake-jwt-token-12345')
+  if (!email.value.trim() || !password.value.trim()) {
+    errorMessage.value = 'Vul e-mail en wachtwoord in.'
+    return
+  }
 
-    window.dispatchEvent(new CustomEvent('loginStateChanged'))
+  try {
+    const res = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
+    })
 
-    router.push('/')
-  } else {
-    errorMessage.value = 'Ongeldige e-mail of wachtwoord.'
+    if (res.ok) {
+      const text = await res.text()
+      console.log('Login response:', text)
+
+      // store dummy token for now
+      localStorage.setItem('token', 'dummy-token')
+      window.dispatchEvent(new CustomEvent('loginStateChanged'))
+      router.push('/')
+    } else {
+      const text = await res.text()
+      errorMessage.value = text || 'Ongeldige e-mail of wachtwoord.'
+    }
+  } catch (e) {
+    console.error(e)
+    errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
   }
 }
 </script>
