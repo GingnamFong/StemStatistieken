@@ -273,7 +273,13 @@ async function loadColumnData(index) {
           }
         }
 
-        const totaalStemmen = constituency.totalVotes || 0
+        // Bereken totaal stemmen: gebruik totalVotes als beschikbaar, anders tel alle partijstemmen op
+        let totaalStemmen = constituency.totalVotes || 0
+        if (totaalStemmen === 0) {
+          // Fallback: tel alle partijstemmen op
+          totaalStemmen = Object.values(partijTotaal).reduce((sum, votes) => sum + votes, 0)
+        }
+
         const partijen = Object.entries(partijTotaal).map(([naam, stemmen]) => ({
           naam,
           stemmen,
