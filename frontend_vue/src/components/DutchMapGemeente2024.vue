@@ -161,7 +161,7 @@ path:hover {
 }
 .tooltip strong {
   font-size: 0.9rem;
-  color: #ffd24d;
+  color: white;
 }
 
 .tooltip ul {
