@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
+import nl.hva.ict.sm3.backend.model.Candidate;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 import nl.hva.ict.sm3.backend.utils.xml.VotesTransformer;
@@ -222,7 +223,24 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s candidate votes: %s\n", aggregated ? "National" : "Constituency", electionData);
+        if (aggregated) {
+            String shortCode = electionData.get(CANDIDATE_IDENTIFIER_SHORT_CODE);
+            String validVotesStr = electionData.getOrDefault(VALID_VOTES, "0");
+            
+            if (shortCode != null && !shortCode.trim().isEmpty()) {
+                try {
+                    int votes = Integer.parseInt(validVotesStr.trim());
+                    Candidate candidate = election.getCandidateByShortCode(shortCode.trim());
+                    
+                    if (candidate != null) {
+                        candidate.addVotes(votes);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.printf("Invalid vote count '%s' for candidate with ShortCode '%s'\n", 
+                            validVotesStr, shortCode);
+                }
+            }
+        }
     }
 
     @Override
