@@ -7,7 +7,7 @@ const posts = ref([])
 const loading = ref(false)
 const error = ref('')
 
-const API_BASE = 'http://localhost:8080/api/forum'
+const API_BASE = 'http://localhost:8081/api/forum'
 
 async function loadPosts() {
   try {

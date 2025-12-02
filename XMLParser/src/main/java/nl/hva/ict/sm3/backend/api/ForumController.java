@@ -1,7 +1,8 @@
-package hva.nlelections.backend_springboot.controller;
+package nl.hva.ict.sm3.backend.api;
 
-import hva.nlelections.backend_springboot.model.ForumPost;
-import hva.nlelections.backend_springboot.repository.ForumPostRepository;
+
+import nl.hva.ict.sm3.backend.model.ForumPost;
+import nl.hva.ict.sm3.backend.repository.ForumPostRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
