@@ -6,7 +6,7 @@ import java.util.Objects;
  * This will hold the information for one specific election.<br/>
  * <b>This class is by no means production ready! You need to alter it extensively!</b>
  */
-
+// merge test
 
 public class National {
     private final String id;
