@@ -4,7 +4,7 @@
     <div id="onboarding-modal" class="onboarding-modal">
       <div class="modal-content">
         <div v-show="currentStep === 0" class="step">
-          <h2>Welkom op uitslagen.nl!</h2>
+          <h2>Welkom op StemStatistieken.nl!</h2>
           <p>Laten we beginnen met een korte rondleiding!</p>
           <button @click="nextStep">Volgende</button>
         </div>
