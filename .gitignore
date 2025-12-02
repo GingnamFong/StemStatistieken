@@ -33,6 +33,11 @@ Thumbs.db
 # Log file
 *.log
 
+# H2 Database files
+*.mv.db
+*.trace.db
+database-db.*
+
 ### Java ###
 # Compiled class file
 *.class
