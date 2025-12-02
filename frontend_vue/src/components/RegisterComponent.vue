@@ -56,6 +56,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { API_BASE_URL } from '../config/api.js'
 
 const form = reactive({
   name: '',
@@ -119,7 +120,7 @@ async function handleSubmit() {
   submitting.value = true
   serverError.value = ''
   try {
-    const res = await fetch('http://localhost:8080/api/auth/register', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
