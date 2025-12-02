@@ -25,6 +25,7 @@
           <option value="provincie">Provincie</option>
           <option value="gemeente">Gemeente</option>
           <option value="kieskring">Kieskring</option>
+          <option value="stembureau">Stembureau (postcode)</option>
         </select>
       </div>
 
@@ -45,9 +46,20 @@
 
       <div class="form-group">
         <label class="form-label">
-          {{ modelValue.type === 'provincie' ? 'Provincie' : modelValue.type === 'gemeente' ? 'Gemeente' : modelValue.type === 'kieskring' ? 'Kieskring' : 'Selectie' }}
+          {{ modelValue.type === 'provincie' ? 'Provincie' : modelValue.type === 'gemeente' ? 'Gemeente' : modelValue.type === 'kieskring' ? 'Kieskring'  : modelValue.type === 'stembureau'
+          ? 'Postcode': 'Selectie' }}
 
         </label>
+
+        <input
+          v-if="modelValue.type === 'stembureau'"
+          type="text"
+          class="form-select"
+          placeholder="Bijv. 1011PN"
+          :value="modelValue.selection"
+          @input="handlePostalInput"
+          :disabled="!modelValue.year"
+        />
         <select
           :value="modelValue.selection"
           @change="handleSelectionChange"
@@ -111,6 +123,11 @@ function handleYearChange(e) {
 function handleSelectionChange(e) {
   emit('update:modelValue', { ...props.modelValue, selection: e.target.value })
   emit('selection-change', e.target.value)
+}
+function handlePostalInput(e) {
+  const clean = e.target.value.replace(/\s+/g, '').toUpperCase()
+  emit('update:modelValue', { ...props.modelValue, selection: clean })
+  emit('selection-change', clean)
 }
 </script>
 

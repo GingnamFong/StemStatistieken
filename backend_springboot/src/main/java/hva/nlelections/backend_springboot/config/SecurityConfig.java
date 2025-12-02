@@ -18,16 +18,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // Allow registration and H2 console, require auth for others (basic auth configured for endpoints)
         http
                 .csrf().disable()
                 .headers().frameOptions().disable() // allow H2 console frames
                 .and()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic();
+                .anyRequest().permitAll();
         return http.build();
     }
 }
