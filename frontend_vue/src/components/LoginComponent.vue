@@ -84,7 +84,7 @@ async function onSubmit() {
   }
 
   try {
-    const res = await fetch('http://localhost:8080/api/auth/login', {
+    const res = await fetch('http://localhost:8081/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -94,20 +94,36 @@ async function onSubmit() {
     })
 
     if (res.ok) {
-      const text = await res.text()
-      console.log('Login response:', text)
+      const data = await res.json()
+      console.log('Login response:', data)
 
-      // store dummy token for now
-      localStorage.setItem('token', 'dummy-token')
-      window.dispatchEvent(new CustomEvent('loginStateChanged'))
-      router.push('/')
+      // Store the token from the response
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('userId', data.userId?.toString() || '')
+        window.dispatchEvent(new CustomEvent('loginStateChanged'))
+        router.push('/')
+      } else {
+        errorMessage.value = 'Ongeldige response van server.'
+      }
     } else {
-      const text = await res.text()
-      errorMessage.value = text || 'Ongeldige e-mail of wachtwoord.'
+      let errorText = 'Ongeldige e-mail of wachtwoord.'
+      try {
+        const errorData = await res.json()
+        errorText = errorData.message || errorData.error || errorText
+      } catch {
+        const text = await res.text()
+        if (text) errorText = text
+      }
+      errorMessage.value = errorText
     }
   } catch (e) {
     console.error(e)
-    errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
+    if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
+      errorMessage.value = 'Kan geen verbinding maken met de server. Zorg dat de backend draait op http://localhost:8081'
+    } else {
+      errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
+    }
   }
 }
 </script>
