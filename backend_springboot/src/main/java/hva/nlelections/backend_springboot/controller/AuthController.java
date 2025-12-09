@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,6 +29,23 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
         User user = userService.login(req.getEmail(), req.getPassword());
-        return ResponseEntity.ok("Login successful for user id: " + user.getId());
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", "dummy-token-" + user.getId());
+        response.put("userId", user.getId());
+        response.put("firstName", user.getFirstName());
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Map<String, Object>> getUser(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("firstName", user.getFirstName());
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        return ResponseEntity.ok(response);
     }
 }

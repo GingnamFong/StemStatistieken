@@ -66,4 +66,11 @@ public class UserService {
 
         return user;
     }
+
+    @Transactional(readOnly = true)
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"));
+    }
 }
