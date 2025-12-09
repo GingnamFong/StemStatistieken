@@ -47,6 +47,7 @@
         <div v-if="isLoggedIn" class="user-section">
           <img src="/images/user.png" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
           <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
+            <button class="dropdown-item" @click="goToProfile">Profiel</button>
             <button class="dropdown-item" @click="logout">Uitloggen</button>
           </div>
         </div>
@@ -80,6 +81,11 @@ function toggleUserDropdown() {
 
 function closeUserDropdown() {
   userDropdownOpen.value = false
+}
+
+function goToProfile() {
+  userDropdownOpen.value = false
+  router.push('/profile')
 }
 
 function logout() {
