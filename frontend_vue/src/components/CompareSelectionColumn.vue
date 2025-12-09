@@ -51,6 +51,7 @@
 
         </label>
 
+        <!-- Alleen bij stembureau: postcode tekstveld -->
         <input
           v-if="modelValue.type === 'stembureau'"
           type="text"
@@ -60,7 +61,10 @@
           @input="handlePostalInput"
           :disabled="!modelValue.year"
         />
+
+        <!-- Voor alle andere types: dropdown -->
         <select
+          v-else
           :value="modelValue.selection"
           @change="handleSelectionChange"
           class="form-select"
