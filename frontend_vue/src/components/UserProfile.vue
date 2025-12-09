@@ -52,7 +52,8 @@
         </div>
       </div>
 
-      <div v-else-if="!errorMessage" class="loading">
+      <div v-else-if="!errorMessage" class="profile-loading">
+        <div class="loading-spinner"></div>
         <p>Profiel laden...</p>
       </div>
     </div>
@@ -78,55 +79,69 @@ async function loadUser() {
     return
   }
 
+  // Try to get user data from localStorage first (from login response)
+  const storedUserData = localStorage.getItem('userData')
+  if (storedUserData) {
+    try {
+      const data = JSON.parse(storedUserData)
+      console.log('Using stored user data:', data)
+      user.value = {
+        id: data.id || userId,
+        firstName: data.firstName || 'Onbekend',
+        lastName: data.lastName || '',
+        email: data.email || 'Geen email'
+      }
+      return
+    } catch (e) {
+      console.error('Error parsing stored user data:', e)
+    }
+  }
+
+  // Try to fetch from API
   try {
-    // Try to get user from a simple endpoint or use mock data for now
-    // Since the backend endpoints might not be ready, let's create a simple display
-    
-    // Option 1: Try to fetch from backend (if endpoint exists)
     const url = `${API_BASE_URL}/api/auth/user/${userId}`
     console.log('Fetching user from:', url)
     
-    try {
-      const res = await fetch(url)
-      console.log('Response status:', res.status)
-      
-      if (res.ok) {
-        const data = await res.json()
-        console.log('User data received:', data)
-        // Map the response to match our display
-        user.value = {
-          id: data.id,
-          firstName: data.firstName || data.name || 'Onbekend',
-          lastName: data.lastName || '',
-          email: data.email || 'Geen email'
-        }
-      } else if (res.status === 404) {
-        // Endpoint doesn't exist yet, use mock data from localStorage
-        console.log('Endpoint not found, using basic info')
-        user.value = {
-          id: userId,
-          firstName: 'Gebruiker',
-          lastName: '',
-          email: localStorage.getItem('userEmail') || 'Email niet beschikbaar'
-        }
-      } else {
-        const errorText = await res.text()
-        console.error('Error response:', res.status, errorText)
-        errorMessage.value = `Kon profiel niet laden: ${res.status}`
+    const res = await fetch(url)
+    console.log('Response status:', res.status)
+    
+    if (res.ok) {
+      const data = await res.json()
+      console.log('User data received:', data)
+      // Store in localStorage for next time
+      localStorage.setItem('userData', JSON.stringify(data))
+      user.value = {
+        id: data.id,
+        firstName: data.firstName || 'Onbekend',
+        lastName: data.lastName || '',
+        email: data.email || 'Geen email'
       }
-    } catch (fetchError) {
-      console.log('Fetch error, using basic info:', fetchError)
-      // Use basic info if fetch fails
+    } else if (res.status === 404) {
+      // Endpoint doesn't exist yet, use basic info
+      console.log('Endpoint not found, using basic info')
       user.value = {
         id: userId,
         firstName: 'Gebruiker',
         lastName: '',
         email: localStorage.getItem('userEmail') || 'Email niet beschikbaar'
       }
+    } else if (res.status === 401) {
+      console.log('Unauthorized, redirecting to login')
+      router.push('/login')
+    } else {
+      const errorText = await res.text()
+      console.error('Error response:', res.status, errorText)
+      errorMessage.value = `Kon profiel niet laden: ${res.status}. Probeer de pagina te verversen.`
     }
   } catch (e) {
     console.error('Exception loading user:', e)
-    errorMessage.value = `Fout: ${e.message}`
+    // Use basic info if fetch fails
+    user.value = {
+      id: userId,
+      firstName: 'Gebruiker',
+      lastName: '',
+      email: localStorage.getItem('userEmail') || 'Email niet beschikbaar'
+    }
   }
 }
 
@@ -279,11 +294,36 @@ h1 {
   margin: 0;
 }
 
-.loading {
+.profile-loading {
   text-align: center;
   padding: 40px;
   color: #64748b;
   font-family: 'Nunito', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-loading p {
+  margin: 0;
+  font-size: 16px;
+  animation: none !important;
+  transform: none !important;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: profile-spin 1s linear infinite;
+}
+
+@keyframes profile-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
