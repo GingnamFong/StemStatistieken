@@ -51,16 +51,47 @@
 
         </label>
 
-        <input
-          v-if="modelValue.type === 'stembureau'"
-          type="text"
-          class="form-select"
-          placeholder="Bijv. 1011PN"
-          :value="modelValue.selection"
-          @input="handlePostalInput"
-          :disabled="!modelValue.year"
-        />
+        <!-- STEMBUREAU: gemeente + stembureau -->
+        <template v-if="modelValue.type === 'stembureau'">
+          <!-- 1. Gemeente kiezen -->
+          <select
+            class="form-select"
+            :value="modelValue.municipality"
+            @change="handleMunicipalityChange"
+            :disabled="!modelValue.year || !availableSelections.length"
+          >
+            <option value="">Kies gemeente...</option>
+            <option
+              v-for="gem in availableSelections"
+              :key="gem.id"
+              :value="gem.id"
+            >
+              {{ gem.name }}
+            </option>
+          </select>
+
+          <!-- 2. Stembureau binnen gekozen gemeente (met postcode in label) -->
+          <select
+            class="form-select"
+            :value="modelValue.selection"
+            @change="handleSelectionChange"
+            :disabled="!modelValue.municipality || !stembureausInSelectedMunicipality.length"
+          >
+            <option value="">Kies stembureau...</option>
+            <option
+              v-for="sb in stembureausInSelectedMunicipality"
+              :key="sb.id"
+              :value="sb.id"
+            >
+              <!-- Label: "9461 BH – Stembureau Gemeentehuis Gieten" -->
+              {{ sb.postalCode ? sb.postalCode + ' – ' : '' }}{{ sb.name }}
+            </option>
+          </select>
+        </template>
+
+        <!-- Alle andere types -->
         <select
+          v-else
           :value="modelValue.selection"
           @change="handleSelectionChange"
           class="form-select"
@@ -81,6 +112,8 @@
 </template>
 
 <script setup>
+import {computed} from "vue";
+
 const props = defineProps({
   columnNumber: {
     type: Number,
@@ -124,6 +157,26 @@ function handleSelectionChange(e) {
   emit('update:modelValue', { ...props.modelValue, selection: e.target.value })
   emit('selection-change', e.target.value)
 }
+// 👇 Nieuw: gemeente-change handler
+function handleMunicipalityChange(e) {
+  const municipality = e.target.value
+  // reset stembureau als gemeente verandert
+  emit('update:modelValue', {
+    ...props.modelValue,
+    municipality,
+    selection: ''
+  })
+}
+
+// 👇 Alle stembureaus voor de gekozen gemeente
+const stembureausInSelectedMunicipality = computed(() => {
+  if (!props.modelValue.municipality) return []
+  const gemeente = props.availableSelections.find(
+    gem => gem.id === props.modelValue.municipality
+  )
+  // pollingStations komt uit handleYearChange in de parent
+  return gemeente?.pollingStations || []
+})
 function handlePostalInput(e) {
   const clean = e.target.value.replace(/\s+/g, '').toUpperCase()
   emit('update:modelValue', { ...props.modelValue, selection: clean })
