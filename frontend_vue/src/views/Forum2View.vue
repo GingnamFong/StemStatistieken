@@ -18,7 +18,7 @@
                 <span>Forum</span>
               </div>
               <h1 class="page-title">Forum 2</h1>
-              <p class="page-description">Stel je vragen hier en deel je gedachten</p>
+              <p class="page-description">Stel hier je vragen, deel je standpunten of deel je gedachten</p>
             </div>
           </div>
         </div>
