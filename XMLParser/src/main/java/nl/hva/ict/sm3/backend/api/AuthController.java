@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -174,15 +176,38 @@ public class AuthController {
         }
 
         if (updates.containsKey("birthDate")) {
-            String birthDateStr = (String) updates.get("birthDate");
-            if (birthDateStr != null && !birthDateStr.isBlank()) {
-                user.setBirthDate(LocalDateTime.parse(birthDateStr));
+            Object birthDateObj = updates.get("birthDate");
+            if (birthDateObj != null) {
+                String birthDateStr = birthDateObj.toString();
+                if (!birthDateStr.isBlank()) {
+                    try {
+                        // Parse as LocalDate first (format: YYYY-MM-DD)
+                        LocalDate date = LocalDate.parse(birthDateStr);
+                        // Convert to LocalDateTime at start of day
+                        user.setBirthDate(date.atStartOfDay());
+                    } catch (DateTimeParseException e) {
+                        // If parsing fails, try parsing as LocalDateTime directly
+                        try {
+                            user.setBirthDate(LocalDateTime.parse(birthDateStr));
+                        } catch (DateTimeParseException e2) {
+                            return ResponseEntity.badRequest()
+                                    .body("Ongeldig datumformaat. Gebruik YYYY-MM-DD");
+                        }
+                    }
+                } else {
+                    user.setBirthDate(null);
+                }
             } else {
                 user.setBirthDate(null);
             }
         }
 
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Fout bij opslaan: " + e.getMessage());
+        }
 
         // Stuur bijgewerkte data terug
         Map<String, Object> response = new HashMap<>();
