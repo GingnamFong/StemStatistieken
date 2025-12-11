@@ -1,19 +1,44 @@
 package nl.hva.ict.sm3.backend.model;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Entity
+@Table(name = "elections")
 public class Election {
-    private final String id;
+    @Id
+    private String id;
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "election_id")
     private List<Constituency> constituencies = new ArrayList<>();
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "election_id")
+    @MapKey(name = "id")
     private Map<String, Party> parties = new HashMap<>();
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "election_id")
     private List<Candidate> candidates = new ArrayList<>();
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "election_id")
     private List<National> nationalVotes = new ArrayList<>();
+    
+    @ElementCollection
+    @CollectionTable(name = "seat_allocations", joinColumns = @JoinColumn(name = "election_id"))
+    @MapKeyColumn(name = "party_id")
+    @Column(name = "seats")
     private Map<String, Integer> seatAllocations = new HashMap<>();
 
 
+    // Default constructor for JPA
+    protected Election() {}
+    
     public Election(String id) {
         this.id = id;
     }
