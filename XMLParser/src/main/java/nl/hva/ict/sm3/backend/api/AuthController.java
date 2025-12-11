@@ -183,12 +183,29 @@ public class AuthController {
                     try {
                         // Parse as LocalDate first (format: YYYY-MM-DD)
                         LocalDate date = LocalDate.parse(birthDateStr);
+                        
+                        // Validate: birthDate cannot be in the future
+                        LocalDate today = LocalDate.now();
+                        if (date.isAfter(today)) {
+                            return ResponseEntity.badRequest()
+                                    .body("Geboortedatum kan niet in de toekomst liggen");
+                        }
+                        
                         // Convert to LocalDateTime at start of day
                         user.setBirthDate(date.atStartOfDay());
                     } catch (DateTimeParseException e) {
                         // If parsing fails, try parsing as LocalDateTime directly
                         try {
-                            user.setBirthDate(LocalDateTime.parse(birthDateStr));
+                            LocalDateTime dateTime = LocalDateTime.parse(birthDateStr);
+                            
+                            // Validate: birthDate cannot be in the future
+                            LocalDateTime now = LocalDateTime.now();
+                            if (dateTime.isAfter(now)) {
+                                return ResponseEntity.badRequest()
+                                        .body("Geboortedatum kan niet in de toekomst liggen");
+                            }
+                            
+                            user.setBirthDate(dateTime);
                         } catch (DateTimeParseException e2) {
                             return ResponseEntity.badRequest()
                                     .body("Ongeldig datumformaat. Gebruik YYYY-MM-DD");

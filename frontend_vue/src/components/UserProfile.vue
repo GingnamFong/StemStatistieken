@@ -66,6 +66,7 @@
               v-else
               type="date"
               v-model="editForm.birthDate"
+              :max="maxDate"
               class="date-input"
             />
           </div>
@@ -100,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '../config/api.js'
 
@@ -114,6 +115,15 @@ const editForm = ref({
   firstName: '',
   lastName: '',
   birthDate: ''
+})
+
+// Computed property voor maximale datum (vandaag)
+const maxDate = computed(() => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 })
 
 async function loadUser() {
