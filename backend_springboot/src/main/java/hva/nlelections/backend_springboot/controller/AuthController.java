@@ -59,12 +59,28 @@ public class AuthController {
         LocalDate birthDate = null;
         if (updates.containsKey("birthDate") && updates.get("birthDate") != null) {
             String birthDateStr = updates.get("birthDate").toString();
-            if (!birthDateStr.isEmpty()) {
+            if (!birthDateStr.isEmpty() && !birthDateStr.equals("null")) {
                 birthDate = LocalDate.parse(birthDateStr);
             }
         }
         
-        User updated = userService.updateUser(userId, birthDate);
+        String firstName = null;
+        if (updates.containsKey("firstName") && updates.get("firstName") != null) {
+            String firstNameStr = updates.get("firstName").toString().trim();
+            if (!firstNameStr.isEmpty() && !firstNameStr.equals("null")) {
+                firstName = firstNameStr;
+            }
+        }
+        
+        String lastName = null;
+        if (updates.containsKey("lastName") && updates.get("lastName") != null) {
+            String lastNameStr = updates.get("lastName").toString().trim();
+            if (!lastNameStr.isEmpty() && !lastNameStr.equals("null")) {
+                lastName = lastNameStr;
+            }
+        }
+        
+        User updated = userService.updateUser(userId, firstName, lastName, birthDate);
         Map<String, Object> response = new HashMap<>();
         response.put("id", updated.getId());
         response.put("firstName", updated.getFirstName());

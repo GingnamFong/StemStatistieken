@@ -35,11 +35,25 @@
         <div class="details-section">
           <div class="detail-item">
             <label>Voornaam:</label>
-            <span>{{ user.firstName || 'Niet ingevuld' }}</span>
+            <span v-if="!isEditing">{{ user.firstName || 'Niet ingevuld' }}</span>
+            <input 
+              v-else
+              type="text" 
+              v-model="editForm.firstName"
+              class="text-input"
+              placeholder="Voornaam"
+            />
           </div>
           <div class="detail-item">
             <label>Achternaam:</label>
-            <span>{{ user.lastName || 'Niet ingevuld' }}</span>
+            <span v-if="!isEditing">{{ user.lastName || 'Niet ingevuld' }}</span>
+            <input 
+              v-else
+              type="text" 
+              v-model="editForm.lastName"
+              class="text-input"
+              placeholder="Achternaam"
+            />
           </div>
           <div class="detail-item">
             <label>Email:</label>
@@ -97,6 +111,8 @@ const isEditing = ref(false)
 const saving = ref(false)
 const successMessage = ref('')
 const editForm = ref({
+  firstName: '',
+  lastName: '',
   birthDate: ''
 })
 
@@ -190,6 +206,9 @@ function formatDate(dateString) {
 
 function startEditing() {
   isEditing.value = true
+  // Initialize form with current user data
+  editForm.value.firstName = user.value.firstName || ''
+  editForm.value.lastName = user.value.lastName || ''
   // Format date for HTML date input (YYYY-MM-DD)
   if (user.value.birthDate) {
     const date = new Date(user.value.birthDate)
@@ -205,6 +224,8 @@ function startEditing() {
 
 function cancelEditing() {
   isEditing.value = false
+  editForm.value.firstName = ''
+  editForm.value.lastName = ''
   editForm.value.birthDate = ''
   successMessage.value = ''
 }
@@ -225,18 +246,23 @@ async function saveProfile() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
+        firstName: editForm.value.firstName || null,
+        lastName: editForm.value.lastName || null,
         birthDate: editForm.value.birthDate || null
       })
     })
 
     if (res.ok) {
       const data = await res.json()
+      // Update user data with response
+      user.value.firstName = data.firstName
+      user.value.lastName = data.lastName
       user.value.birthDate = data.birthDate
       localStorage.setItem('userData', JSON.stringify({
-        id: user.value.id,
-        firstName: user.value.firstName,
-        lastName: user.value.lastName,
-        email: user.value.email,
+        id: data.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
         birthDate: data.birthDate
       }))
       isEditing.value = false
@@ -390,7 +416,8 @@ h1 {
   color: #1e293b;
 }
 
-.date-input {
+.date-input,
+.text-input {
   font-family: 'Nunito', sans-serif;
   font-size: 14px;
   padding: 8px 12px;
@@ -400,9 +427,12 @@ h1 {
   color: #1e293b;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
+  max-width: 300px;
 }
 
-.date-input:focus {
+.date-input:focus,
+.text-input:focus {
   border-color: #3b82f6;
 }
 

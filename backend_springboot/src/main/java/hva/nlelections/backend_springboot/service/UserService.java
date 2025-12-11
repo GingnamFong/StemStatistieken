@@ -75,8 +75,14 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, java.time.LocalDate birthDate) {
+    public User updateUser(Long id, String firstName, String lastName, java.time.LocalDate birthDate) {
         User user = getUserById(id);
+        if (firstName != null && !firstName.trim().isEmpty()) {
+            user.setFirstName(firstName.trim());
+        }
+        if (lastName != null) {
+            user.setLastName(lastName.trim().isEmpty() ? null : lastName.trim());
+        }
         if (birthDate != null) {
             user.setBirthDate(birthDate);
         }
