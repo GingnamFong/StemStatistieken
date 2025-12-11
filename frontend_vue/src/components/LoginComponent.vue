@@ -107,7 +107,8 @@ async function onSubmit() {
             id: data.userId,
             firstName: data.firstName,
             lastName: data.lastName,
-            email: data.email
+            email: data.email,
+            birthDate: data.birthDate || null
           }))
         }
         window.dispatchEvent(new CustomEvent('loginStateChanged'))

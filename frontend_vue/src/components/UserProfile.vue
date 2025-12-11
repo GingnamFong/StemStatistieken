@@ -45,10 +45,35 @@
             <label>Email:</label>
             <span>{{ user.email }}</span>
           </div>
+          <div class="detail-item">
+            <label>Geboortedatum:</label>
+            <span v-if="!isEditing">{{ formatDate(user.birthDate) || 'Niet ingevuld' }}</span>
+            <input 
+              v-else
+              type="date" 
+              v-model="editForm.birthDate"
+              class="date-input"
+            />
+          </div>
         </div>
 
-        <div class="info-note">
-          <p>Profiel bewerken functionaliteit komt binnenkort beschikbaar.</p>
+        <!-- Edit Button -->
+        <div class="action-buttons">
+          <button v-if="!isEditing" @click="startEditing" class="btn-edit">Bewerken</button>
+          <div v-else class="edit-buttons">
+            <button @click="saveProfile" class="btn-save" :disabled="saving">
+              {{ saving ? 'Opslaan...' : 'Opslaan' }}
+            </button>
+            <button @click="cancelEditing" class="btn-cancel">Annuleren</button>
+          </div>
+        </div>
+
+        <div v-if="successMessage" class="success-message">
+          <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <span>{{ successMessage }}</span>
         </div>
       </div>
 
@@ -68,6 +93,12 @@ import { API_BASE_URL } from '../config/api.js'
 const router = useRouter()
 const user = ref(null)
 const errorMessage = ref('')
+const isEditing = ref(false)
+const saving = ref(false)
+const successMessage = ref('')
+const editForm = ref({
+  birthDate: ''
+})
 
 async function loadUser() {
   const userId = localStorage.getItem('userId')
@@ -89,7 +120,8 @@ async function loadUser() {
         id: data.id || userId,
         firstName: data.firstName || 'Onbekend',
         lastName: data.lastName || '',
-        email: data.email || 'Geen email'
+        email: data.email || 'Geen email',
+        birthDate: data.birthDate || null
       }
       return
     } catch (e) {
@@ -114,7 +146,8 @@ async function loadUser() {
         id: data.id,
         firstName: data.firstName || 'Onbekend',
         lastName: data.lastName || '',
-        email: data.email || 'Geen email'
+        email: data.email || 'Geen email',
+        birthDate: data.birthDate || null
       }
     } else if (res.status === 404) {
       // Endpoint doesn't exist yet, use basic info
@@ -142,6 +175,84 @@ async function loadUser() {
       lastName: '',
       email: localStorage.getItem('userEmail') || 'Email niet beschikbaar'
     }
+  }
+}
+
+function formatDate(dateString) {
+  if (!dateString) return null
+  const date = new Date(dateString)
+  return date.toLocaleDateString('nl-NL', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+}
+
+function startEditing() {
+  isEditing.value = true
+  // Format date for HTML date input (YYYY-MM-DD)
+  if (user.value.birthDate) {
+    const date = new Date(user.value.birthDate)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    editForm.value.birthDate = `${year}-${month}-${day}`
+  } else {
+    editForm.value.birthDate = ''
+  }
+  successMessage.value = ''
+}
+
+function cancelEditing() {
+  isEditing.value = false
+  editForm.value.birthDate = ''
+  successMessage.value = ''
+}
+
+async function saveProfile() {
+  saving.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    const userId = localStorage.getItem('userId')
+    const token = localStorage.getItem('token')
+    
+    const res = await fetch(`${API_BASE_URL}/api/auth/user/${userId}`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        birthDate: editForm.value.birthDate || null
+      })
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      user.value.birthDate = data.birthDate
+      localStorage.setItem('userData', JSON.stringify({
+        id: user.value.id,
+        firstName: user.value.firstName,
+        lastName: user.value.lastName,
+        email: user.value.email,
+        birthDate: data.birthDate
+      }))
+      isEditing.value = false
+      successMessage.value = 'Profiel succesvol bijgewerkt!'
+      setTimeout(() => {
+        successMessage.value = ''
+      }, 3000)
+    } else {
+      const errorText = await res.text()
+      errorMessage.value = `Kon profiel niet bijwerken: ${errorText}`
+    }
+  } catch (e) {
+    console.error('Error updating profile:', e)
+    errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
+  } finally {
+    saving.value = false
   }
 }
 
@@ -277,6 +388,108 @@ h1 {
   font-family: 'Nunito', sans-serif;
   font-size: 14px;
   color: #1e293b;
+}
+
+.date-input {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.date-input:focus {
+  border-color: #3b82f6;
+}
+
+.action-buttons {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.btn-edit {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background: #2563eb;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-save {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #4b5563;
+}
+
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+  font-size: 14px;
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.success-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .info-note {
