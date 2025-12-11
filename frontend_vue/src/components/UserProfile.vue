@@ -126,26 +126,7 @@ async function loadUser() {
     return
   }
 
-  // Try to get user data from localStorage first (from login response)
-  const storedUserData = localStorage.getItem('userData')
-  if (storedUserData) {
-    try {
-      const data = JSON.parse(storedUserData)
-      console.log('Using stored user data:', data)
-      user.value = {
-        id: data.id || userId,
-        firstName: data.firstName || 'Onbekend',
-        lastName: data.lastName || '',
-        email: data.email || 'Geen email',
-        birthDate: data.birthDate || null
-      }
-      return
-    } catch (e) {
-      console.error('Error parsing stored user data:', e)
-    }
-  }
-
-  // Try to fetch from API
+  // Always fetch from API to get latest data from database
   try {
     const url = `${API_BASE_URL}/api/auth/user/${userId}`
     console.log('Fetching user from:', url)
@@ -155,24 +136,39 @@ async function loadUser() {
     
     if (res.ok) {
       const data = await res.json()
-      console.log('User data received:', data)
-      // Store in localStorage for next time
+      console.log('User data received from database:', data)
+      
+      // Update localStorage with fresh data from database
       localStorage.setItem('userData', JSON.stringify(data))
+      
       user.value = {
         id: data.id,
-        firstName: data.firstName || 'Onbekend',
-        lastName: data.lastName || '',
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
         email: data.email || 'Geen email',
         birthDate: data.birthDate || null
       }
     } else if (res.status === 404) {
-      // Endpoint doesn't exist yet, use basic info
-      console.log('Endpoint not found, using basic info')
-      user.value = {
-        id: userId,
-        firstName: 'Gebruiker',
-        lastName: '',
-        email: localStorage.getItem('userEmail') || 'Email niet beschikbaar'
+      const errorText = await res.text()
+      console.error('User not found in database:', res.status, errorText)
+      errorMessage.value = `Gebruiker niet gevonden in database. Status: ${res.status}`
+      
+      // Fallback to localStorage if available
+      const storedUserData = localStorage.getItem('userData')
+      if (storedUserData) {
+        try {
+          const data = JSON.parse(storedUserData)
+          console.log('Using fallback data from localStorage:', data)
+          user.value = {
+            id: data.id || userId,
+            firstName: data.firstName || null,
+            lastName: data.lastName || null,
+            email: data.email || 'Geen email',
+            birthDate: data.birthDate || null
+          }
+        } catch (e) {
+          console.error('Error parsing stored user data:', e)
+        }
       }
     } else if (res.status === 401) {
       console.log('Unauthorized, redirecting to login')
@@ -180,16 +176,46 @@ async function loadUser() {
     } else {
       const errorText = await res.text()
       console.error('Error response:', res.status, errorText)
-      errorMessage.value = `Kon profiel niet laden: ${res.status}. Probeer de pagina te verversen.`
+      errorMessage.value = `Kon profiel niet laden: ${res.status}. ${errorText}`
+      
+      // Fallback to localStorage if available
+      const storedUserData = localStorage.getItem('userData')
+      if (storedUserData) {
+        try {
+          const data = JSON.parse(storedUserData)
+          console.log('Using fallback data from localStorage:', data)
+          user.value = {
+            id: data.id || userId,
+            firstName: data.firstName || null,
+            lastName: data.lastName || null,
+            email: data.email || 'Geen email',
+            birthDate: data.birthDate || null
+          }
+        } catch (e) {
+          console.error('Error parsing stored user data:', e)
+        }
+      }
     }
   } catch (e) {
     console.error('Exception loading user:', e)
-    // Use basic info if fetch fails
-    user.value = {
-      id: userId,
-      firstName: 'Gebruiker',
-      lastName: '',
-      email: localStorage.getItem('userEmail') || 'Email niet beschikbaar'
+    errorMessage.value = `Netwerkfout bij het laden van profiel: ${e.message}`
+    
+    // Fallback to localStorage if available
+    const storedUserData = localStorage.getItem('userData')
+    if (storedUserData) {
+      try {
+        const data = JSON.parse(storedUserData)
+        console.log('Using fallback data from localStorage after error:', data)
+        user.value = {
+          id: data.id || userId,
+          firstName: data.firstName || null,
+          lastName: data.lastName || null,
+          email: data.email || 'Geen email',
+          birthDate: data.birthDate || null
+        }
+      } catch (parseError) {
+        console.error('Error parsing stored user data:', parseError)
+      }
     }
   }
 }

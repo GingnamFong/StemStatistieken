@@ -42,14 +42,21 @@ public class AuthController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<Map<String, Object>> getUser(@PathVariable Long userId) {
-        User user = userService.getUserById(userId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", user.getId());
-        response.put("firstName", user.getFirstName());
-        response.put("lastName", user.getLastName());
-        response.put("email", user.getEmail());
-        response.put("birthDate", user.getBirthDate());
-        return ResponseEntity.ok(response);
+        try {
+            User user = userService.getUserById(userId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", user.getId());
+            response.put("firstName", user.getFirstName());
+            response.put("lastName", user.getLastName());
+            response.put("email", user.getEmail());
+            response.put("birthDate", user.getBirthDate());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to get user");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @PutMapping("/user/{userId}")
