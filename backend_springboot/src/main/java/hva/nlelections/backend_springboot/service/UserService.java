@@ -73,4 +73,13 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found"));
     }
+
+    @Transactional
+    public User updateUser(Long id, java.time.LocalDate birthDate) {
+        User user = getUserById(id);
+        if (birthDate != null) {
+            user.setBirthDate(birthDate);
+        }
+        return userRepository.save(user);
+    }
 }

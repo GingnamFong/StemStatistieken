@@ -2,6 +2,7 @@
 package hva.nlelections.backend_springboot.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
@@ -22,6 +23,9 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
     public User() {}
 
     public Long getId() { return id; }
@@ -38,4 +42,7 @@ public class User {
 
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public LocalDate getBirthDate() { return birthDate; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
 }
