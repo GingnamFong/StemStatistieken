@@ -1,5 +1,5 @@
 <template>
-
+<h1>Hello world</h1>
   <div class="forum">
     <h1>Hello world</h1>
   </div>
