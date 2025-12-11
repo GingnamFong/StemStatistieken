@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -126,6 +127,72 @@ public class AuthController {
     public static class LoginRequest {
         public String email;
         public String password;
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        // Map 'name' uit de DB naar 'firstName' voor de frontend
+        response.put("firstName", user.getName()); 
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        response.put("birthDate", user.getBirthDate());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Optional<User> userOpt = userRepository.findById(id);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+
+        // Update velden indien aanwezig in request
+        if (updates.containsKey("firstName")) {
+            String firstName = (String) updates.get("firstName");
+            if (firstName != null && !firstName.isBlank()) {
+                user.setName(firstName.trim());
+            }
+        }
+
+        if (updates.containsKey("lastName")) {
+            String lastName = (String) updates.get("lastName");
+            // LastName mag leeg zijn of null
+            user.setLastName(lastName != null ? lastName.trim() : null);
+        }
+
+        if (updates.containsKey("birthDate")) {
+            String birthDateStr = (String) updates.get("birthDate");
+            if (birthDateStr != null && !birthDateStr.isBlank()) {
+                user.setBirthDate(LocalDateTime.parse(birthDateStr));
+            } else {
+                user.setBirthDate(null);
+            }
+        }
+
+        userRepository.save(user);
+
+        // Stuur bijgewerkte data terug
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("firstName", user.getName());
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        response.put("birthDate", user.getBirthDate());
+
+        return ResponseEntity.ok(response);
     }
 }
 

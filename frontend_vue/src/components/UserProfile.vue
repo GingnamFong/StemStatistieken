@@ -36,9 +36,9 @@
           <div class="detail-item">
             <label>Voornaam:</label>
             <span v-if="!isEditing">{{ user.firstName || 'Niet ingevuld' }}</span>
-            <input 
+            <input
               v-else
-              type="text" 
+              type="text"
               v-model="editForm.firstName"
               class="text-input"
               placeholder="Voornaam"
@@ -47,9 +47,9 @@
           <div class="detail-item">
             <label>Achternaam:</label>
             <span v-if="!isEditing">{{ user.lastName || 'Niet ingevuld' }}</span>
-            <input 
+            <input
               v-else
-              type="text" 
+              type="text"
               v-model="editForm.lastName"
               class="text-input"
               placeholder="Achternaam"
@@ -62,9 +62,9 @@
           <div class="detail-item">
             <label>Geboortedatum:</label>
             <span v-if="!isEditing">{{ formatDate(user.birthDate) || 'Niet ingevuld' }}</span>
-            <input 
+            <input
               v-else
-              type="date" 
+              type="date"
               v-model="editForm.birthDate"
               class="date-input"
             />
@@ -119,7 +119,7 @@ const editForm = ref({
 async function loadUser() {
   const userId = localStorage.getItem('userId')
   console.log('Loading user with ID:', userId)
-  
+
   if (!userId) {
     console.log('No userId found, redirecting to login')
     router.push('/login')
@@ -130,17 +130,17 @@ async function loadUser() {
   try {
     const url = `${API_BASE_URL}/api/auth/user/${userId}`
     console.log('Fetching user from:', url)
-    
+
     const res = await fetch(url)
     console.log('Response status:', res.status)
-    
+
     if (res.ok) {
       const data = await res.json()
       console.log('User data received from database:', data)
-      
+
       // Update localStorage with fresh data from database
       localStorage.setItem('userData', JSON.stringify(data))
-      
+
       user.value = {
         id: data.id,
         firstName: data.firstName || null,
@@ -152,7 +152,7 @@ async function loadUser() {
       const errorText = await res.text()
       console.error('User not found in database:', res.status, errorText)
       errorMessage.value = `Gebruiker niet gevonden in database. Status: ${res.status}`
-      
+
       // Fallback to localStorage if available
       const storedUserData = localStorage.getItem('userData')
       if (storedUserData) {
@@ -177,7 +177,7 @@ async function loadUser() {
       const errorText = await res.text()
       console.error('Error response:', res.status, errorText)
       errorMessage.value = `Kon profiel niet laden: ${res.status}. ${errorText}`
-      
+
       // Fallback to localStorage if available
       const storedUserData = localStorage.getItem('userData')
       if (storedUserData) {
@@ -199,7 +199,7 @@ async function loadUser() {
   } catch (e) {
     console.error('Exception loading user:', e)
     errorMessage.value = `Netwerkfout bij het laden van profiel: ${e.message}`
-    
+
     // Fallback to localStorage if available
     const storedUserData = localStorage.getItem('userData')
     if (storedUserData) {
@@ -223,10 +223,10 @@ async function loadUser() {
 function formatDate(dateString) {
   if (!dateString) return null
   const date = new Date(dateString)
-  return date.toLocaleDateString('nl-NL', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  return date.toLocaleDateString('nl-NL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   })
 }
 
@@ -264,10 +264,10 @@ async function saveProfile() {
   try {
     const userId = localStorage.getItem('userId')
     const token = localStorage.getItem('token')
-    
+
     const res = await fetch(`${API_BASE_URL}/api/auth/user/${userId}`, {
       method: 'PUT',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },

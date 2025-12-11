@@ -37,6 +37,9 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "birth_date")
+    private LocalDateTime birthDate;
+
     public User() {
     }
 
@@ -94,6 +97,14 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDateTime birthDate) {
+        this.birthDate = birthDate;
     }
 }
 
