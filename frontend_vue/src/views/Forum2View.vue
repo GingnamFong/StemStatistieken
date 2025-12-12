@@ -157,7 +157,7 @@
         <div class="forum-sidebar">
           <div class="sidebar-card">
             <h3>Over r/Forum2</h3>
-            <p>Een plek om vragen te stellen, standpunten te delen en gedachten te bespreken over verkiezingen en politiek.</p>
+            <p>Stel hier je vragen, deel je standpunten en gedachten of bespreek over de verkiezingen en politieke onderwerpen.</p>
             <div class="sidebar-stats">
               <div class="stat">
                 <span class="stat-value">{{ posts.length }}</span>
@@ -177,6 +177,7 @@
               <li>Geen spam of zelfpromotie</li>
               <li>Blijf relevant bij het onderwerp</li>
               <li>Geen persoonlijke aanvallen</li>
+              <li>Blijf neutraal</li>
             </ul>
           </div>
         </div>
