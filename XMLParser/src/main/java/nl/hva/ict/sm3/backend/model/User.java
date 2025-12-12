@@ -40,6 +40,9 @@ public class User {
     @Column(name = "birth_date")
     private LocalDateTime birthDate;
 
+    @Column(name = "favorite_party")
+    private String favoriteParty;
+
     public User() {
     }
 
@@ -106,5 +109,8 @@ public class User {
     public void setBirthDate(LocalDateTime birthDate) {
         this.birthDate = birthDate;
     }
+
+    public String getFavoriteParty() { return favoriteParty; }
+    public void setFavoriteParty(String favoriteParty) { this.favoriteParty = favoriteParty; }
 }
 

@@ -339,8 +339,27 @@ async function saveProfile() {
   }
 }
 
+async function loadParties() {
+  try {
+    // Load parties from recent election
+    const election = await ElectionService.getElection('TK2023')
+    if (election && election.parties && Array.isArray(election.parties)) {
+      // Sort parties by name for better UX
+      parties.value = election.parties
+        .filter(p => p && p.id && p.name) // Filter out invalid entries
+        .map(p => ({ id: p.id, name: p.name }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    }
+  } catch (e) {
+    console.error('Error loading parties:', e)
+    // If loading fails, continue without parties list
+    parties.value = []
+  }
+}
+
 onMounted(() => {
   loadUser()
+  loadParties()
 })
 </script>
 
