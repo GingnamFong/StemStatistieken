@@ -12,20 +12,20 @@ public class Election {
     @Id
     private String id;
     
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "election_id")
     private List<Constituency> constituencies = new ArrayList<>();
     
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "election_id")
     @MapKey(name = "id")
     private Map<String, Party> parties = new HashMap<>();
     
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "election_id")
     private List<Candidate> candidates = new ArrayList<>();
     
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "election_id")
     private List<National> nationalVotes = new ArrayList<>();
     
@@ -46,8 +46,15 @@ public class Election {
     public String getId() { return id; }
     public List<Constituency> getConstituencies() { return constituencies; }
     public List<Candidate> getCandidates() { return candidates; }
+    
+    // Return actual list for read operations but as unmodifiable for safety
     public List<Party> getParties() { return new ArrayList<>(parties.values()); }
-    public List<National> getNationalVotes() { return new ArrayList<>(nationalVotes); }
+    
+    // Return actual list reference so modifications work
+    public List<National> getNationalVotes() { return nationalVotes; }
+    
+    // Method to get a copy if needed
+    public List<National> getNationalVotesCopy() { return new ArrayList<>(nationalVotes); }
 
     public void addConstituency(Constituency newConstituency) {
         Constituency existing = getConstituencyById(newConstituency.getId());
@@ -70,6 +77,13 @@ public class Election {
 
     public void addNationalVotes(National national) {
         nationalVotes.add(national);
+    }
+    
+    /**
+     * Clears all national votes. Use this before re-adding filtered votes.
+     */
+    public void clearNationalVotes() {
+        nationalVotes.clear();
     }
     
     /**
@@ -191,7 +205,7 @@ public class Election {
 
     @Override
     public String toString() {
-        return "Election{id='%s', constituencies=%d, parties=%d, candidates=%d}"
+        return "Election{id='%s', constituencies=%d, parties=%d, candidates=%d, nationalVotes=%d}"
                 .formatted(id, constituencies.size(), parties.size(), candidates.size(), nationalVotes.size());
     }
 }
