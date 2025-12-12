@@ -23,11 +23,11 @@ public class DutchDefinitionTransformer implements DefinitionTransformer {
     
     @Override
     public void registerRegion(Map<String, String> electionData) {
-        System.out.println("Committee: " + electionData);
+        // Removed verbose logging for performance
     }
 
     @Override
     public void registerParty(Map<String, String> electionData) {
-        System.out.println("Party: " + electionData);
+        // Removed verbose logging for performance
     }
 }
