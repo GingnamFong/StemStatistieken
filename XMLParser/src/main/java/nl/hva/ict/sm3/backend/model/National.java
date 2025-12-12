@@ -14,7 +14,9 @@ public class National {
     @Id
     private String id;
     
-    @Column(name = "election_id", nullable = false)
+    // This column is managed by JPA via the @JoinColumn on Election.nationalVotes
+    // We mark it as insertable/updatable = false to avoid conflicts
+    @Column(name = "election_id", insertable = false, updatable = false)
     private String electionId;
     
     @Column(name = "election_name")
