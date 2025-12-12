@@ -26,9 +26,6 @@ public class User {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Column(name = "favorite_party")
-    private String favoriteParty;
-
     public User() {}
 
     public Long getId() { return id; }
@@ -48,7 +45,4 @@ public class User {
 
     public LocalDate getBirthDate() { return birthDate; }
     public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
-
-    public String getFavoriteParty() { return favoriteParty; }
-    public void setFavoriteParty(String favoriteParty) { this.favoriteParty = favoriteParty; }
 }

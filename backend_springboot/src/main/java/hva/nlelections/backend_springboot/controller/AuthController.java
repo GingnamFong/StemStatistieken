@@ -37,7 +37,6 @@ public class AuthController {
         response.put("lastName", user.getLastName());
         response.put("email", user.getEmail());
         response.put("birthDate", user.getBirthDate());
-        response.put("favoriteParty", user.getFavoriteParty());
         return ResponseEntity.ok(response);
     }
 
@@ -51,7 +50,6 @@ public class AuthController {
             response.put("lastName", user.getLastName());
             response.put("email", user.getEmail());
             response.put("birthDate", user.getBirthDate());
-            response.put("favoriteParty", user.getFavoriteParty());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
@@ -89,22 +87,13 @@ public class AuthController {
             }
         }
         
-        String favoriteParty = null;
-        if (updates.containsKey("favoriteParty") && updates.get("favoriteParty") != null) {
-            String favoritePartyStr = updates.get("favoriteParty").toString().trim();
-            if (!favoritePartyStr.isEmpty() && !favoritePartyStr.equals("null")) {
-                favoriteParty = favoritePartyStr;
-            }
-        }
-        
-        User updated = userService.updateUser(userId, firstName, lastName, birthDate, favoriteParty);
+        User updated = userService.updateUser(userId, firstName, lastName, birthDate);
         Map<String, Object> response = new HashMap<>();
         response.put("id", updated.getId());
         response.put("firstName", updated.getFirstName());
         response.put("lastName", updated.getLastName());
         response.put("email", updated.getEmail());
         response.put("birthDate", updated.getBirthDate());
-        response.put("favoriteParty", updated.getFavoriteParty());
         return ResponseEntity.ok(response);
     }
 }
