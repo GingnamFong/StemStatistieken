@@ -1,5 +1,7 @@
 package nl.hva.ict.sm3.backend.model;
 
+import jakarta.persistence.*;
+
 /**
  * Represents a political party, which can exist at a national level or
  * at the municipality level depending on context.
@@ -7,10 +9,20 @@ package nl.hva.ict.sm3.backend.model;
  * A party contains an identifier, a name, and a vote count.
  * The vote count may represent national totals or local municipality votes.
  */
+@Entity
+@Table(name = "parties")
 public class Party {
+    @Id
     private String id;
+    
+    @Column(name = "name")
     private String name;
+    
+    @Column(name = "votes")
     private int votes; // can represent total votes nationally or local votes
+
+    // Default constructor for JPA
+    protected Party() {}
 
     /**
      * Constructs a Party with an ID, name, and initial vote count.
