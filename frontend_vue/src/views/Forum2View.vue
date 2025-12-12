@@ -249,6 +249,36 @@ const posts = ref([
     comments: 6,
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     userVote: 'down'
+  },
+  {
+    id: 6,
+    title: 'Boys, ik was gewoon op school',
+    content: 'Ik haal gewoon het semester, ook al was ik er nooit',
+    author: 'PannenkoekStudent420',
+    score: 7,
+    comments: 6,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    userVote: 'down'
+  },
+  {
+    id: 7,
+    title: 'Scream Bloody Gore',
+    content: 'Zombie ritual',
+    author: 'GertEnSamson1234',
+    score: 7,
+    comments: 6,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    userVote: 'down'
+  },
+  {
+    id: 8,
+    title: 'Samson is de kelder ingedonderd',
+    content: 'Samson heeft helaas zijn teen gestoten en is de kelder ingedonderd :(',
+    author: 'GertGames1986',
+    score: 7,
+    comments: 6,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    userVote: 'down'
   }
 ])
 
@@ -287,10 +317,10 @@ function vote(postId, voteType) {
     // Change vote
     if (post.userVote === 'up') post.score--
     if (post.userVote === 'down') post.score++
-    
+
     if (voteType === 'up') post.score++
     if (voteType === 'down') post.score--
-    
+
     post.userVote = voteType
   }
 }
