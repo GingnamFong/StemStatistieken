@@ -70,6 +70,20 @@
               class="date-input"
             />
           </div>
+          <div class="detail-item">
+            <label>Favoriete Partij:</label>
+            <span v-if="!isEditing">{{ user.favoriteParty || 'Niet ingevuld' }}</span>
+            <select
+              v-else
+              v-model="editForm.favoriteParty"
+              class="select-input"
+            >
+              <option value="">Geen partij geselecteerd</option>
+              <option v-for="party in parties" :key="party.id" :value="party.name">
+                {{ party.name }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <!-- Edit Button -->
@@ -104,6 +118,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '../config/api.js'
+import { ElectionService } from '../services/ElectionService.js'
 
 const router = useRouter()
 const user = ref(null)
@@ -111,10 +126,12 @@ const errorMessage = ref('')
 const isEditing = ref(false)
 const saving = ref(false)
 const successMessage = ref('')
+const parties = ref([])
 const editForm = ref({
   firstName: '',
   lastName: '',
-  birthDate: ''
+  birthDate: '',
+  favoriteParty: ''
 })
 
 // Computed property voor maximale datum (vandaag)
@@ -156,7 +173,8 @@ async function loadUser() {
         firstName: data.firstName || null,
         lastName: data.lastName || null,
         email: data.email || 'Geen email',
-        birthDate: data.birthDate || null
+        birthDate: data.birthDate || null,
+        favoriteParty: data.favoriteParty || null
       }
     } else if (res.status === 404) {
       const errorText = await res.text()
@@ -255,6 +273,7 @@ function startEditing() {
   } else {
     editForm.value.birthDate = ''
   }
+  editForm.value.favoriteParty = user.value.favoriteParty || ''
   successMessage.value = ''
 }
 
@@ -263,6 +282,7 @@ function cancelEditing() {
   editForm.value.firstName = ''
   editForm.value.lastName = ''
   editForm.value.birthDate = ''
+  editForm.value.favoriteParty = ''
   successMessage.value = ''
 }
 
@@ -284,7 +304,8 @@ async function saveProfile() {
       body: JSON.stringify({
         firstName: editForm.value.firstName || null,
         lastName: editForm.value.lastName || null,
-        birthDate: editForm.value.birthDate || null
+        birthDate: editForm.value.birthDate || null,
+        favoriteParty: editForm.value.favoriteParty || null
       })
     })
 
@@ -294,12 +315,14 @@ async function saveProfile() {
       user.value.firstName = data.firstName
       user.value.lastName = data.lastName
       user.value.birthDate = data.birthDate
+      user.value.favoriteParty = data.favoriteParty
       localStorage.setItem('userData', JSON.stringify({
         id: data.id,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        birthDate: data.birthDate
+        birthDate: data.birthDate,
+        favoriteParty: data.favoriteParty
       }))
       isEditing.value = false
       successMessage.value = 'Profiel succesvol bijgewerkt!'
@@ -318,8 +341,27 @@ async function saveProfile() {
   }
 }
 
+async function loadParties() {
+  try {
+    // Load parties from the most recent election (TK2023)
+    const election = await ElectionService.getElection('TK2023')
+    if (election && election.parties && Array.isArray(election.parties)) {
+      // Sort parties by name for better UX
+      parties.value = election.parties
+        .filter(p => p && p.id && p.name) // Filter out invalid entries
+        .map(p => ({ id: p.id, name: p.name }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    }
+  } catch (e) {
+    console.error('Error loading parties:', e)
+    // If loading fails, continue without parties list
+    parties.value = []
+  }
+}
+
 onMounted(() => {
   loadUser()
+  loadParties()
 })
 </script>
 
@@ -453,7 +495,8 @@ h1 {
 }
 
 .date-input,
-.text-input {
+.text-input,
+.select-input {
   font-family: 'Nunito', sans-serif;
   font-size: 14px;
   padding: 8px 12px;
@@ -468,7 +511,8 @@ h1 {
 }
 
 .date-input:focus,
-.text-input:focus {
+.text-input:focus,
+.select-input:focus {
   border-color: #3b82f6;
 }
 

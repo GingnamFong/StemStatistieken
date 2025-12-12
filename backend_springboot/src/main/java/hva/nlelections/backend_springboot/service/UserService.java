@@ -75,7 +75,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, String firstName, String lastName, java.time.LocalDate birthDate) {
+    public User updateUser(Long id, String firstName, String lastName, java.time.LocalDate birthDate, String favoriteParty) {
         User user = getUserById(id);
         if (firstName != null && !firstName.trim().isEmpty()) {
             user.setFirstName(firstName.trim());
@@ -85,6 +85,9 @@ public class UserService {
         }
         if (birthDate != null) {
             user.setBirthDate(birthDate);
+        }
+        if (favoriteParty != null) {
+            user.setFavoriteParty(favoriteParty.trim().isEmpty() ? null : favoriteParty.trim());
         }
         return userRepository.save(user);
     }
