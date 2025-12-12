@@ -32,6 +32,16 @@ public class ElectionController {
         this.electionService = electionService;
     }
 
+    /**
+     * Returns a list of all available elections.
+     * @return list of election IDs
+     */
+    @GetMapping
+    public ResponseEntity<List<String>> getAllElections() {
+        List<String> electionIds = electionService.getAllElectionIds();
+        return ResponseEntity.ok(electionIds);
+    }
+
     @GetMapping("/{electionId}")
     public ResponseEntity<Election> getElection(@PathVariable String electionId) {
         validateId(electionId, "Election ID");
