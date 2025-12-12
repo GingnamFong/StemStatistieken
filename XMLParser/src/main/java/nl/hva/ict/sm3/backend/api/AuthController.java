@@ -147,6 +147,7 @@ public class AuthController {
         response.put("lastName", user.getLastName());
         response.put("email", user.getEmail());
         response.put("birthDate", user.getBirthDate());
+        response.put("favoriteParty", user.getFavoriteParty());
 
         return ResponseEntity.ok(response);
     }
@@ -219,6 +220,16 @@ public class AuthController {
             }
         }
 
+        if (updates.containsKey("favoriteParty")) {
+            Object favoritePartyObj = updates.get("favoriteParty");
+            if (favoritePartyObj != null) {
+                String favoriteParty = favoritePartyObj.toString();
+                user.setFavoriteParty(favoriteParty.isBlank() ? null : favoriteParty.trim());
+            } else {
+                user.setFavoriteParty(null);
+            }
+        }
+
         try {
             userRepository.save(user);
         } catch (Exception e) {
@@ -233,6 +244,7 @@ public class AuthController {
         response.put("lastName", user.getLastName());
         response.put("email", user.getEmail());
         response.put("birthDate", user.getBirthDate());
+        response.put("favoriteParty", user.getFavoriteParty());
 
         return ResponseEntity.ok(response);
     }

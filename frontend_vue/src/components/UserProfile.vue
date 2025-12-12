@@ -343,12 +343,19 @@ async function loadParties() {
   try {
     // Load parties from recent election
     const election = await ElectionService.getElection('TK2023')
+    console.log('Election data received:', election)
+    console.log('Parties in election:', election?.parties)
+    
     if (election && election.parties && Array.isArray(election.parties)) {
       // Sort parties by name for better UX
       parties.value = election.parties
         .filter(p => p && p.id && p.name) // Filter out invalid entries
         .map(p => ({ id: p.id, name: p.name }))
         .sort((a, b) => a.name.localeCompare(b.name))
+      console.log('Loaded parties:', parties.value.length, parties.value)
+    } else {
+      console.warn('No parties found in election data. Election structure:', election)
+      parties.value = []
     }
   } catch (e) {
     console.error('Error loading parties:', e)
