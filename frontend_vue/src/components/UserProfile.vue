@@ -70,6 +70,20 @@
               class="date-input"
             />
           </div>
+          <div class="detail-item">
+            <label>Favoriete Partij:</label>
+            <span v-if="!isEditing">{{ user.favoriteParty || 'Niet ingevuld' }}</span>
+            <select
+              v-else
+              v-model="editForm.favoriteParty"
+              class="select-input"
+            >
+              <option value="">Geen partij geselecteerd</option>
+              <option v-for="party in parties" :key="party.id" :value="party.name">
+                {{ party.name }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <!-- Edit Button -->
@@ -104,6 +118,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '../config/api.js'
+import { ElectionService } from '../services/ElectionService.js'
 
 const router = useRouter()
 const user = ref(null)
@@ -111,6 +126,7 @@ const errorMessage = ref('')
 const isEditing = ref(false)
 const saving = ref(false)
 const successMessage = ref('')
+const parties = ref([])
 const editForm = ref({
   firstName: '',
   lastName: '',
@@ -156,7 +172,8 @@ async function loadUser() {
         firstName: data.firstName || null,
         lastName: data.lastName || null,
         email: data.email || 'Geen email',
-        birthDate: data.birthDate || null
+        birthDate: data.birthDate || null,
+        favoriteParty: data.favoriteParty || null
       }
     } else if (res.status === 404) {
       const errorText = await res.text()
@@ -245,7 +262,7 @@ function startEditing() {
   // Initialize form with current user data
   editForm.value.firstName = user.value.firstName || ''
   editForm.value.lastName = user.value.lastName || ''
-  // Format date for HTML date input (YYYY-MM-DD)
+
   if (user.value.birthDate) {
     const date = new Date(user.value.birthDate)
     const year = date.getFullYear()
@@ -255,6 +272,7 @@ function startEditing() {
   } else {
     editForm.value.birthDate = ''
   }
+  editForm.value.favoriteParty = user.value.favoriteParty || ''
   successMessage.value = ''
 }
 
@@ -263,6 +281,7 @@ function cancelEditing() {
   editForm.value.firstName = ''
   editForm.value.lastName = ''
   editForm.value.birthDate = ''
+  editForm.value.favoriteParty = ''
   successMessage.value = ''
 }
 
@@ -284,7 +303,8 @@ async function saveProfile() {
       body: JSON.stringify({
         firstName: editForm.value.firstName || null,
         lastName: editForm.value.lastName || null,
-        birthDate: editForm.value.birthDate || null
+        birthDate: editForm.value.birthDate || null,
+        favoriteParty: editForm.value.favoriteParty || null
       })
     })
 
@@ -299,7 +319,8 @@ async function saveProfile() {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        birthDate: data.birthDate
+        birthDate: data.birthDate,
+        favoriteParty: data.favoriteParty
       }))
       isEditing.value = false
       successMessage.value = 'Profiel succesvol bijgewerkt!'
@@ -453,7 +474,8 @@ h1 {
 }
 
 .date-input,
-.text-input {
+.text-input,
+.select-input{
   font-family: 'Nunito', sans-serif;
   font-size: 14px;
   padding: 8px 12px;
@@ -468,7 +490,8 @@ h1 {
 }
 
 .date-input:focus,
-.text-input:focus {
+.text-input:focus,
+.select-input:focus{
   border-color: #3b82f6;
 }
 
