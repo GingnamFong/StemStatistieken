@@ -314,6 +314,7 @@ async function saveProfile() {
       user.value.firstName = data.firstName
       user.value.lastName = data.lastName
       user.value.birthDate = data.birthDate
+      user.value.favoriteParty = data.favoriteParty
       localStorage.setItem('userData', JSON.stringify({
         id: data.id,
         firstName: data.firstName,
