@@ -113,9 +113,6 @@
                     <path d="M7 14l5-5 5 5z" />
                   </svg>
                 </button>
-                <span class="vote-count" :class="{ positive: post.score > 0, negative: post.score < 0 }">
-                  {{ post.score }}
-                </span>
                 <button
                   @click="vote(post.id, 'down')"
                   :class="['vote-btn downvote', { active: post.userVote === 'down' }]"
@@ -136,12 +133,6 @@
                 <h3 class="post-title">{{ post.title }}</h3>
                 <p v-if="post.content" class="post-text">{{ post.content }}</p>
                 <div class="post-footer">
-                  <button class="post-action">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                    {{ post.comments }} Reacties
-                  </button>
                   <button class="post-action">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
@@ -779,24 +770,6 @@ function submitPost() {
 }
 
 .vote-btn.downvote.active {
-  color: #3b82f6;
-}
-
-.vote-count {
-  font-size: 13px;
-  font-weight: 700;
-  color: #64748b;
-  padding: 2px 0;
-  min-height: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.vote-count.positive {
-  color: #ef4444;
-}
-
-.vote-count.negative {
   color: #3b82f6;
 }
 
