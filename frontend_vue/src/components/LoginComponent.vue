@@ -161,13 +161,13 @@ async function onSubmit() {
 <style scoped>
 .login-page {
   display: flex;
-  height: calc(100vh + 64px);
-  min-height: 100vh;
+  min-height: calc(100vh + 64px);
   width: 100vw;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #f8fafc;
   margin: -64px calc(50% - 50vw) 0;
-  overflow: hidden;
+  padding-top: 64px;
+  overflow-y: auto;
 }
 
 .login-left {
@@ -179,7 +179,7 @@ async function onSubmit() {
   background: linear-gradient(135deg, #1e293b, #334155);
   color: white;
   position: relative;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 .login-left::before {
@@ -223,7 +223,6 @@ async function onSubmit() {
   align-items: center;
   background: #fff;
   padding: 40px;
-  overflow-y: auto;
 }
 
 .login-card {
