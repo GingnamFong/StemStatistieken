@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"http://localhost:5173", "https://hva-frontend.onrender.com"})
+@CrossOrigin(origins = {"http://localhost:5174", "http://localhost:5173", "https://hva-frontend.onrender.com"})
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -96,14 +96,14 @@ public class AuthController {
         Optional<User> userOpt = userRepository.findByEmail(request.email.trim().toLowerCase());
         
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ongeldige e-mail of wachtwoord");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Je gebruiker bestaat niet");
         }
 
         User user = userOpt.get();
         
         // Verify password
         if (!passwordEncoder.matches(request.password, user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ongeldige e-mail of wachtwoord");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ongeldig wachtwoord");
         }
 
         // Generate token (simple token for now, in production use JWT)

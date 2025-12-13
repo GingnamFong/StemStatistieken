@@ -110,10 +110,7 @@ public class NationalController {
     
     // Helper class
     private Election getOrLoadElection(String electionId) {
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            election = electionService.readResults(electionId, electionId);
-        }
-        return election;
+        // Only get from database/cache, don't parse XML
+        return electionService.getElectionById(electionId);
     }
 }

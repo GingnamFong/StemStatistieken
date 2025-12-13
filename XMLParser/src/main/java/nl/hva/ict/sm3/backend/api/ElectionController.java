@@ -32,16 +32,23 @@ public class ElectionController {
         this.electionService = electionService;
     }
 
+    /**
+     * Returns a list of all available elections.
+     * @return list of election IDs
+     */
+    @GetMapping
+    public ResponseEntity<List<String>> getAllElections() {
+        List<String> electionIds = electionService.getAllElectionIds();
+        return ResponseEntity.ok(electionIds);
+    }
+
     @GetMapping("/{electionId}")
     public ResponseEntity<Election> getElection(@PathVariable String electionId) {
         validateId(electionId, "Election ID");
+        // Only get from database/cache, don't parse XML
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
-            // Automatically load the election if it doesn't exist in cache
-            election = electionService.readResults(electionId, electionId);
-            if (election == null) {
-                return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(election);
     }
@@ -54,13 +61,10 @@ public class ElectionController {
     @GetMapping("/{electionId}/municipalities")
     public ResponseEntity<List<Municipality>> getMunicipalities(@PathVariable String electionId) {
         validateId(electionId, "Election ID");
+        // Only get from database/cache, don't parse XML
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
-            // Automatically load the election if it doesn't exist in cache
-            election = electionService.readResults(electionId, electionId);
-            if (election == null) {
-                return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.notFound().build();
         }
 
         List<Municipality> municipalities = election.getAllMunicipalities();
@@ -75,6 +79,7 @@ public class ElectionController {
     @GetMapping("/{electionId}/constituencies")
     public ResponseEntity<List<Constituency>> getConstituencies(@PathVariable String electionId) {
         validateId(electionId, "Election ID");
+        // Only get from database/cache, don't parse XML
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
 
@@ -98,13 +103,10 @@ public class ElectionController {
             @PathVariable String electionId,
             @PathVariable String municipalityId) {
         validateId(electionId, "Election ID");
+        // Only get from database/cache, don't parse XML
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
-            // Automatically load the election if it doesn't exist in cache
-            election = electionService.readResults(electionId, electionId);
-            if (election == null) {
-                return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.notFound().build();
         }
 
         Municipality municipality = election.getMunicipalityById(municipalityId);
@@ -122,13 +124,10 @@ public class ElectionController {
     // Optional: endpoint for top parties nationally
     @GetMapping("/{electionId}/top-parties")
     public ResponseEntity<List<Party>> getTopParties(@PathVariable String electionId) {
+        // Only get from database/cache, don't parse XML
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
-            // Automatically load the election if it doesn't exist in cache
-            election = electionService.readResults(electionId, electionId);
-            if (election == null) {
-                return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(election.getTopParties(3));
     }

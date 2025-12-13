@@ -28,18 +28,6 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
         this.election = election;
     }
 
-    /**
-     * Registers aggregated party-level votes for a municipality.
-     * <p>
-     * The method extracts municipality identifiers, party information, and
-     * vote counts from the provided {@code electionData} map and inserts them
-     * into the correct {@link Constituency} and {@link Municipality} within
-     * the {@link Election}. If a municipality does not yet exist, it is created.
-     * </p>
-     *
-     * @param aggregated   whether this entry contains aggregated vote data
-     * @param electionData a map of XML key-value pairs representing election data
-     */
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> data) {
         // Municipality-level aggregated votes
@@ -54,8 +42,12 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
     // ---------------------------------------------------------
     private void handleMunicipalityVotes(Map<String, String> data) {
         String municipalityName = data.getOrDefault("AuthorityIdentifier", "unknown");
-        String municipalityId = data.getOrDefault("AuthorityIdentifier-Id", "unknown");
-        String constituencyId = data.getOrDefault("ContestIdentifier-Id", "unknown");
+        String rawMunicipalityId = data.getOrDefault("AuthorityIdentifier-Id", "unknown");
+        String rawConstituencyId = data.getOrDefault("ContestIdentifier-Id", "unknown");
+
+        // Prefix IDs with election ID to make unique across elections
+        String municipalityId = election.getId() + "-" + rawMunicipalityId;
+        String constituencyId = election.getId() + "-" + rawConstituencyId;
 
         String partyId = data.getOrDefault("AffiliationIdentifier-Id", "unknown");
         String partyName = data.getOrDefault("RegisteredName", "unknown");
@@ -72,8 +64,8 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
 
         municipality.addVotesForParty(partyId, partyName, validVotes);
     }
+    
     private void handleSBPartyVotes(Map<String, String> data) {
-
         String stationId = data.get("ReportingUnitIdentifier-Id");
         if (stationId == null || !stationId.contains("SB")) return;
 
@@ -96,20 +88,24 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
         if (partyId == null || partyName == null) return;
 
         // Municipality ID extracted from prefix (e.g. "0363" from "0363::SB1")
-        String municipalityId = stationId.substring(0, 4);
+        // Prefix with election ID
+        String rawMunicipalityId = stationId.substring(0, 4);
+        String municipalityId = election.getId() + "-" + rawMunicipalityId;
+        
+        // Station ID also needs to be unique
+        String uniqueStationId = election.getId() + "-" + stationId;
 
         Municipality municipality = election.getMunicipalityById(municipalityId);
         if (municipality == null) return;
 
-        PollingStation station = municipality.getPollingStationById(stationId);
+        PollingStation station = municipality.getPollingStationById(uniqueStationId);
         if (station == null) {
-            station = new PollingStation(stationId, stationName, postalCode);
+            station = new PollingStation(uniqueStationId, stationName, postalCode);
             municipality.addPollingStation(station);
         }
 
         station.addVotes(partyId, partyName, votes);
     }
-
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
@@ -118,14 +114,11 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
 
     @Override
     public void registerMetadata(boolean aggregated, Map<String, String> data) {
-
         if (aggregated) {
-            // could be used for storing municipality cast/rejected, but your model doesn't store it
             return;
         }
 
         // -------- SB LEVEL METADATA --------
-
         String stationId = data.get("ReportingUnitIdentifier-Id");
         String fullName = data.get("ReportingUnitIdentifier");
 
@@ -140,23 +133,18 @@ public class DutchMunicipalityVotesTransformer implements VotesTransformer {
         String stationName = matcher.group(1);
         String postalCode = matcher.group(2).replace(" ", "").toUpperCase();
 
-        int cast = Integer.parseInt(data.getOrDefault("Cast", "0"));
-
-        int rejected = data.entrySet().stream()
-                .filter(e -> e.getKey().startsWith("RejectedVotes"))
-                .mapToInt(e -> Integer.parseInt(e.getValue()))
-                .sum();
-
-        // Municipality ID prefix
-        String municipalityId = stationId.substring(0, 4);
+        // Municipality ID prefix with election ID
+        String rawMunicipalityId = stationId.substring(0, 4);
+        String municipalityId = election.getId() + "-" + rawMunicipalityId;
+        String uniqueStationId = election.getId() + "-" + stationId;
 
         Municipality municipality = election.getMunicipalityById(municipalityId);
         if (municipality == null) return;
 
         // Find or create SB
-        PollingStation station = municipality.getPollingStationById(stationId);
+        PollingStation station = municipality.getPollingStationById(uniqueStationId);
         if (station == null) {
-            station = new PollingStation(stationId, stationName, postalCode);
+            station = new PollingStation(uniqueStationId, stationName, postalCode);
             municipality.addPollingStation(station);
         }
     }

@@ -1,5 +1,7 @@
 package nl.hva.ict.sm3.backend.model;
 
+import jakarta.persistence.*;
+
 /**
  * Represents a candidate participating in an election.
  * <p>
@@ -7,19 +9,43 @@ package nl.hva.ict.sm3.backend.model;
  * such as name, initials, residence, and vote count. The candidate identifier
  * represents their position on the party's candidate list.
  */
+@Entity
+@Table(name = "candidates")
 public class Candidate {
-    private final String id;
-    private final String firstName;
-    private final String lastName;
-    private final String initials;
-    private final String residence;
-    private final String partyId;
-    private final String partyName;
-	private final int candidateIdentifier;
+    @Id
+    private String id;
+    
+    @Column(name = "first_name")
+    private String firstName;
+    
+    @Column(name = "last_name")
+    private String lastName;
+    
+    @Column(name = "initials")
+    private String initials;
+    
+    @Column(name = "residence")
+    private String residence;
+    
+    @Column(name = "party_id")
+    private String partyId;
+    
+    @Column(name = "party_name")
+    private String partyName;
+    
+    @Column(name = "candidate_identifier")
+	private int candidateIdentifier;
+    
     /** Short code used in votes files, typically lastName + initials (e.g., "YeşilgözD") */
+    @Column(name = "short_code")
     private String shortCode;
+    
     /** The number of votes received by this candidate */
+    @Column(name = "votes")
     private int votes;
+
+    // Default constructor for JPA
+    protected Candidate() {}
 
 	/**
      * Constructs a new Candidate with the specified information.

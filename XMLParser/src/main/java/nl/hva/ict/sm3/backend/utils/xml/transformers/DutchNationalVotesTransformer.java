@@ -57,6 +57,16 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
 
         String combinedId = String.format("%s-%s-PARTY_VOTES", electionId, partyId);
 
+        // Determine the type based on the data
+        NationalResult type;
+        if (numberOfSeats > 0) {
+            type = NationalResult.SEATS;
+        } else if (rejectedVotes > 0 || totalCounted > 0) {
+            type = NationalResult.REJECTED_DATA;
+        } else {
+            type = NationalResult.PARTY_VOTES;
+        }
+        
         National combinedRecord = National.forCombined(
                 combinedId,
                 electionId,
@@ -68,7 +78,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
                 rejectedVotes,
                 totalCounted,
                 numberOfSeats,
-                null // type if you have one; otherwise pass null
+                type // Now properly determined, never null
         );
 
         addOrReplace(combinedRecord);
@@ -94,10 +104,8 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
         if (existingIndex >= 0) {
             // Use the Election's replace method
             election.replaceNationalVote(record.getId(), record);
-            System.out.println("Replaced national result: " + record);
         } else {
             election.addNationalVotes(record);
-            System.out.println("Added national result: " + record);
         }
     }
 
@@ -245,7 +253,7 @@ public class DutchNationalVotesTransformer implements VotesTransformer, TagAndAt
 
     @Override
     public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s meta data: %s\n", aggregated ? "National" : "Constituency", electionData);
+        // Removed verbose logging for performance
     }
 
 

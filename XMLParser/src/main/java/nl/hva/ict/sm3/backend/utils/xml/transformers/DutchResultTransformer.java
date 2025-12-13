@@ -24,12 +24,12 @@ public class DutchResultTransformer implements VotesTransformer {
 
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("National party result: %s\n", electionData);
+        // Removed verbose logging for performance
     }
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("National candidate result: %s\n", electionData);
+        // Removed verbose logging for performance
     }
 
     @Override
