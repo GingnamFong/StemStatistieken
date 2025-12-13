@@ -69,6 +69,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE_URL } from '@/config/api.js'
 
 const email = ref('')
 const password = ref('')
@@ -84,7 +85,7 @@ async function onSubmit() {
   }
 
   try {
-    const res = await fetch('http://localhost:8081/api/auth/login', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -117,20 +118,39 @@ async function onSubmit() {
         errorMessage.value = 'Ongeldige response van server.'
       }
     } else {
+      // Try to read error message from response
       let errorText = 'Ongeldige e-mail of wachtwoord.'
       try {
-        const errorData = await res.json()
-        errorText = errorData.message || errorData.error || errorText
-      } catch {
-        const text = await res.text()
-        if (text) errorText = text
+        // First try to parse as JSON
+        const contentType = res.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await res.json()
+          errorText = errorData.message || errorData.error || errorText
+        } else {
+          // If not JSON, read as text
+          const text = await res.text()
+          if (text && text.trim()) {
+            errorText = text.trim()
+          }
+        }
+      } catch (parseError) {
+        // If parsing fails, try to read as text
+        try {
+          const text = await res.text()
+          if (text && text.trim()) {
+            errorText = text.trim()
+          }
+        } catch (textError) {
+          console.error('Error reading response:', textError)
+        }
       }
       errorMessage.value = errorText
     }
   } catch (e) {
     console.error(e)
+    // Only show network error if it's actually a network issue
     if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
-      errorMessage.value = 'Kan geen verbinding maken met de server. Zorg dat de backend draait op http://localhost:8081'
+      errorMessage.value = 'Kan geen verbinding maken met de server. Zorg dat de backend draait.'
     } else {
       errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
     }
