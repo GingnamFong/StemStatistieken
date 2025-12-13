@@ -103,11 +103,25 @@
         </p>
       </div>
     </section>
+
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="success-modal-overlay" @click.self="closeSuccessModal">
+      <div class="success-modal">
+        <div class="success-icon-wrapper">
+          <div class="success-icon-circle">
+            <span class="success-checkmark">✓</span>
+          </div>
+        </div>
+        <h3>Registratie geslaagd!</h3>
+        <p>Uw account is succesvol aangemaakt. U kunt nu inloggen met uw gegevens.</p>
+        <button @click="goToLogin" class="btn-success">Naar inloggen</button>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '../config/api.js'
 
@@ -127,6 +141,8 @@ const errors = reactive({
 const acceptedTerms = ref(false)
 const submitting = ref(false)
 const serverError = ref('')
+const showSuccessModal = ref(false)
+const router = useRouter()
 
 // Must match backend: at least 8 chars, one lowercase, one uppercase, one digit
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
@@ -185,12 +201,14 @@ async function handleSubmit() {
     })
 
     if (res.ok) {
-      alert('Registratie geslaagd')
       form.name = ''
       form.lastName = ''
       form.email = ''
       form.password = ''
       acceptedTerms.value = false
+      showSuccessModal.value = true
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
     } else {
       const text = await res.text()
       serverError.value = text || 'Registratie mislukt'
@@ -201,6 +219,34 @@ async function handleSubmit() {
     submitting.value = false
   }
 }
+
+function closeSuccessModal() {
+  showSuccessModal.value = false
+  document.body.style.overflow = ''
+}
+
+function goToLogin() {
+  closeSuccessModal()
+  router.push('/login')
+}
+
+// Handle ESC key to close modal
+function handleEscape(e) {
+  if (e.key === 'Escape' && showSuccessModal.value) {
+    closeSuccessModal()
+    router.push('/login')
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleEscape)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleEscape)
+  // Clean up body overflow style
+  document.body.style.overflow = ''
+})
 </script>
 
 <style scoped>
@@ -529,6 +575,147 @@ async function handleSubmit() {
   }
   .register-card h2 {
     font-size: 1.75rem;
+  }
+}
+
+/* Success Modal Styles */
+.success-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+  padding: 16px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.success-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 40px 32px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.success-icon-wrapper {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.success-icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.4s ease-out 0.1s both;
+}
+
+.success-checkmark {
+  font-size: 48px;
+  color: white;
+  font-weight: bold;
+  line-height: 1;
+  display: block;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-modal h3 {
+  font: 800 1.75rem/1.2 'Nunito', sans-serif;
+  color: #1e293b;
+  margin: 0 0 12px;
+  letter-spacing: -0.5px;
+}
+
+.success-modal p {
+  font: 400 16px/1.5 'Nunito', sans-serif;
+  color: #64748b;
+  margin: 0 0 32px;
+}
+
+.btn-success {
+  width: 100%;
+  padding: 12px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font: 600 16px 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-success:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .success-modal {
+    padding: 32px 24px;
+  }
+  
+  .success-icon-circle {
+    width: 64px;
+    height: 64px;
+  }
+  
+  .success-checkmark {
+    font-size: 36px;
+  }
+  
+  .success-modal h3 {
+    font-size: 1.5rem;
+  }
+  
+  .success-modal p {
+    font-size: 14px;
   }
 }
 </style>
