@@ -1,35 +1,54 @@
 <template>
-  <div class="register-page">
-    <!-- ...unchanged UI... -->
+  <section class="register-page">
+    <!-- Left message -->
+    <section class="register-left">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+        </svg>
+        <span>StemStatistieken</span>
+      </div>
+      <h1>
+        Bekijk snel en gemakkelijk<br />
+        de verkiezingsresultaten<br />
+        en discussieer mee!
+      </h1>
+    </section>
+
+    <!-- Right card (register) -->
     <section class="register-right">
       <div class="register-card">
-        <div class="register-logo">📊</div>
+        <div class="register-icon-wrapper">
+          <div class="register-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+        </div>
         <h2>Creëer uw account</h2>
         <p class="subtitle">Voeg uw informatie in om een account te kunnen maken!</p>
 
         <form @submit.prevent="handleSubmit" class="register-form">
           <div class="form-row">
             <div class="form-group">
-              <label for="name">Voornaam</label>
-              <input type="text" id="name" v-model="form.name" />
-              <span v-if="errors.name">{{ errors.name }}</span>
+              <label for="name">Voornaam<span class="req">*</span></label>
+              <input type="text" id="name" v-model="form.name" placeholder="voer uw voornaam in" />
             </div>
             <div class="form-group">
               <label for="lastName">Achternaam</label>
-              <input type="text" id="lastName" v-model="form.lastName" />
+              <input type="text" id="lastName" v-model="form.lastName" placeholder="voer uw achternaam in" />
             </div>
           </div>
 
           <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" v-model="form.email" />
-            <span v-if="errors.email">{{ errors.email }}</span>
+            <label for="email">Email<span class="req">*</span></label>
+            <input type="email" id="email" v-model="form.email" placeholder="voer uw email in" />
           </div>
 
           <div class="form-group">
-            <label for="password">Wachtwoord</label>
-            <input type="password" id="password" v-model="form.password" />
-            <span v-if="errors.password">{{ errors.password }}</span>
+            <label for="password">Wachtwoord<span class="req">*</span></label>
+            <input type="password" id="password" v-model="form.password" placeholder="voer uw wachtwoord in" />
           </div>
 
           <div class="form-check">
@@ -37,8 +56,41 @@
             <label for="terms">Ik ga akkoord met de <a href="#">Algemene Voorwaarden</a></label>
           </div>
 
-          <div v-if="serverError" style="color:red; font-size:0.9rem; margin-bottom:8px;">
-            {{ serverError }}
+          <!-- Error messages -->
+          <div v-if="errors.name" class="error-message">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{{ errors.name }}</span>
+          </div>
+
+          <div v-if="errors.email" class="error-message">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{{ errors.email }}</span>
+          </div>
+
+          <div v-if="errors.password" class="error-message">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{{ errors.password }}</span>
+          </div>
+
+          <div v-if="serverError" class="error-message">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{{ serverError }}</span>
           </div>
 
           <button type="submit" class="btn-primary" :disabled="submitting">
@@ -47,15 +99,16 @@
         </form>
 
         <p class="login-link">
-          Al een account? <a href="/login">Log dan in</a>
+          Al een account? <router-link to="/login">Log dan in</router-link>
         </p>
       </div>
     </section>
-  </div>
+  </section>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '../config/api.js'
 
 const form = reactive({
@@ -153,132 +206,329 @@ async function handleSubmit() {
 <style scoped>
 .register-page {
   display: flex;
+  height: calc(100vh + 64px);
   min-height: 100vh;
   width: 100%;
-  font-family: 'Inter', sans-serif;
-  background-color: #f4f5f7;
+  max-width: 100%;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  margin: -64px 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.register-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.register-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/banner.png') center/cover;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.register-left > * {
+  position: relative;
+  z-index: 1;
+}
+
+.register-left .logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 1.5rem 'Nunito', sans-serif;
+  margin-bottom: 60px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.register-left h1 {
+  font: 800 2.5rem/1.3 'Nunito', sans-serif;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .register-right {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   background: #fff;
-  border-left: 1px solid #eee;
+  padding: 60px 40px 40px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .register-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 450px;
   text-align: center;
-  padding: 40px 20px;
-  background: #fff;
+  box-sizing: border-box;
+  padding-top: 20px;
 }
 
-.register-logo {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
+.register-icon-wrapper {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
 }
 
-h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #111;
+.register-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-icon svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.register-card h2 {
+  font: 800 2rem/1 'Nunito', sans-serif;
+  color: #1e293b;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  color: #666;
-  margin-bottom: 30px;
-  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 40px;
 }
 
 .register-form {
   text-align: left;
+  margin-bottom: 24px;
 }
 
 .form-row {
   display: flex;
   gap: 16px;
+  margin-bottom: 0;
+  min-width: 0;
 }
 
 .form-group {
   flex: 1;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
+  min-width: 0;
 }
 
-label {
+.form-group label {
   display: block;
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #333;
+  font: 600 14px 'Nunito', sans-serif;
+  color: #1e293b;
+  margin-bottom: 8px;
 }
 
-input {
+.req {
+  color: #e74c3c;
+  margin-left: 4px;
+}
+
+.form-group input {
   width: 100%;
-  padding: 10px 0;
-  border: none;
-  border-bottom: 1px solid #ccc;
-  font-size: 1rem;
-  background: transparent;
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font: 16px 'Nunito', sans-serif;
+  color: #1e293b;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   outline: none;
 }
 
-input:focus {
-  border-bottom-color: #000;
+.form-group input::placeholder {
+  color: #94a3b8;
 }
 
 .form-check {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0 20px;
-  font-size: 0.9rem;
+  margin: 12px 0 24px;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.form-check input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.form-check label {
+  font: 500 14px 'Nunito', sans-serif;
+  color: #1e293b;
+  margin: 0;
+  cursor: pointer;
+}
+
+.form-check label a {
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.form-check label a:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #e74c3c;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.error-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .btn-primary {
   width: 100%;
-  background: #000;
-  color: #fff;
+  padding: 12px 24px;
+  background: #1e293b;
+  color: white;
   border: none;
-  border-radius: 999px;
-  padding: 12px;
-  font-weight: 600;
+  border-radius: 8px;
+  font: 600 16px 'Nunito', sans-serif;
   cursor: pointer;
-  margin-bottom: 12px;
-  transition: background 0.3s;
+  transition: all 0.2s;
+  margin-bottom: 24px;
 }
 
-.btn-primary:hover {
-  background: #222;
+.btn-primary:hover:not(:disabled) {
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .login-link {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 14px;
+  color: #64748b;
 }
 
 .login-link a {
   font-weight: 600;
-  color: #000;
+  color: #3b82f6;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .login-link a:hover {
+  color: #2563eb;
   text-decoration: underline;
 }
 
 @media (max-width: 800px) {
   .register-page {
     flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .register-left {
+    padding: 40px 20px;
+    text-align: center;
+    align-items: center;
+    min-height: 40vh;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .register-left h1 {
+    font-size: 2rem;
   }
   .register-right {
-    border-left: none;
+    padding: 40px 20px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .form-row {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .register-left {
+    padding: 32px 16px;
+    min-height: 35vh;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .register-left .logo {
+    font-size: 1.2rem;
+    margin-bottom: 32px;
+  }
+  .register-left h1 {
+    font-size: 1.75rem;
+  }
+  .register-right {
+    padding: 32px 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .register-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .register-card h2 {
+    font-size: 1.75rem;
   }
 }
 </style>

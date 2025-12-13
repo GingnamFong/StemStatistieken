@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"http://localhost:5173", "https://hva-frontend.onrender.com"})
+@CrossOrigin(origins = {"http://localhost:5174", "http://localhost:5173", "https://hva-frontend.onrender.com"})
 public class AuthController {
 
     private final UserRepository userRepository;

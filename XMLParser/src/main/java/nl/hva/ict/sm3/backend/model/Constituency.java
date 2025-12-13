@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.model;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -16,11 +17,24 @@ import java.util.List;
  * <p>This class stores the constituency metadata (ID and name) along with
  * its municipalities and aggregated vote totals.</p>
  */
+@Entity
+@Table(name = "constituencies")
 public class Constituency {
+    @Id
     private String id;
+    
+    @Column(name = "name")
     private String name;
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "constituency_id")
     private List<Municipality> municipalities = new ArrayList<>();
+    
+    @Column(name = "total_votes")
     private int totalVotes = 0;
+
+    // Default constructor for JPA
+    protected Constituency() {}
 
     /**
      * Creates a new Constituency instance.

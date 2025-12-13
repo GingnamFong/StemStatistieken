@@ -31,8 +31,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { defineEmits } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { defineEmits, defineProps } from 'vue'
 import NederlandMap from '@/assets/Nederland_gemeenten_2024.svg'
 import { API_BASE_URL } from '@/config/api'
 
@@ -51,22 +51,40 @@ const tooltip = ref({
 
 const municipalities = ref([])
 
-onMounted(async () => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/elections/TK2023/municipalities`)
-    if (!res.ok) throw new Error('Network error')
-    municipalities.value = await res.json()
-    console.log('Loaded municipalities:', municipalities.value)
-  } catch (err) {
-    console.error('Failed to load municipalities:', err)
+const props = defineProps({
+  year: {
+    type: Number,
+    default: 2023
   }
 })
 
-// Utility to get municipality data by svg path id (robust to "GM" prefix)
+async function loadMunicipalities() {
+  try {
+    const electionId = `TK${props.year}`
+    const res = await fetch(`${API_BASE_URL}/elections/${electionId}/municipalities`)
+    if (!res.ok) throw new Error('Network error')
+    municipalities.value = await res.json()
+    console.log(`Loaded municipalities for ${electionId}:`, municipalities.value.length)
+  } catch (err) {
+    console.error('Failed to load municipalities:', err)
+  }
+}
+
+onMounted(loadMunicipalities)
+
+// Reload when year changes
+watch(() => props.year, loadMunicipalities)
+
+// Utility to get municipality data by svg path id (robust to "GM" prefix and election prefix)
 function getMunicipalityByPathId(pathId) {
   if (!pathId) return null
-  const id = pathId.replace(/^\D+/, '') // remove GM prefix
-  return municipalities.value.find(m => String(m.id) === String(id)) || null
+  const id = pathId.replace(/^\D+/, '') // remove GM prefix (e.g., GM0363 -> 0363)
+  return municipalities.value.find(m => {
+    const mId = String(m.id)
+    // Match on full ID or on the numeric part after election prefix (e.g., TK2023-0363 -> 0363)
+    const mIdNumeric = mId.includes('-') ? mId.split('-').pop() : mId
+    return mId === id || mIdNumeric === id
+  }) || null
 }
 
 function handleMouseMove(e) {

@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.model;
 
+import jakarta.persistence.*;
 import java.util.Objects;
 
 /**
@@ -7,20 +8,47 @@ import java.util.Objects;
  * <b>This class is by no means production ready! You need to alter it extensively!</b>
  */
 
-
+@Entity
+@Table(name = "national_results")
 public class National {
-    private final String id;
-    private final String electionId;
-    private final String electionName;
-    private final String partyId;
-    private final String partyName;
-    private final String shortCode;
+    @Id
+    private String id;
+    
+    // This column is managed by JPA via the @JoinColumn on Election.nationalVotes
+    // We mark it as insertable/updatable = false to avoid conflicts
+    @Column(name = "election_id", insertable = false, updatable = false)
+    private String electionId;
+    
+    @Column(name = "election_name")
+    private String electionName;
+    
+    @Column(name = "party_id")
+    private String partyId;
+    
+    @Column(name = "party_name")
+    private String partyName;
+    
+    @Column(name = "short_code")
+    private String shortCode;
 
-    private final int validVotes; // wachten op oplossing
-    private final int rejectedVotes; // verplaatsen naar election.java
-    private final int totalCounted; // verplaatsen naar election.java
-    private final int numberOfSeats; // wachten op oplossing
-    private final NationalResult type;
+    @Column(name = "valid_votes")
+    private int validVotes; // wachten op oplossing
+    
+    @Column(name = "rejected_votes")
+    private int rejectedVotes; // verplaatsen naar election.java
+    
+    @Column(name = "total_counted")
+    private int totalCounted; // verplaatsen naar election.java
+    
+    @Column(name = "number_of_seats")
+    private int numberOfSeats; // wachten op oplossing
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private NationalResult type;
+
+    // Default constructor for JPA
+    protected National() {}
 
     public National(String id,
                     String electionId,
