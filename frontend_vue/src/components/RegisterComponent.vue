@@ -254,14 +254,11 @@ onUnmounted(() => {
   display: flex;
   height: calc(100vh + 64px);
   min-height: 100vh;
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #f8fafc;
-  margin: -64px 0 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  box-sizing: border-box;
+  margin: -64px calc(50% - 50vw) 0;
+  overflow: hidden;
 }
 
 .register-left {
@@ -274,8 +271,6 @@ onUnmounted(() => {
   color: white;
   position: relative;
   overflow: hidden;
-  min-width: 0;
-  box-sizing: border-box;
 }
 
 .register-left::before {
@@ -315,25 +310,19 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   background: #fff;
-  padding: 60px 40px 40px;
+  padding: 40px;
   overflow-y: auto;
-  overflow-x: hidden;
-  min-width: 0;
-  box-sizing: border-box;
 }
 
 .register-card {
   width: 100%;
   max-width: 450px;
   text-align: center;
-  box-sizing: border-box;
-  padding-top: 20px;
 }
 
 .register-icon-wrapper {
-  margin-top: 24px;
   margin-bottom: 24px;
   display: flex;
   justify-content: center;
@@ -376,13 +365,11 @@ onUnmounted(() => {
   display: flex;
   gap: 16px;
   margin-bottom: 0;
-  min-width: 0;
 }
 
 .form-group {
   flex: 1;
   margin-bottom: 24px;
-  min-width: 0;
 }
 
 .form-group label {
@@ -399,14 +386,12 @@ onUnmounted(() => {
 
 .form-group input {
   width: 100%;
-  max-width: 100%;
   padding: 12px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font: 16px 'Nunito', sans-serif;
   color: #1e293b;
   transition: all 0.2s;
-  box-sizing: border-box;
 }
 
 .form-group input:focus {
@@ -519,25 +504,18 @@ onUnmounted(() => {
 @media (max-width: 800px) {
   .register-page {
     flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
   }
   .register-left {
     padding: 40px 20px;
     text-align: center;
     align-items: center;
     min-height: 40vh;
-    width: 100%;
-    box-sizing: border-box;
   }
   .register-left h1 {
     font-size: 2rem;
   }
   .register-right {
     padding: 40px 20px;
-    width: 100%;
-    box-sizing: border-box;
   }
   .form-row {
     flex-direction: column;
@@ -545,16 +523,9 @@ onUnmounted(() => {
 }
 
 @media (max-width: 480px) {
-  .register-page {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
   .register-left {
     padding: 32px 16px;
     min-height: 35vh;
-    width: 100%;
-    box-sizing: border-box;
   }
   .register-left .logo {
     font-size: 1.2rem;
@@ -565,13 +536,6 @@ onUnmounted(() => {
   }
   .register-right {
     padding: 32px 16px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .register-card {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
   }
   .register-card h2 {
     font-size: 1.75rem;
@@ -604,10 +568,10 @@ onUnmounted(() => {
 }
 
 .success-modal {
-  background: white;
+  background: #ffffff;
   border-radius: 16px;
   padding: 40px 32px;
-  max-width: 420px;
+  max-width: 450px;
   width: 100%;
   text-align: center;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -635,7 +599,7 @@ onUnmounted(() => {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #10b981;
+  background: linear-gradient(135deg, #1e293b, #334155);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -662,22 +626,22 @@ onUnmounted(() => {
 }
 
 .success-modal h3 {
-  font: 800 1.75rem/1.2 'Nunito', sans-serif;
+  font: 800 2rem/1 'Nunito', sans-serif;
   color: #1e293b;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   letter-spacing: -0.5px;
 }
 
 .success-modal p {
-  font: 400 16px/1.5 'Nunito', sans-serif;
   color: #64748b;
-  margin: 0 0 32px;
+  margin: 0 0 40px;
+  font-size: 16px;
 }
 
 .btn-success {
   width: 100%;
   padding: 12px 24px;
-  background: #10b981;
+  background: #1e293b;
   color: white;
   border: none;
   border-radius: 8px;
@@ -687,9 +651,9 @@ onUnmounted(() => {
 }
 
 .btn-success:hover {
-  background: #059669;
+  background: #334155;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
 }
 
 .btn-success:active {
@@ -711,7 +675,7 @@ onUnmounted(() => {
   }
   
   .success-modal h3 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
   
   .success-modal p {
