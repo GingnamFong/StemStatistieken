@@ -45,7 +45,15 @@
       <div class="nav-register">
         <!-- Show user icon when logged in -->
         <div v-if="isLoggedIn" class="user-section">
-          <img src="/images/user.png" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
+          <div v-if="profilePicture" class="user-icon-wrapper">
+            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
+          </div>
+          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
           <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
             <button class="dropdown-item" @click="goToProfile">Profiel</button>
             <button class="dropdown-item" @click="logout">Uitloggen</button>
@@ -69,18 +77,29 @@ const userDropdownOpen = ref(false)
 const router = useRouter()
 
 const loginTrigger = ref(0)
+const profilePictureTrigger = ref(0)
 
 const isLoggedIn = computed(() => {
   loginTrigger.value // This makes it reactive
   return localStorage.getItem('token') !== null
 })
 
+const profilePicture = computed(() => {
+  profilePictureTrigger.value // reactive
+  try {
+    const userData = localStorage.getItem('userData')
+    if (userData) {
+      const parsed = JSON.parse(userData)
+      return parsed.profilePicture || null
+    }
+  } catch (e) {
+    console.error('Error parsing userData:', e)
+  }
+  return null
+})
+
 function toggleUserDropdown() {
   userDropdownOpen.value = !userDropdownOpen.value
-}
-
-function closeUserDropdown() {
-  userDropdownOpen.value = false
 }
 
 function goToProfile() {
@@ -98,6 +117,11 @@ function logout() {
 
 function handleLoginStateChange() {
   loginTrigger.value++
+  profilePictureTrigger.value++
+}
+
+function handleProfileUpdate() {
+  profilePictureTrigger.value++
 }
 
 function handleClickOutside(event) {
@@ -108,11 +132,13 @@ function handleClickOutside(event) {
 
 onMounted(() => {
   window.addEventListener('loginStateChanged', handleLoginStateChange)
+  window.addEventListener('profileUpdated', handleProfileUpdate)
   document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('loginStateChanged', handleLoginStateChange)
+  window.removeEventListener('profileUpdated', handleProfileUpdate)
   document.removeEventListener('click', handleClickOutside)
 })
 
@@ -252,6 +278,10 @@ function performSearch() {
   z-index: 10001;
 }
 
+.user-icon-wrapper {
+  display: block;
+}
+
 .user-icon {
   display: block;
   width: 32px;
@@ -260,10 +290,34 @@ function performSearch() {
   transition: opacity 0.2s;
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
 }
 
 .user-icon:hover {
   opacity: 0.8;
+}
+
+.user-icon-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: opacity 0.2s;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.user-icon-placeholder:hover {
+  opacity: 0.8;
+}
+
+.user-icon-placeholder svg {
+  width: 18px;
+  height: 18px;
 }
 
 .user-dropdown {

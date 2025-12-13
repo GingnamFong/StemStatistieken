@@ -196,7 +196,15 @@ async function loadUser() {
       console.log('User data received from database:', data)
 
       // Update localStorage with fresh data from database
-      localStorage.setItem('userData', JSON.stringify(data))
+      localStorage.setItem('userData', JSON.stringify({
+        id: data.id,
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
+        email: data.email || 'Geen email',
+        birthDate: data.birthDate || null,
+        favoriteParty: data.favoriteParty || null,
+        profilePicture: data.profilePicture || null
+      }))
 
       user.value = {
         id: data.id,
@@ -207,6 +215,9 @@ async function loadUser() {
         favoriteParty: data.favoriteParty || null,
         profilePicture: data.profilePicture || null
       }
+
+      // Dispatch event to update navbar
+      window.dispatchEvent(new Event('profileUpdated'))
     } else if (res.status === 404) {
       const errorText = await res.text()
       console.error('User not found in database:', res.status, errorText)
@@ -345,6 +356,8 @@ function handleFileSelect(event) {
   reader.onload = (e) => {
     editForm.value.profilePicture = e.target.result
     errorMessage.value = ''
+    // Dispatch event to update navbar immediately
+    window.dispatchEvent(new Event('profileUpdated'))
   }
   reader.onerror = () => {
     errorMessage.value = 'Fout bij het lezen van de afbeelding'
@@ -357,6 +370,8 @@ function removeProfilePicture() {
   if (fileInput.value) {
     fileInput.value.value = ''
   }
+  // Dispatch event to update navbar immediately
+  window.dispatchEvent(new Event('profileUpdated'))
 }
 
 async function saveProfile() {
@@ -400,6 +415,8 @@ async function saveProfile() {
         favoriteParty: data.favoriteParty,
         profilePicture: data.profilePicture
       }))
+      // Dispatch event to update navbar
+      window.dispatchEvent(new Event('profileUpdated'))
       isEditing.value = false
       successMessage.value = 'Profiel succesvol bijgewerkt!'
       setTimeout(() => {
