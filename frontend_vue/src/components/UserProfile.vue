@@ -1,7 +1,30 @@
 <template>
   <div class="profile-page">
+    <!-- Header Banner -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="breadcrumb">
+          <router-link to="/" class="breadcrumb-item">Home</router-link>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-item active">Profiel</span>
+        </div>
+        <div class="header-info">
+          <div class="header-left">
+            <div class="profile-badge">
+              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Mijn Account</span>
+            </div>
+            <h1 class="page-title">Mijn Profiel</h1>
+            <p class="page-description">Beheer uw persoonlijke informatie en voorkeuren</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
     <div class="profile-container">
-      <h1>Mijn Profiel</h1>
 
       <div v-if="errorMessage" class="error-message">
         <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -482,27 +505,121 @@ onMounted(() => {
 
 <style scoped>
 .profile-page {
-  min-height: calc(100vh - 64px);
-  padding: 40px 20px;
+  min-height: 100vh;
   background: #f8fafc;
-  margin-top: 64px;
+  padding-bottom: 5px;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Header Banner */
+.page-header {
+  background: #1e293b;
+  padding: 40px 32px 60px;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  margin-top: -1px;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/images/banner.png') center/cover;
+  opacity: 0.05;
+  z-index: 0;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  margin-top: 0;
+  padding-top: 0;
+  font-size: 14px;
+}
+
+.breadcrumb-item {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-item:hover {
+  color: white;
+}
+
+.breadcrumb-item.active {
+  color: white;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.header-info {
+  color: white;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.page-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.page-description {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
 }
 
 .profile-container {
   max-width: 800px;
   margin: 0 auto;
+  margin-bottom: 60px;
   background: white;
   border-radius: 12px;
   padding: 40px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  font-family: 'Nunito', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 32px;
+  margin-top: -30px;
+  position: relative;
+  z-index: 1;
 }
 
 .error-message {
@@ -852,8 +969,21 @@ h1 {
 }
 
 @media (max-width: 768px) {
+  .page-header {
+    padding: 32px 20px 48px;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .page-description {
+    font-size: 16px;
+  }
+
   .profile-container {
     padding: 24px;
+    margin-top: -20px;
   }
 
   .profile-header {
