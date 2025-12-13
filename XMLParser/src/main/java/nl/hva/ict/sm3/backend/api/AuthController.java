@@ -148,6 +148,7 @@ public class AuthController {
         response.put("email", user.getEmail());
         response.put("birthDate", user.getBirthDate());
         response.put("favoriteParty", user.getFavoriteParty());
+        response.put("profilePicture", user.getProfilePicture());
 
         return ResponseEntity.ok(response);
     }
@@ -230,6 +231,16 @@ public class AuthController {
             }
         }
 
+        if (updates.containsKey("profilePicture")) {
+            Object profilePictureObj = updates.get("profilePicture");
+            if (profilePictureObj != null) {
+                String profilePicture = profilePictureObj.toString();
+                user.setProfilePicture(profilePicture.isBlank() ? null : profilePicture);
+            } else {
+                user.setProfilePicture(null);
+            }
+        }
+
         try {
             userRepository.save(user);
         } catch (Exception e) {
@@ -245,6 +256,7 @@ public class AuthController {
         response.put("email", user.getEmail());
         response.put("birthDate", user.getBirthDate());
         response.put("favoriteParty", user.getFavoriteParty());
+        response.put("profilePicture", user.getProfilePicture());
 
         return ResponseEntity.ok(response);
     }

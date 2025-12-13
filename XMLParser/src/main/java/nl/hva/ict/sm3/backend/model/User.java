@@ -43,6 +43,9 @@ public class User {
     @Column(name = "favorite_party")
     private String favoriteParty;
 
+    @Column(name = "profile_picture", columnDefinition = "TEXT")
+    private String profilePicture; // encoded image or URL
+
     public User() {
     }
 
@@ -112,5 +115,8 @@ public class User {
 
     public String getFavoriteParty() { return favoriteParty; }
     public void setFavoriteParty(String favoriteParty) { this.favoriteParty = favoriteParty; }
+
+    public String getProfilePicture() { return profilePicture; }
+    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
 }
 
