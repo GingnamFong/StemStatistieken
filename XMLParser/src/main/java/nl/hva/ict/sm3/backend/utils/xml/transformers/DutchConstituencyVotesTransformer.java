@@ -25,7 +25,9 @@ public class DutchConstituencyVotesTransformer implements VotesTransformer {
     @Override
     public void registerPartyVotes(boolean aggregated, Map<String, String> electionData) {
         if (aggregated) {
-            String id = electionData.getOrDefault("ContestIdentifier-Id", "unknown").trim();
+            String rawId = electionData.getOrDefault("ContestIdentifier-Id", "unknown").trim();
+            // Prefix with election ID to make unique across elections
+            String id = election.getId() + "-" + rawId;
             String name = electionData.getOrDefault("ContestName", "Unnamed Constituency");
 
             Constituency existing = election.getConstituencyById(id);
@@ -35,17 +37,17 @@ public class DutchConstituencyVotesTransformer implements VotesTransformer {
             }
 
             int votes = Integer.parseInt(electionData.getOrDefault("ValidVotes", "0"));
-            existing.addToTotalVotes(votes); // you’ll need a method in Constituency: addToTotalVotes(int)
+            existing.addToTotalVotes(votes);
         }
     }
 
     @Override
     public void registerCandidateVotes(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s candidate votes: %s\n", aggregated ? "Constituency" : "Municipality", electionData);
+        // Removed verbose logging for performance
     }
 
     @Override
     public void registerMetadata(boolean aggregated, Map<String, String> electionData) {
-        System.out.printf("%s meta data: %s\n", aggregated ? "Constituency" : "Municipality", electionData);
+        // Removed verbose logging for performance
     }
 }

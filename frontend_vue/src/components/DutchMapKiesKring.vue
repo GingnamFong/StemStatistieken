@@ -90,8 +90,12 @@ function attachInteractivity() {
     // Try match by id number first (kieskring-19 -> 19)
     const idText = p.getAttribute('id') || ''
     const numeric = idText.match(/\d+/)?.[0]
-    let match =
-      constituencies.value.find((c) => String(c.id) === String(numeric)) || null
+    let match = constituencies.value.find((c) => {
+      // Match on full ID, or on the number part after the prefix (e.g., TK2023-19 -> 19)
+      const idStr = String(c.id)
+      const idNumeric = idStr.split('-').pop() // Get last part after dash
+      return idStr === String(numeric) || idNumeric === String(numeric)
+    }) || null
 
     // If no match by number, try by <title> text (e.g., "Groningen")
     if (!match) {

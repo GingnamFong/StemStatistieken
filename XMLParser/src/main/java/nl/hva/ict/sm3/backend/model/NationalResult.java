@@ -1,10 +1,10 @@
 package nl.hva.ict.sm3.backend.model;
 
-public class NationalResult {
-    public static final NationalResult PARTY_VOTES = null;
-    public static final NationalResult REJECTED_DATA = null;
-    public static final NationalResult SEATS = null;
-
-    // METADATA
-
+/**
+ * Enum representing the type of national result data.
+ */
+public enum NationalResult {
+    PARTY_VOTES,    // Regular party vote data
+    REJECTED_DATA,  // Rejected votes and total counted data
+    SEATS          // Seat allocation data
 }

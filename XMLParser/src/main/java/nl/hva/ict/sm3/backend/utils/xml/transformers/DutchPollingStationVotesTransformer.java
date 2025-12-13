@@ -75,7 +75,6 @@ public class DutchPollingStationVotesTransformer implements VotesTransformer {
         int votes = Integer.parseInt(data.getOrDefault("ValidVotes", "0"));
 
         station.addVotes(partyId, partyName, votes);
-        System.out.println("PS-DATA: " + data);
     }
 
     /**
