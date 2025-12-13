@@ -233,3 +233,21 @@ public class NationalService {
     }
 }
 
+/*
+calculateSeatsDHondt computes a seat allocation using the D'Hondt method. It returns a Map<partyId, seats> and updateNationalRecordsWithSeats writes those seat counts back into the Election/National records (recalculating vote totals first).
+
+Here's what the code actually does step‑by‑step and important caveats:
+
+What calculateSeatsDHondt does
+
+    Aggregates votes from every municipality in every constituency: it builds votesPerParty (partyId -> total votes). It also collects party names for reference.
+    Computes totalValidVotes = sum of all parties' votes.
+    Computes an electoral threshold as threshold = totalValidVotes / TOTAL_SEATS (TOTAL_SEATS is 150). This is the common threshold used to require at least one theoretical seat worth of votes.
+    Filters out parties with votes < threshold (only parties with votes >= threshold are eligible).
+    For each eligible party it generates quotients votes/divisor for divisor = 1..TOTAL_SEATS and stores them as Quotient(partyId, value).
+    Sorts all quotients descending and takes the top TOTAL_SEATS quotients. Each time a quotient for a given party appears in the top 150, that party receives +1 seat.
+    Returns a Map<String,Integer> mapping party IDs to assigned seat counts. It prints details to stdout.
+
+
+
+*/

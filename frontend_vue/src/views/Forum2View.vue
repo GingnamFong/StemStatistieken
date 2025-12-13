@@ -203,9 +203,9 @@ const sortOptions = [
 const posts = ref([
   {
     id: 1,
-    title: 'Wat vinden jullie van de nieuwe verkiezingsuitslagen?',
-    content: 'Ik ben benieuwd naar jullie mening over de laatste verkiezingen. Wat valt jullie het meest op?',
-    author: 'PolitiekLiefhebber',
+    title: 'Politiek corrupte propaganda',
+    content: 'Boblox',
+    author: 'HarmonyCorruption',
     score: 42,
     comments: 12,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
@@ -223,9 +223,9 @@ const posts = ref([
   },
   {
     id: 3,
-    title: 'Verkiezingsdebat: wie heeft jullie overtuigd?',
-    content: 'Welke kandidaat of partij heeft tijdens het debat jullie mening het meest beïnvloed?',
-    author: 'DebatKijker',
+    title: 'Verraden door mijn teammates',
+    content: 'Verraden door mijn teammates terwijl ik er alle lessen was. En ik heb ook nog de database moeten fixen, ik die veel later kwam en elke vrijdag in de moskee zit. Er gaan slachtoffers vallen',
+    author: 'StudentenOennenClown',
     score: 15,
     comments: 25,
     createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
