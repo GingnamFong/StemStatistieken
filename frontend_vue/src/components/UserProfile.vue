@@ -17,8 +17,8 @@
         <div class="profile-section">
           <div class="profile-header">
             <div class="avatar-display">
-              <div v-if="user.profilePicture" class="avatar-image">
-                <img :src="user.profilePicture" alt="Profile Picture" />
+              <div v-if="(isEditing ? editForm.profilePicture : user.profilePicture)" class="avatar-image">
+                <img :src="isEditing ? editForm.profilePicture : user.profilePicture" alt="Profile Picture" />
               </div>
               <div v-else class="avatar-placeholder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -44,7 +44,7 @@
                   <span>Foto wijzigen</span>
                 </label>
                 <button
-                  v-if="user.profilePicture"
+                  v-if="editForm.profilePicture"
                   @click="removeProfilePicture"
                   class="remove-button"
                   type="button"
