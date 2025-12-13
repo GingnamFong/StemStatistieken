@@ -54,7 +54,10 @@
               </div>
             </div>
             <div class="profile-name">
-              <h2>{{ user.firstName }}{{ user.lastName ? ' ' + user.lastName : '' }}</h2>
+              <h2>
+                {{ user.firstName }}{{ user.lastName ? ' ' + user.lastName : '' }}
+                <span v-if="calculateAge(user.birthDate)" class="profile-age">({{ calculateAge(user.birthDate) }} jaar)</span>
+              </h2>
               <p class="profile-email">{{ user.email }}</p>
             </div>
           </div>
@@ -300,6 +303,18 @@ function formatDate(dateString) {
     month: 'long',
     day: 'numeric'
   })
+}
+
+function calculateAge(birthDate) {
+  if (!birthDate) return null
+  const today = new Date()
+  const birth = new Date(birthDate)
+  let age = today.getFullYear() - birth.getFullYear()
+  const monthDiff = today.getMonth() - birth.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age
 }
 
 function startEditing() {
@@ -568,25 +583,31 @@ h1 {
   flex-direction: column;
   gap: 8px;
   align-items: center;
+  width: 100%;
 }
 
 .upload-button {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #3b82f6;
+  background: #1e293b;
   color: white;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background 0.2s;
+  transition: all 0.2s;
   font-family: 'Nunito', sans-serif;
+  width: 100%;
+  max-width: 200px;
 }
 
 .upload-button:hover {
-  background: #2563eb;
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
 }
 
 .upload-button svg {
@@ -595,20 +616,24 @@ h1 {
 }
 
 .remove-button {
-  padding: 6px 12px;
-  background: #ef4444;
+  padding: 8px 16px;
+  background: #64748b;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
-  transition: background 0.2s;
+  transition: all 0.2s;
   font-family: 'Nunito', sans-serif;
+  width: 100%;
+  max-width: 200px;
 }
 
 .remove-button:hover {
-  background: #dc2626;
+  background: #475569;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
 }
 
 .profile-name {
@@ -621,6 +646,13 @@ h1 {
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 8px 0;
+}
+
+.profile-age {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #64748b;
+  margin-left: 8px;
 }
 
 .profile-email {
@@ -691,16 +723,18 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   padding: 12px 24px;
-  background: #3b82f6;
+  background: #1e293b;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .btn-edit:hover {
-  background: #2563eb;
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
 }
 
 .edit-buttons {
@@ -713,16 +747,18 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   padding: 12px 24px;
-  background: #10b981;
+  background: #1e293b;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .btn-save:hover:not(:disabled) {
-  background: #059669;
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
 }
 
 .btn-save:disabled {
@@ -735,16 +771,18 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   padding: 12px 24px;
-  background: #6b7280;
+  background: #64748b;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .btn-cancel:hover {
-  background: #4b5563;
+  background: #475569;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
 }
 
 .success-message {
