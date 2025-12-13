@@ -133,7 +133,7 @@ async function onSubmit() {
             errorText = text.trim()
           }
         }
-      } catch (parseError) {
+      } catch {
         // If parsing fails, try to read as text
         try {
           const text = await res.text()
@@ -386,6 +386,7 @@ async function onSubmit() {
 @media (max-width: 800px) {
   .login-page {
     flex-direction: column;
+    overflow-x: hidden;
   }
   .login-left {
     padding: 40px 20px;
@@ -398,10 +399,14 @@ async function onSubmit() {
   }
   .login-right {
     padding: 40px 20px;
+    align-items: flex-start;
   }
 }
 
 @media (max-width: 480px) {
+  .login-page {
+    overflow-x: hidden;
+  }
   .login-left {
     padding: 32px 16px;
     min-height: 35vh;
@@ -415,9 +420,16 @@ async function onSubmit() {
   }
   .login-right {
     padding: 32px 16px;
+    align-items: flex-start;
+  }
+  .login-card {
+    width: 100%;
   }
   .login-card h2 {
     font-size: 1.75rem;
+  }
+  .form-group input {
+    font-size: 16px; /* Prevents zoom on iOS */
   }
 }
 </style>

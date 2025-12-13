@@ -1,18 +1,25 @@
 <template>
-  <nav class="navbar">
+  <nav :class="['navbar', { 'menu-open': menuOpen }]">
     <!-- Left side -->
     <div class="navbar-left">
+      <button class="hamburger" @click="toggleMenu">☰</button>
       <router-link to="/" class="brand" aria-label="StemStatistieken">
         <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
         </svg>
         <span>StemStatistieken</span>
       </router-link>
-      <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
 
     <!-- Center -->
     <div :class="['navbar-collapse', { active: menuOpen }]">
+      <!-- Mobile logo inside menu -->
+      <router-link to="/" class="brand-mobile" aria-label="StemStatistieken" @click="closeMenu">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+        </svg>
+        <span>StemStatistieken</span>
+      </router-link>
       <div class="nav-links">
         <router-link to="/" class="nav-link" @click="closeMenu">Home</router-link>
         <router-link to="/dashboard" class="nav-link" @click="closeMenu">Uitslagen</router-link>
@@ -20,6 +27,30 @@
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
         <router-link to="/forum" class="nav-link" @click="closeMenu">Forum</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
+        <router-link v-if="isLoggedIn" to="/profile" class="nav-link" @click="closeMenu">Profiel</router-link>
+        <button v-if="isLoggedIn" class="nav-link nav-link-button" @click="logout">Uitloggen</button>
+      </div>
+
+      <div class="nav-register">
+        <!-- Show user icon when logged in (desktop only) -->
+        <div v-if="isLoggedIn" class="user-section">
+          <div v-if="profilePicture" class="user-icon-wrapper">
+            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
+          </div>
+          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <!-- Desktop dropdown -->
+          <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
+            <button class="dropdown-item" @click="goToProfile">Profiel</button>
+            <button class="dropdown-item" @click="logout">Uitloggen</button>
+          </div>
+        </div>
+        <!-- Show login link when not logged in -->
+        <router-link v-else to="/login" class="nav-link" @click="closeMenu">Login</router-link>
       </div>
 
       <div class="nav-actions">
@@ -40,27 +71,6 @@
           </span>
           <button @click="performSearch" class="search-btn" aria-label="Zoek">Zoek</button>
         </div>
-      </div>
-
-      <div class="nav-register">
-        <!-- Show user icon when logged in -->
-        <div v-if="isLoggedIn" class="user-section">
-          <div v-if="profilePicture" class="user-icon-wrapper">
-            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
-          </div>
-          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </div>
-          <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
-            <button class="dropdown-item" @click="goToProfile">Profiel</button>
-            <button class="dropdown-item" @click="logout">Uitloggen</button>
-          </div>
-        </div>
-        <!-- Show login link when not logged in -->
-        <router-link v-else to="/login" class="nav-link" @click="closeMenu">Login</router-link>
       </div>
     </div>
   </nav>
@@ -104,6 +114,7 @@ function toggleUserDropdown() {
 
 function goToProfile() {
   userDropdownOpen.value = false
+  menuOpen.value = false
   router.push('/profile')
 }
 
@@ -112,6 +123,7 @@ function logout() {
   localStorage.removeItem('userId')
   loginTrigger.value++
   userDropdownOpen.value = false
+  menuOpen.value = false
   router.push('/')
 }
 
@@ -185,9 +197,17 @@ function performSearch() {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   overflow: visible;
+  min-height: 64px;
 }
 
-
+/* Left side */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1001;
+}
 
 /* Brand */
 .brand {
@@ -200,15 +220,37 @@ function performSearch() {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .brand:hover {
   color: #3b82f6;
 }
+
 /* Brand icon (same as login page) */
 .brand-icon {
   width: 22px;
   height: 22px;
+}
+
+/* Mobile brand inside menu */
+.brand-mobile {
+  display: none;
+  font-weight: 700;
+  font-size: 1.3em;
+  text-decoration: none;
+  color: #ffffff;
+  padding: 20px 24px;
+  transition: color 0.2s;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.brand-mobile:hover {
+  color: #3b82f6;
 }
 
 /* Hamburger button */
@@ -220,6 +262,9 @@ function performSearch() {
   cursor: pointer;
   color: #ffffff;
   padding: 18px 24px;
+  position: relative;
+  z-index: 1002;
+  flex-shrink: 0;
 }
 
 /* Collapsible menu */
@@ -440,6 +485,11 @@ function performSearch() {
     flex-wrap: wrap;
   }
 
+  .navbar-left {
+    width: auto;
+    flex-shrink: 0;
+  }
+
   .navbar-collapse {
     display: none;
     flex-direction: column;
@@ -450,9 +500,35 @@ function performSearch() {
     max-height: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
   }
 
   .navbar-collapse.active {
+    display: flex;
+    opacity: 1;
+    max-height: 2000px;
+    overflow-y: auto;
+  }
+
+  /* Hide brand in navbar-left when menu is open */
+  .navbar.menu-open .navbar-left .brand {
+    display: none;
+  }
+
+  .navbar.menu-open .navbar-left {
+    justify-content: flex-start;
+    width: auto;
+    position: relative;
+    z-index: 1001;
+  }
+
+  .navbar.menu-open .hamburger {
+    display: block !important;
+    position: relative;
+    z-index: 1002;
+  }
+
+  .brand-mobile {
     display: flex;
   }
 
@@ -469,8 +545,26 @@ function performSearch() {
     border-left: 3px solid transparent;
   }
 
+  .nav-link-button {
+    width: 100%;
+    padding: 16px 24px;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    background: transparent;
+    border-right: none;
+    border-top: none;
+    text-align: left;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
   .nav-link:hover,
-  .nav-link.router-link-active {
+  .nav-link.router-link-active,
+  .nav-link-button:hover {
     background: rgba(255, 255, 255, 0.06);
     border-left-color: #3b82f6;
     color: #ffffff;
@@ -480,6 +574,7 @@ function performSearch() {
     width: 100%;
     padding: 16px 24px;
     justify-content: stretch;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .search-wrapper {
@@ -489,7 +584,27 @@ function performSearch() {
   .nav-register {
     width: 100%;
     padding: 16px 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .nav-register .nav-link {
+    width: auto;
+    padding: 0;
+    border-left: none;
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .nav-register .nav-link:hover {
+    color: #e2e8f0;
+  }
+
+  .nav-register .user-section {
+    display: none; /* Hide user icon in mobile menu */
   }
 }
 
