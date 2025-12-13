@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -126,6 +129,136 @@ public class AuthController {
     public static class LoginRequest {
         public String email;
         public String password;
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        // Map 'name' uit de DB naar 'firstName' voor de frontend
+        response.put("firstName", user.getName()); 
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        response.put("birthDate", user.getBirthDate());
+        response.put("favoriteParty", user.getFavoriteParty());
+        response.put("profilePicture", user.getProfilePicture());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Optional<User> userOpt = userRepository.findById(id);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+
+        // Update velden indien aanwezig in request
+        if (updates.containsKey("firstName")) {
+            String firstName = (String) updates.get("firstName");
+            if (firstName != null && !firstName.isBlank()) {
+                user.setName(firstName.trim());
+            }
+        }
+
+        if (updates.containsKey("lastName")) {
+            String lastName = (String) updates.get("lastName");
+            // LastName mag leeg zijn of null
+            user.setLastName(lastName != null ? lastName.trim() : null);
+        }
+
+        if (updates.containsKey("birthDate")) {
+            Object birthDateObj = updates.get("birthDate");
+            if (birthDateObj != null) {
+                String birthDateStr = birthDateObj.toString();
+                if (!birthDateStr.isBlank()) {
+                    try {
+                        // Parse as LocalDate first (format: YYYY-MM-DD)
+                        LocalDate date = LocalDate.parse(birthDateStr);
+                        
+                        // Validate: birthDate cannot be in the future
+                        LocalDate today = LocalDate.now();
+                        if (date.isAfter(today)) {
+                            return ResponseEntity.badRequest()
+                                    .body("Geboortedatum kan niet in de toekomst liggen");
+                        }
+                        
+                        // Convert to LocalDateTime at start of day
+                        user.setBirthDate(date.atStartOfDay());
+                    } catch (DateTimeParseException e) {
+                        // If parsing fails, try parsing as LocalDateTime directly
+                        try {
+                            LocalDateTime dateTime = LocalDateTime.parse(birthDateStr);
+                            
+                            // Validate: birthDate cannot be in the future
+                            LocalDateTime now = LocalDateTime.now();
+                            if (dateTime.isAfter(now)) {
+                                return ResponseEntity.badRequest()
+                                        .body("Geboortedatum kan niet in de toekomst liggen");
+                            }
+                            
+                            user.setBirthDate(dateTime);
+                        } catch (DateTimeParseException e2) {
+                            return ResponseEntity.badRequest()
+                                    .body("Ongeldig datumformaat. Gebruik YYYY-MM-DD");
+                        }
+                    }
+                } else {
+                    user.setBirthDate(null);
+                }
+            } else {
+                user.setBirthDate(null);
+            }
+        }
+
+        if (updates.containsKey("favoriteParty")) {
+            Object favoritePartyObj = updates.get("favoriteParty");
+            if (favoritePartyObj != null) {
+                String favoriteParty = favoritePartyObj.toString();
+                user.setFavoriteParty(favoriteParty.isBlank() ? null : favoriteParty.trim());
+            } else {
+                user.setFavoriteParty(null);
+            }
+        }
+
+        if (updates.containsKey("profilePicture")) {
+            Object profilePictureObj = updates.get("profilePicture");
+            if (profilePictureObj != null) {
+                String profilePicture = profilePictureObj.toString();
+                user.setProfilePicture(profilePicture.isBlank() ? null : profilePicture);
+            } else {
+                user.setProfilePicture(null);
+            }
+        }
+
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Fout bij opslaan: " + e.getMessage());
+        }
+
+        // Stuur bijgewerkte data terug
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("firstName", user.getName());
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        response.put("birthDate", user.getBirthDate());
+        response.put("favoriteParty", user.getFavoriteParty());
+        response.put("profilePicture", user.getProfilePicture());
+
+        return ResponseEntity.ok(response);
     }
 }
 

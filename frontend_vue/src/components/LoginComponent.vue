@@ -101,6 +101,16 @@ async function onSubmit() {
       if (data.token) {
         localStorage.setItem('token', data.token)
         localStorage.setItem('userId', data.userId?.toString() || '')
+        // Store user data for profile page
+        if (data.firstName || data.email) {
+          localStorage.setItem('userData', JSON.stringify({
+            id: data.userId,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            birthDate: data.birthDate || null
+          }))
+        }
         window.dispatchEvent(new CustomEvent('loginStateChanged'))
         router.push('/')
       } else {

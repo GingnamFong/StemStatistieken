@@ -45,7 +45,19 @@
       <div class="nav-register">
         <!-- Show user icon when logged in -->
         <div v-if="isLoggedIn" class="user-section">
-          <img src="/images/user.png" alt="User" class="user-icon" @click="logout" />
+          <div v-if="profilePicture" class="user-icon-wrapper">
+            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
+          </div>
+          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
+            <button class="dropdown-item" @click="goToProfile">Profiel</button>
+            <button class="dropdown-item" @click="logout">Uitloggen</button>
+          </div>
         </div>
         <!-- Show login link when not logged in -->
         <router-link v-else to="/login" class="nav-link" @click="closeMenu">Login</router-link>
@@ -61,31 +73,73 @@ import { useRouter } from 'vue-router'
 
 const searchQuery = ref('')
 const menuOpen = ref(false)
+const userDropdownOpen = ref(false)
 const router = useRouter()
 
 const loginTrigger = ref(0)
+const profilePictureTrigger = ref(0)
 
 const isLoggedIn = computed(() => {
   loginTrigger.value // This makes it reactive
   return localStorage.getItem('token') !== null
 })
 
-function logout() {
-  localStorage.removeItem('token')
-  loginTrigger.value++
+const profilePicture = computed(() => {
+  profilePictureTrigger.value // reactive
+  try {
+    const userData = localStorage.getItem('userData')
+    if (userData) {
+      const parsed = JSON.parse(userData)
+      return parsed.profilePicture || null
+    }
+  } catch (e) {
+    console.error('Error parsing userData:', e)
+  }
+  return null
+})
+
+function toggleUserDropdown() {
+  userDropdownOpen.value = !userDropdownOpen.value
 }
 
+function goToProfile() {
+  userDropdownOpen.value = false
+  router.push('/profile')
+}
+
+function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userId')
+  loginTrigger.value++
+  userDropdownOpen.value = false
+  router.push('/')
+}
 
 function handleLoginStateChange() {
   loginTrigger.value++
+  profilePictureTrigger.value++
+}
+
+function handleProfileUpdate() {
+  profilePictureTrigger.value++
+}
+
+function handleClickOutside(event) {
+  if (!event.target.closest('.user-section')) {
+    userDropdownOpen.value = false
+  }
 }
 
 onMounted(() => {
   window.addEventListener('loginStateChanged', handleLoginStateChange)
+  window.addEventListener('profileUpdated', handleProfileUpdate)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('loginStateChanged', handleLoginStateChange)
+  window.removeEventListener('profileUpdated', handleProfileUpdate)
+  document.removeEventListener('click', handleClickOutside)
 })
 
 function toggleMenu() {
@@ -130,6 +184,7 @@ function performSearch() {
   z-index: 1000;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: visible;
 }
 
 
@@ -174,7 +229,7 @@ function performSearch() {
   align-items: center;
   flex: 1;
   transition: max-height 0.4s ease, opacity 0.4s ease;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .navbar-collapse.active {
@@ -212,6 +267,19 @@ function performSearch() {
   display: flex;
   align-items: center;
   padding: 0 24px;
+  overflow: visible;
+  position: relative;
+}
+
+.user-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 10001;
+}
+
+.user-icon-wrapper {
+  display: block;
 }
 
 .user-icon {
@@ -222,10 +290,66 @@ function performSearch() {
   transition: opacity 0.2s;
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
 }
 
 .user-icon:hover {
   opacity: 0.8;
+}
+
+.user-icon-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: opacity 0.2s;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.user-icon-placeholder:hover {
+  opacity: 0.8;
+}
+
+.user-icon-placeholder svg {
+  width: 18px;
+  height: 18px;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 140px;
+  z-index: 10000;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-actions {
@@ -325,6 +449,7 @@ function performSearch() {
     opacity: 0;
     max-height: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
   }
 
   .navbar-collapse.active {
