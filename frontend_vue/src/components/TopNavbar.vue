@@ -27,30 +27,15 @@
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
         <router-link to="/forum" class="nav-link" @click="closeMenu">Forum</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
-        <router-link v-if="isLoggedIn" to="/profile" class="nav-link" @click="closeMenu">Profiel</router-link>
-        <button v-if="isLoggedIn" class="nav-link nav-link-button" @click="logout">Uitloggen</button>
+        <!-- Profile and Logout only shown in mobile menu -->
+        <router-link v-if="isLoggedIn" to="/profile" class="nav-link nav-link-mobile-only" @click="closeMenu">Profiel</router-link>
+        <button v-if="isLoggedIn" class="nav-link nav-link-button nav-link-mobile-only" @click="logout">Uitloggen</button>
       </div>
 
-      <div class="nav-register">
-        <!-- Show user icon when logged in (desktop only) -->
-        <div v-if="isLoggedIn" class="user-section">
-          <div v-if="profilePicture" class="user-icon-wrapper">
-            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
-          </div>
-          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </div>
-          <!-- Desktop dropdown -->
-          <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
-            <button class="dropdown-item" @click="goToProfile">Profiel</button>
-            <button class="dropdown-item" @click="logout">Uitloggen</button>
-          </div>
-        </div>
+      <!-- Mobile login section -->
+      <div class="nav-register-mobile">
         <!-- Show login link when not logged in -->
-        <router-link v-else to="/login" class="nav-link" @click="closeMenu">Login</router-link>
+        <router-link v-if="!isLoggedIn" to="/login" class="nav-link" @click="closeMenu">Login</router-link>
       </div>
 
       <div class="nav-actions">
@@ -71,6 +56,31 @@
           </span>
           <button @click="performSearch" class="search-btn" aria-label="Zoek">Zoek</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Right side (desktop only) -->
+    <div class="navbar-right">
+      <div class="nav-register">
+        <!-- Show user icon when logged in (desktop only) -->
+        <div v-if="isLoggedIn" class="user-section">
+          <div v-if="profilePicture" class="user-icon-wrapper">
+            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
+          </div>
+          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <!-- Desktop dropdown -->
+          <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
+            <button class="dropdown-item" @click="goToProfile">Profiel</button>
+            <button class="dropdown-item" @click="logout">Uitloggen</button>
+          </div>
+        </div>
+        <!-- Show login link when not logged in -->
+        <router-link v-else to="/login" class="nav-link">Login</router-link>
       </div>
     </div>
   </nav>
@@ -308,12 +318,31 @@ function performSearch() {
   color: #ffffff;
   border-bottom-color: #3b82f6;
 }
+
+/* Hide profile and logout links on desktop - they're in the dropdown */
+.nav-link-mobile-only {
+  display: none;
+}
+
+/* Right side (desktop) */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1001;
+}
+
 .nav-register {
   display: flex;
   align-items: center;
   padding: 0 24px;
   overflow: visible;
   position: relative;
+}
+
+.nav-register-mobile {
+  display: none;
 }
 
 .user-section {
@@ -510,7 +539,6 @@ function performSearch() {
     overflow-y: auto;
   }
 
-  /* Hide brand in navbar-left when menu is open */
   .navbar.menu-open .navbar-left .brand {
     display: none;
   }
@@ -543,6 +571,11 @@ function performSearch() {
     padding: 16px 24px;
     border-bottom: none;
     border-left: 3px solid transparent;
+  }
+
+  /* Show profile and logout links on mobile */
+  .nav-link-mobile-only {
+    display: block;
   }
 
   .nav-link-button {
@@ -581,15 +614,20 @@ function performSearch() {
     width: 100%;
   }
 
-  .nav-register {
+  .navbar-right {
+    display: none; /* Hide desktop right section on mobile */
+  }
+
+  .nav-register-mobile {
     width: 100%;
     padding: 16px 24px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .nav-register .nav-link {
+  .nav-register-mobile .nav-link {
     width: auto;
     padding: 0;
     border-left: none;
@@ -599,12 +637,8 @@ function performSearch() {
     color: rgba(255, 255, 255, 0.85);
   }
 
-  .nav-register .nav-link:hover {
+  .nav-register-mobile .nav-link:hover {
     color: #e2e8f0;
-  }
-
-  .nav-register .user-section {
-    display: none; /* Hide user icon in mobile menu */
   }
 }
 
