@@ -17,15 +17,44 @@
         <div class="profile-section">
           <div class="profile-header">
             <div class="avatar-display">
-              <div class="avatar-placeholder">
+              <div v-if="user.profilePicture" class="avatar-image">
+                <img :src="user.profilePicture" alt="Profile Picture" />
+              </div>
+              <div v-else class="avatar-placeholder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
               </div>
+              <div v-if="isEditing" class="avatar-upload">
+                <input
+                  type="file"
+                  ref="fileInput"
+                  @change="handleFileSelect"
+                  accept="image/*"
+                  style="display: none"
+                  id="profile-picture-input"
+                />
+                <label for="profile-picture-input" class="upload-button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  <span>Foto wijzigen</span>
+                </label>
+                <button
+                  v-if="user.profilePicture"
+                  @click="removeProfilePicture"
+                  class="remove-button"
+                  type="button"
+                >
+                  Verwijderen
+                </button>
+              </div>
             </div>
             <div class="profile-name">
-              <h2>{{ user.firstName }} {{ user.lastName || '' }}</h2>
+              <h2>{{ user.firstName }}{{ user.lastName ? ' ' + user.lastName : '' }}</h2>
               <p class="profile-email">{{ user.email }}</p>
             </div>
           </div>
@@ -130,8 +159,10 @@ const parties = ref([])
 const editForm = ref({
   firstName: '',
   lastName: '',
-  birthDate: ''
+  birthDate: '',
+  profilePicture: null
 })
+const fileInput = ref(null)
 
 // Computed property voor maximale datum (vandaag)
 const maxDate = computed(() => {
@@ -173,7 +204,8 @@ async function loadUser() {
         lastName: data.lastName || null,
         email: data.email || 'Geen email',
         birthDate: data.birthDate || null,
-        favoriteParty: data.favoriteParty || null
+        favoriteParty: data.favoriteParty || null,
+        profilePicture: data.profilePicture || null
       }
     } else if (res.status === 404) {
       const errorText = await res.text()
@@ -191,7 +223,8 @@ async function loadUser() {
             firstName: data.firstName || null,
             lastName: data.lastName || null,
             email: data.email || 'Geen email',
-            birthDate: data.birthDate || null
+            birthDate: data.birthDate || null,
+            profilePicture: data.profilePicture || null
           }
         } catch (e) {
           console.error('Error parsing stored user data:', e)
@@ -216,7 +249,8 @@ async function loadUser() {
             firstName: data.firstName || null,
             lastName: data.lastName || null,
             email: data.email || 'Geen email',
-            birthDate: data.birthDate || null
+            birthDate: data.birthDate || null,
+            profilePicture: data.profilePicture || null
           }
         } catch (e) {
           console.error('Error parsing stored user data:', e)
@@ -273,6 +307,7 @@ function startEditing() {
     editForm.value.birthDate = ''
   }
   editForm.value.favoriteParty = user.value.favoriteParty || ''
+  editForm.value.profilePicture = user.value.profilePicture || null
   successMessage.value = ''
 }
 
@@ -282,7 +317,46 @@ function cancelEditing() {
   editForm.value.lastName = ''
   editForm.value.birthDate = ''
   editForm.value.favoriteParty = ''
+  editForm.value.profilePicture = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
   successMessage.value = ''
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    errorMessage.value = 'Alleen afbeeldingen zijn toegestaan'
+    return
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    errorMessage.value = 'Afbeelding mag maximaal 5MB zijn'
+    return
+  }
+
+  // Convert to base64
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    editForm.value.profilePicture = e.target.result
+    errorMessage.value = ''
+  }
+  reader.onerror = () => {
+    errorMessage.value = 'Fout bij het lezen van de afbeelding'
+  }
+  reader.readAsDataURL(file)
+}
+
+function removeProfilePicture() {
+  editForm.value.profilePicture = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
 }
 
 async function saveProfile() {
@@ -304,7 +378,8 @@ async function saveProfile() {
         firstName: editForm.value.firstName || null,
         lastName: editForm.value.lastName || null,
         birthDate: editForm.value.birthDate || null,
-        favoriteParty: editForm.value.favoriteParty || null
+        favoriteParty: editForm.value.favoriteParty || null,
+        profilePicture: editForm.value.profilePicture || null
       })
     })
 
@@ -315,13 +390,15 @@ async function saveProfile() {
       user.value.lastName = data.lastName
       user.value.birthDate = data.birthDate
       user.value.favoriteParty = data.favoriteParty
+      user.value.profilePicture = data.profilePicture
       localStorage.setItem('userData', JSON.stringify({
         id: data.id,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         birthDate: data.birthDate,
-        favoriteParty: data.favoriteParty
+        favoriteParty: data.favoriteParty,
+        profilePicture: data.profilePicture
       }))
       isEditing.value = false
       successMessage.value = 'Profiel succesvol bijgewerkt!'
@@ -346,7 +423,7 @@ async function loadParties() {
     const election = await ElectionService.getElection('TK2023')
     console.log('Election data received:', election)
     console.log('Parties in election:', election?.parties)
-    
+
     if (election && election.parties && Array.isArray(election.parties)) {
       // Sort parties by name for better UX
       parties.value = election.parties
@@ -451,6 +528,70 @@ h1 {
 .avatar-placeholder svg {
   width: 60px;
   height: 60px;
+}
+
+.avatar-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e2e8f0;
+  background: #f1f5f9;
+}
+
+.avatar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.upload-button:hover {
+  background: #2563eb;
+}
+
+.upload-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.remove-button {
+  padding: 6px 12px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.2s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.remove-button:hover {
+  background: #dc2626;
 }
 
 .profile-name {
