@@ -26,6 +26,12 @@ public class ForumComment {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User author;
+
+
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -34,6 +40,9 @@ public class ForumComment {
     public ForumComment() {}
 
     public Long getId() { return id; }
+
+    public User getAuthor() { return author; }
+    public void setAuthor(User author) { this.author = author; }
 
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }
