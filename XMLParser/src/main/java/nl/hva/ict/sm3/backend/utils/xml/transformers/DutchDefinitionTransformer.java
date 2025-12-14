@@ -1,15 +1,16 @@
 package nl.hva.ict.sm3.backend.utils.xml.transformers;
 
 import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.Party;
 import nl.hva.ict.sm3.backend.utils.xml.DefinitionTransformer;
+import nl.hva.ict.sm3.backend.utils.xml.TagAndAttributeNames;
 
 import java.util.Map;
 
 /**
- * Just prints to content of electionData to the standard output.>br/>
- * <b>This class needs heavy modification!</b>
+ * Transforms definition data (regions, parties) from XML into the Election model.
  */
-public class DutchDefinitionTransformer implements DefinitionTransformer {
+public class DutchDefinitionTransformer implements DefinitionTransformer, TagAndAttributeNames {
     private final Election election;
 
     /**
@@ -23,11 +24,25 @@ public class DutchDefinitionTransformer implements DefinitionTransformer {
     
     @Override
     public void registerRegion(Map<String, String> electionData) {
-        // Removed verbose logging for performance
+        System.out.println("Committee: " + electionData);
     }
 
     @Override
     public void registerParty(Map<String, String> electionData) {
-        // Removed verbose logging for performance
+        // Extract party ID and name from the election data
+        String partyId = electionData.getOrDefault(AFFILIATION_IDENTIFIER + "-Id", null);
+        String partyName = electionData.getOrDefault(REGISTERED_NAME, null);
+        
+        // Only add party if we have both ID and name
+        if (partyId != null && partyName != null && !partyId.isEmpty() && !partyName.isEmpty()) {
+            // Check if party already exists to avoid duplicates
+            if (election.getPartyById(partyId) == null) {
+                Party party = new Party(partyId, partyName);
+                election.addParty(party);
+                System.out.println("Registered party: " + partyId + " - " + partyName);
+            }
+        } else {
+            System.out.println("Skipping party registration - missing ID or name. Data: " + electionData);
+        }
     }
 }

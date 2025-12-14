@@ -103,11 +103,25 @@
         </p>
       </div>
     </section>
+
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="success-modal-overlay" @click.self="closeSuccessModal">
+      <div class="success-modal">
+        <div class="success-icon-wrapper">
+          <div class="success-icon-circle">
+            <span class="success-checkmark">✓</span>
+          </div>
+        </div>
+        <h3>Registratie geslaagd!</h3>
+        <p>Uw account is succesvol aangemaakt. U kunt nu inloggen met uw gegevens.</p>
+        <button @click="goToLogin" class="btn-success">Naar inloggen</button>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE_URL } from '../config/api.js'
 
@@ -127,6 +141,8 @@ const errors = reactive({
 const acceptedTerms = ref(false)
 const submitting = ref(false)
 const serverError = ref('')
+const showSuccessModal = ref(false)
+const router = useRouter()
 
 // Must match backend: at least 8 chars, one lowercase, one uppercase, one digit
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
@@ -185,12 +201,14 @@ async function handleSubmit() {
     })
 
     if (res.ok) {
-      alert('Registratie geslaagd')
       form.name = ''
       form.lastName = ''
       form.email = ''
       form.password = ''
       acceptedTerms.value = false
+      showSuccessModal.value = true
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
     } else {
       const text = await res.text()
       serverError.value = text || 'Registratie mislukt'
@@ -201,21 +219,46 @@ async function handleSubmit() {
     submitting.value = false
   }
 }
+
+function closeSuccessModal() {
+  showSuccessModal.value = false
+  document.body.style.overflow = ''
+}
+
+function goToLogin() {
+  closeSuccessModal()
+  router.push('/login')
+}
+
+// Handle ESC key to close modal
+function handleEscape(e) {
+  if (e.key === 'Escape' && showSuccessModal.value) {
+    closeSuccessModal()
+    router.push('/login')
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleEscape)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleEscape)
+  // Clean up body overflow style
+  document.body.style.overflow = ''
+})
 </script>
 
 <style scoped>
 .register-page {
   display: flex;
-  height: calc(100vh + 64px);
-  min-height: 100vh;
-  width: 100%;
-  max-width: 100%;
+  min-height: calc(100vh + 64px);
+  width: 100vw;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #f8fafc;
-  margin: -64px 0 0;
-  overflow-x: hidden;
+  margin: -64px calc(50% - 50vw) 0;
+  padding-top: 64px;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
 .register-left {
@@ -227,9 +270,7 @@ async function handleSubmit() {
   background: linear-gradient(135deg, #1e293b, #334155);
   color: white;
   position: relative;
-  overflow: hidden;
-  min-width: 0;
-  box-sizing: border-box;
+  min-height: 100vh;
 }
 
 .register-left::before {
@@ -269,25 +310,18 @@ async function handleSubmit() {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   background: #fff;
-  padding: 60px 40px 40px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-width: 0;
-  box-sizing: border-box;
+  padding: 40px;
 }
 
 .register-card {
   width: 100%;
   max-width: 450px;
   text-align: center;
-  box-sizing: border-box;
-  padding-top: 20px;
 }
 
 .register-icon-wrapper {
-  margin-top: 24px;
   margin-bottom: 24px;
   display: flex;
   justify-content: center;
@@ -330,13 +364,11 @@ async function handleSubmit() {
   display: flex;
   gap: 16px;
   margin-bottom: 0;
-  min-width: 0;
 }
 
 .form-group {
   flex: 1;
   margin-bottom: 24px;
-  min-width: 0;
 }
 
 .form-group label {
@@ -353,14 +385,12 @@ async function handleSubmit() {
 
 .form-group input {
   width: 100%;
-  max-width: 100%;
   padding: 12px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font: 16px 'Nunito', sans-serif;
   color: #1e293b;
   transition: all 0.2s;
-  box-sizing: border-box;
 }
 
 .form-group input:focus {
@@ -473,25 +503,18 @@ async function handleSubmit() {
 @media (max-width: 800px) {
   .register-page {
     flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
   }
   .register-left {
     padding: 40px 20px;
     text-align: center;
     align-items: center;
     min-height: 40vh;
-    width: 100%;
-    box-sizing: border-box;
   }
   .register-left h1 {
     font-size: 2rem;
   }
   .register-right {
     padding: 40px 20px;
-    width: 100%;
-    box-sizing: border-box;
   }
   .form-row {
     flex-direction: column;
@@ -499,16 +522,9 @@ async function handleSubmit() {
 }
 
 @media (max-width: 480px) {
-  .register-page {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
   .register-left {
     padding: 32px 16px;
     min-height: 35vh;
-    width: 100%;
-    box-sizing: border-box;
   }
   .register-left .logo {
     font-size: 1.2rem;
@@ -519,16 +535,150 @@ async function handleSubmit() {
   }
   .register-right {
     padding: 32px 16px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .register-card {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
   }
   .register-card h2 {
     font-size: 1.75rem;
+  }
+}
+
+/* Success Modal Styles */
+.success-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+  padding: 16px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.success-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 32px;
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.success-icon-wrapper {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.success-icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.4s ease-out 0.1s both;
+}
+
+.success-checkmark {
+  font-size: 48px;
+  color: white;
+  font-weight: bold;
+  line-height: 1;
+  display: block;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-modal h3 {
+  font: 800 2rem/1 'Nunito', sans-serif;
+  color: #1e293b;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.success-modal p {
+  color: #64748b;
+  margin: 0 0 40px;
+  font-size: 16px;
+}
+
+.btn-success {
+  width: 100%;
+  padding: 12px 24px;
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font: 600 16px 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-success:hover {
+  background: #334155;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
+}
+
+.btn-success:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .success-modal {
+    padding: 32px 24px;
+  }
+  
+  .success-icon-circle {
+    width: 64px;
+    height: 64px;
+  }
+  
+  .success-checkmark {
+    font-size: 36px;
+  }
+  
+  .success-modal h3 {
+    font-size: 1.75rem;
+  }
+  
+  .success-modal p {
+    font-size: 14px;
   }
 }
 </style>

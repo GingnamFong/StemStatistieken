@@ -3,6 +3,7 @@ package hva.nlelections.backend_springboot.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
@@ -33,6 +34,20 @@ public class WebConfig implements WebMvcConfigurer {
                     .allowedHeaders("*")
                     .allowCredentials(false);
         }
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Explicitly configure resource handlers to only handle specific paths
+        // This prevents /api/** from being treated as static resources
+        // By default, Spring Boot would try to serve /api/** as static files
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("/public/**")
+                .addResourceLocations("classpath:/public/");
+        registry.addResourceHandler("/resources/**")
+                .addResourceLocations("classpath:/resources/");
+        // Note: We don't register a catch-all handler, so /api/** will be handled by controllers
     }
 
     private List<String> parseAllowedOrigins(String property) {

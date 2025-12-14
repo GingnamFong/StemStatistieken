@@ -37,6 +37,15 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "birth_date")
+    private LocalDateTime birthDate;
+
+    @Column(name = "favorite_party")
+    private String favoriteParty;
+
+    @Column(name = "profile_picture", columnDefinition = "TEXT")
+    private String profilePicture; // encoded image or URL
+
     public User() {
     }
 
@@ -95,5 +104,19 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public LocalDateTime getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDateTime birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getFavoriteParty() { return favoriteParty; }
+    public void setFavoriteParty(String favoriteParty) { this.favoriteParty = favoriteParty; }
+
+    public String getProfilePicture() { return profilePicture; }
+    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
 }
 

@@ -1,18 +1,25 @@
 <template>
-  <nav class="navbar">
+  <nav :class="['navbar', { 'menu-open': menuOpen }]">
     <!-- Left side -->
     <div class="navbar-left">
+      <button class="hamburger" @click="toggleMenu">☰</button>
       <router-link to="/" class="brand" aria-label="StemStatistieken">
         <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
         </svg>
         <span>StemStatistieken</span>
       </router-link>
-      <button class="hamburger" @click="toggleMenu">☰</button>
     </div>
 
     <!-- Center -->
     <div :class="['navbar-collapse', { active: menuOpen }]">
+      <!-- Mobile logo inside menu -->
+      <router-link to="/" class="brand-mobile" aria-label="StemStatistieken" @click="closeMenu">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
+        </svg>
+        <span>StemStatistieken</span>
+      </router-link>
       <div class="nav-links">
         <router-link to="/" class="nav-link" @click="closeMenu">Home</router-link>
         <router-link to="/dashboard" class="nav-link" @click="closeMenu">Uitslagen</router-link>
@@ -21,6 +28,15 @@
         <router-link to="/forum" class="nav-link" @click="closeMenu">Forum</router-link>
         <router-link to="/forum2" class="nav-link" @click="closeMenu">Forum 2</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
+        <!-- Profile and Logout only shown in mobile menu -->
+        <router-link v-if="isLoggedIn" to="/profile" class="nav-link nav-link-mobile-only" @click="closeMenu">Profiel</router-link>
+        <button v-if="isLoggedIn" class="nav-link nav-link-button nav-link-mobile-only" @click="logout">Uitloggen</button>
+      </div>
+
+      <!-- Mobile login section -->
+      <div class="nav-register-mobile">
+        <!-- Show login link when not logged in -->
+        <router-link v-if="!isLoggedIn" to="/login" class="nav-link" @click="closeMenu">Login</router-link>
       </div>
 
       <div class="nav-actions">
@@ -42,14 +58,30 @@
           <button @click="performSearch" class="search-btn" aria-label="Zoek">Zoek</button>
         </div>
       </div>
+    </div>
 
+    <!-- Right side (desktop only) -->
+    <div class="navbar-right">
       <div class="nav-register">
-        <!-- Show user icon when logged in -->
+        <!-- Show user icon when logged in (desktop only) -->
         <div v-if="isLoggedIn" class="user-section">
-          <img src="/images/user.png" alt="User" class="user-icon" @click="logout" />
+          <div v-if="profilePicture" class="user-icon-wrapper">
+            <img :src="profilePicture" alt="User" class="user-icon" @click.stop="toggleUserDropdown" />
+          </div>
+          <div v-else class="user-icon-placeholder" @click.stop="toggleUserDropdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <!-- Desktop dropdown -->
+          <div v-if="userDropdownOpen" class="user-dropdown" @click.stop>
+            <button class="dropdown-item" @click="goToProfile">Profiel</button>
+            <button class="dropdown-item" @click="logout">Uitloggen</button>
+          </div>
         </div>
         <!-- Show login link when not logged in -->
-        <router-link v-else to="/login" class="nav-link" @click="closeMenu">Login</router-link>
+        <router-link v-else to="/login" class="nav-link">Login</router-link>
       </div>
     </div>
   </nav>
@@ -62,31 +94,75 @@ import { useRouter } from 'vue-router'
 
 const searchQuery = ref('')
 const menuOpen = ref(false)
+const userDropdownOpen = ref(false)
 const router = useRouter()
 
 const loginTrigger = ref(0)
+const profilePictureTrigger = ref(0)
 
 const isLoggedIn = computed(() => {
   loginTrigger.value // This makes it reactive
   return localStorage.getItem('token') !== null
 })
 
-function logout() {
-  localStorage.removeItem('token')
-  loginTrigger.value++
+const profilePicture = computed(() => {
+  profilePictureTrigger.value // reactive
+  try {
+    const userData = localStorage.getItem('userData')
+    if (userData) {
+      const parsed = JSON.parse(userData)
+      return parsed.profilePicture || null
+    }
+  } catch (e) {
+    console.error('Error parsing userData:', e)
+  }
+  return null
+})
+
+function toggleUserDropdown() {
+  userDropdownOpen.value = !userDropdownOpen.value
 }
 
+function goToProfile() {
+  userDropdownOpen.value = false
+  menuOpen.value = false
+  router.push('/profile')
+}
+
+function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userId')
+  loginTrigger.value++
+  userDropdownOpen.value = false
+  menuOpen.value = false
+  router.push('/')
+}
 
 function handleLoginStateChange() {
   loginTrigger.value++
+  profilePictureTrigger.value++
+}
+
+function handleProfileUpdate() {
+  profilePictureTrigger.value++
+}
+
+function handleClickOutside(event) {
+  if (!event.target.closest('.user-section')) {
+    userDropdownOpen.value = false
+  }
 }
 
 onMounted(() => {
   window.addEventListener('loginStateChanged', handleLoginStateChange)
+  window.addEventListener('profileUpdated', handleProfileUpdate)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('loginStateChanged', handleLoginStateChange)
+  window.removeEventListener('profileUpdated', handleProfileUpdate)
+  document.removeEventListener('click', handleClickOutside)
 })
 
 function toggleMenu() {
@@ -131,9 +207,18 @@ function performSearch() {
   z-index: 1000;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: visible;
+  min-height: 64px;
 }
 
-
+/* Left side */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1001;
+}
 
 /* Brand */
 .brand {
@@ -146,15 +231,37 @@ function performSearch() {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .brand:hover {
   color: #3b82f6;
 }
+
 /* Brand icon (same as login page) */
 .brand-icon {
   width: 22px;
   height: 22px;
+}
+
+/* Mobile brand inside menu */
+.brand-mobile {
+  display: none;
+  font-weight: 700;
+  font-size: 1.3em;
+  text-decoration: none;
+  color: #ffffff;
+  padding: 20px 24px;
+  transition: color 0.2s;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.brand-mobile:hover {
+  color: #3b82f6;
 }
 
 /* Hamburger button */
@@ -166,6 +273,9 @@ function performSearch() {
   cursor: pointer;
   color: #ffffff;
   padding: 18px 24px;
+  position: relative;
+  z-index: 1002;
+  flex-shrink: 0;
 }
 
 /* Collapsible menu */
@@ -175,7 +285,7 @@ function performSearch() {
   align-items: center;
   flex: 1;
   transition: max-height 0.4s ease, opacity 0.4s ease;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .navbar-collapse.active {
@@ -209,10 +319,42 @@ function performSearch() {
   color: #ffffff;
   border-bottom-color: #3b82f6;
 }
+
+/* Hide profile and logout links on desktop - they're in the dropdown */
+.nav-link-mobile-only {
+  display: none;
+}
+
+/* Right side (desktop) */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1001;
+}
+
 .nav-register {
   display: flex;
   align-items: center;
   padding: 0 24px;
+  overflow: visible;
+  position: relative;
+}
+
+.nav-register-mobile {
+  display: none;
+}
+
+.user-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+  z-index: 10001;
+}
+
+.user-icon-wrapper {
+  display: block;
 }
 
 .user-icon {
@@ -223,10 +365,66 @@ function performSearch() {
   transition: opacity 0.2s;
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
 }
 
 .user-icon:hover {
   opacity: 0.8;
+}
+
+.user-icon-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: opacity 0.2s;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.user-icon-placeholder:hover {
+  opacity: 0.8;
+}
+
+.user-icon-placeholder svg {
+  width: 18px;
+  height: 18px;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 140px;
+  z-index: 10000;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Nunito', sans-serif;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-actions {
@@ -317,6 +515,11 @@ function performSearch() {
     flex-wrap: wrap;
   }
 
+  .navbar-left {
+    width: auto;
+    flex-shrink: 0;
+  }
+
   .navbar-collapse {
     display: none;
     flex-direction: column;
@@ -326,9 +529,35 @@ function performSearch() {
     opacity: 0;
     max-height: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
   }
 
   .navbar-collapse.active {
+    display: flex;
+    opacity: 1;
+    max-height: 2000px;
+    overflow-y: auto;
+  }
+
+  .navbar.menu-open .navbar-left .brand {
+    display: none;
+  }
+
+  .navbar.menu-open .navbar-left {
+    justify-content: flex-start;
+    width: auto;
+    position: relative;
+    z-index: 1001;
+  }
+
+  .navbar.menu-open .hamburger {
+    display: block !important;
+    position: relative;
+    z-index: 1002;
+  }
+
+  .brand-mobile {
     display: flex;
   }
 
@@ -345,8 +574,31 @@ function performSearch() {
     border-left: 3px solid transparent;
   }
 
+  /* Show profile and logout links on mobile */
+  .nav-link-mobile-only {
+    display: block;
+  }
+
+  .nav-link-button {
+    width: 100%;
+    padding: 16px 24px;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    background: transparent;
+    border-right: none;
+    border-top: none;
+    text-align: left;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
   .nav-link:hover,
-  .nav-link.router-link-active {
+  .nav-link.router-link-active,
+  .nav-link-button:hover {
     background: rgba(255, 255, 255, 0.06);
     border-left-color: #3b82f6;
     color: #ffffff;
@@ -356,16 +608,38 @@ function performSearch() {
     width: 100%;
     padding: 16px 24px;
     justify-content: stretch;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .search-wrapper {
     width: 100%;
   }
 
-  .nav-register {
+  .navbar-right {
+    display: none; /* Hide desktop right section on mobile */
+  }
+
+  .nav-register-mobile {
     width: 100%;
     padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-register-mobile .nav-link {
+    width: auto;
+    padding: 0;
+    border-left: none;
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .nav-register-mobile .nav-link:hover {
+    color: #e2e8f0;
   }
 }
 
