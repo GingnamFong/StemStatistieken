@@ -29,14 +29,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { defineEmits } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { defineEmits, defineProps } from 'vue'
 import NederlandMap2021 from '@/assets/Nederland_gemeente_2021.svg'
 import { API_BASE_URL } from '@/config/api'
 
 const container = ref(null)
 const emit = defineEmits(['municipalitySelected'])
-defineProps({ year: Number })
+const props = defineProps({
+  year: {
+    type: Number,
+    default: 2021
+  }
+})
 let lastHoveredPath = null
 
 const tooltip = ref({
@@ -50,23 +55,32 @@ const tooltip = ref({
 
 const municipalities = ref([])
 
-
-
-onMounted(async () => {
+async function loadMunicipalities() {
   try {
-    const res = await fetch(`${API_BASE_URL}/elections/TK2021/municipalities`)
+    const electionId = `TK${props.year}`
+    const res = await fetch(`${API_BASE_URL}/elections/${electionId}/municipalities`)
     if (!res.ok) throw new Error('Network error')
     municipalities.value = await res.json()
-    console.log('Loaded 2021 municipalities:', municipalities.value)
+    console.log(`Loaded municipalities for ${electionId}:`, municipalities.value.length)
   } catch (err) {
-    console.error('Failed to load 2021 municipalities:', err)
+    console.error('Failed to load municipalities:', err)
   }
-})
+}
+
+onMounted(loadMunicipalities)
+
+// Reload when year changes
+watch(() => props.year, loadMunicipalities)
 
 function getMunicipalityByPathId(pathId) {
   if (!pathId) return null
-  const id = pathId.replace(/^\D+/, '')
-  return municipalities.value.find(m => String(m.id) === String(id)) || null
+  const id = pathId.replace(/^\D+/, '') // remove GM prefix (e.g., GM0363 -> 0363)
+  return municipalities.value.find(m => {
+    const mId = String(m.id)
+    // Match on full ID or on the numeric part after election prefix (e.g., TK2021-0363 -> 0363)
+    const mIdNumeric = mId.includes('-') ? mId.split('-').pop() : mId
+    return mId === id || mIdNumeric === id
+  }) || null
 }
 
 function handleMouseMove(e) {

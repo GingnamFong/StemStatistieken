@@ -72,13 +72,10 @@ public class CandidateController {
             @PathVariable String electionId,
             @PathVariable String candidateId) {
 
+        // Only get from database/cache, don't parse XML
         Election election = electionService.getElectionById(electionId);
         if (election == null) {
-            // Try to load candidate lists if election not in cache
-            election = new Election(electionId);
-            candidateListService.loadCandidateLists(election, electionId);
-            // Election is now cached by loadCandidateLists method
-            // If loading failed, election will still exist but may be empty
+            return ResponseEntity.notFound().build();
         }
 
         Candidate candidate = election.getCandidateById(candidateId);

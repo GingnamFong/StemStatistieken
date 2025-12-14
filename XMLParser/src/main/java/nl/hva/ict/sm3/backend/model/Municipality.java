@@ -1,15 +1,39 @@
 package nl.hva.ict.sm3.backend.model;
 
+import jakarta.persistence.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Entity
+@Table(name = "municipalities")
 public class Municipality {
+    @Id
     private String id;
+    
+    @Column(name = "name")
     private String name;
+    
+    @Column(name = "valid_votes")
     private int validVotes;
+    
+    @ElementCollection
+    @CollectionTable(name = "municipality_party_votes", joinColumns = @JoinColumn(name = "municipality_id"))
+    @MapKeyColumn(name = "party_id")
+    @Column(name = "votes")
     private Map<String, Integer> partyVotes = new HashMap<>();
+    
+    @ElementCollection
+    @CollectionTable(name = "municipality_party_names", joinColumns = @JoinColumn(name = "municipality_id"))
+    @MapKeyColumn(name = "party_id")
+    @Column(name = "party_name")
     private Map<String, String> partyNames = new HashMap<>();
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "municipality_id")
     private List<PollingStation> pollingStations = new ArrayList<>();
+
+    // Default constructor for JPA
+    protected Municipality() {}
 
     /**
         * Constructs a new Municipality.
