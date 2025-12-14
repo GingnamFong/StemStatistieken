@@ -11,6 +11,7 @@ public class Forum2Controller {
     public Forum2Controller(Forum2Repository repository) {
         this.repository = repository;
     }
+}
     /*
     // GET all posts
     @GetMapping
