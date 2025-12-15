@@ -44,43 +44,119 @@ public class PathUtils {
     /**
      * Transforms a {@code resourceName} into an absolute path of that resource. If it does not exist at the expected
      * location it tries to fall back to a folder called {@code data-files} or {@code Downloads}.
+     * Also supports filesystem paths when resources are mounted as volumes.
      * @param resourceName the resource to locate.
      * @return a fully qualified absolute path to the resource.
      */
     public static String getResourcePath(String resourceName) {
+        // Clean the resource name
+        String cleanResourceName = resourceName;
+        while (cleanResourceName.startsWith("/")) {
+            cleanResourceName = cleanResourceName.substring(1);
+        }
+        
         // If it is an absolute directory name, we're done
-        if (Path.of(resourceName).toFile().isDirectory()) {
+        Path testPath = Path.of(resourceName);
+        if (Files.exists(testPath) && Files.isDirectory(testPath)) {
             return resourceName;
         }
+        
+        // Try filesystem path first (for Docker volume mounts)
+        String[] filesystemPaths = {
+            "/app/src/main/resources/" + cleanResourceName,
+            System.getProperty("user.dir") + "/src/main/resources/" + cleanResourceName,
+            "./src/main/resources/" + cleanResourceName
+        };
+        
+        for (String fsPath : filesystemPaths) {
+            Path path = Path.of(fsPath);
+            if (Files.exists(path) && Files.isDirectory(path)) {
+                return fsPath;
+            }
+        }
+        
+        // Try classpath resource
         try {
             URL url = PathUtils.class.getResource(resourceName);
             if (url != null) {
-                return new File(url.toURI()).getPath();
-            }
-
-            // trim leading slashes to resolve relatively
-            while (resourceName.startsWith("/")) resourceName = resourceName.substring(1);
-
-            url = PathUtils.class.getResource("/");
-            URI projectRootURI = url.toURI();
-            String resourceFilePath = null;
-            while (resourceFilePath == null && projectRootURI.getPath().length() > 15) {
-                projectRootURI = projectRootURI.resolve("..");
-                // try to find the resource in a data files folder up the project/file system tree
-                resourceFilePath = new File(projectRootURI.resolve("data-files/").resolve(resourceName)).getPath();
-                if (!Files.exists(Path.of(resourceFilePath))) {
-                    resourceFilePath = new File(projectRootURI.resolve("Downloads/").resolve(resourceName)).getPath();
-                }
-                if (!Files.exists(Path.of(resourceFilePath))) {
-                    resourceFilePath = null;
+                try {
+                    return new File(url.toURI()).getPath();
+                } catch (IllegalArgumentException e) {
+                    // Handle jar: URLs - extract the path part
+                    String urlString = url.toString();
+                    if (urlString.startsWith("jar:")) {
+                        // For jar resources, try to extract path or use alternative
+                        // For now, fall through to filesystem search
+                    } else {
+                        throw e;
+                    }
                 }
             }
 
-            return resourceFilePath;
-
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            // Try to find via classpath root
+            URL rootUrl = PathUtils.class.getResource("/");
+            if (rootUrl != null) {
+                try {
+                    URI projectRootURI = rootUrl.toURI();
+                    String rootPath = projectRootURI.getPath();
+                    
+                    // Handle jar:file: URIs
+                    if (rootPath == null && rootUrl.toString().startsWith("jar:")) {
+                        // Extract path from jar URL: jar:file:/path/to.jar!/ 
+                        String jarUrl = rootUrl.toString();
+                        int exclMark = jarUrl.indexOf('!');
+                        if (exclMark > 0) {
+                            String jarPath = jarUrl.substring(4, exclMark); // Remove "jar:" prefix
+                            // For jar resources, try filesystem fallback
+                            rootPath = new File(jarPath).getParent();
+                        }
+                    }
+                    
+                    if (rootPath != null) {
+                        String resourceFilePath = new File(rootPath, cleanResourceName).getPath();
+                        if (Files.exists(Path.of(resourceFilePath)) && Files.isDirectory(Path.of(resourceFilePath))) {
+                            return resourceFilePath;
+                        }
+                    }
+                    
+                    // Try walking up the directory tree
+                    String resourceFilePath = null;
+                    int attempts = 0;
+                    while (resourceFilePath == null && rootPath != null && rootPath.length() > 5 && attempts < 10) {
+                        attempts++;
+                        // Try data-files folder
+                        resourceFilePath = new File(rootPath, "data-files/" + cleanResourceName).getPath();
+                        if (!Files.exists(Path.of(resourceFilePath))) {
+                            // Try Downloads folder
+                            resourceFilePath = new File(rootPath, "Downloads/" + cleanResourceName).getPath();
+                        }
+                        if (!Files.exists(Path.of(resourceFilePath))) {
+                            resourceFilePath = null;
+                            // Move up one directory
+                            rootPath = new File(rootPath).getParent();
+                        }
+                    }
+                    
+                    if (resourceFilePath != null) {
+                        return resourceFilePath;
+                    }
+                } catch (URISyntaxException | IllegalArgumentException e) {
+                    // Fall through to return null
+                }
+            }
+            
+        } catch (Exception e) {
+            // Log but don't fail - try filesystem paths instead
+            System.err.println("Warning: Could not resolve resource via classpath: " + resourceName + " - " + e.getMessage());
         }
+        
+        // Last attempt: try direct filesystem path relative to current working directory
+        Path directPath = Path.of(cleanResourceName);
+        if (Files.exists(directPath) && Files.isDirectory(directPath)) {
+            return directPath.toAbsolutePath().toString();
+        }
+
+        return null;
     }
 
 }

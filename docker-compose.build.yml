@@ -24,10 +24,16 @@ services:
     restart: unless-stopped
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+    volumes:
+      - ./XMLParser/src/main/resources:/app/src/main/resources:ro
+      - backend-db-data:/app
     networks:
       - hva-network
 
 networks:
   hva-network:
     driver: bridge
+
+volumes:
+  backend-db-data:
 
