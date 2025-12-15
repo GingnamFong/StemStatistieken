@@ -82,12 +82,14 @@ public class ForumQuestionController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-
+/*
         if (question.getPost() == null
                 || question.getPost().getAuthor() == null
                 || !question.getPost().getAuthor().getId().equals(user.getId())) {
             return ResponseEntity.status(403).build();
         }
+
+ */
 
         forumQuestionRepository.delete(question);
         return ResponseEntity.noContent().build();
