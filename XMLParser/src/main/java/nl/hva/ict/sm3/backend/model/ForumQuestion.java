@@ -20,8 +20,9 @@ public class ForumQuestion {
     @Column(nullable = false, length = 10000)
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "question_id", nullable = false)
+    // Parent question (null for top-level questions, non-null for comments)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "question_id", nullable = true)
     @JsonIgnore // avoids JSON recursion
     private ForumQuestion question;
 

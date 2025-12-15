@@ -28,19 +28,19 @@ public class ForumQuestionController {
     }
 
     @GetMapping("/{questionId}/questions")
-    public ResponseEntity<List<ForumQuestion>> getForumQuestions(@PathVariable("questionId") String questionId) {
-        if (!forumQuestionRepository.existsById(Long.valueOf(questionId))) {
+    public ResponseEntity<List<ForumQuestion>> getForumQuestions(@PathVariable("questionId") Long questionId) {
+        if (!forumQuestionRepository.existsById(questionId)) {
             return ResponseEntity.notFound().build();
         }
-        List<ForumQuestion> questions = forumQuestionRepository.findAllByOrderByCreatedAtAsc(questionId);
+        List<ForumQuestion> questions = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
         return ResponseEntity.ok(questions);
     }
 
     @PostMapping("/{questionId}/questions")
     public ResponseEntity<ForumQuestion> addQuestion(@PathVariable Long questionId,
                                                      @Valid @RequestBody ForumQuestionDto dto) {
-        ForumQuestion forumQuestion = forumQuestionRepository.findById(questionId).orElse(null);
-        if (forumQuestion == null) {
+        ForumQuestion parentQuestion = forumQuestionRepository.findById(questionId).orElse(null);
+        if (parentQuestion == null) {
             return ResponseEntity.notFound().build();
         }
 
@@ -57,10 +57,11 @@ public class ForumQuestionController {
 
         ForumQuestion question = new ForumQuestion();
         question.setBody(dto.getBody());
-        question.setQuestion(question);
+        // link this new question as a comment to the parent question
+        question.setQuestion(parentQuestion);
         question.setAuthor(user);
 
-        ForumQuestion saved =  forumQuestionRepository.save(question);
+        ForumQuestion saved = forumQuestionRepository.save(question);
         return ResponseEntity.status(201).body(saved);
     }
     @DeleteMapping("/questions/{questionId}")

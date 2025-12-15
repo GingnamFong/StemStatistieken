@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Long> {
-    List<ForumQuestion> findAllByOrderByCreatedAtAsc(String questionId);
+    // All comments (child questions) for a given parent question, ordered by creation time
+    List<ForumQuestion> findByQuestionIdOrderByCreatedAtAsc(Long questionId);
 
     List<ForumQuestion> findByAuthorIdOrderByCreatedAtAsc(Long authorId);
 
