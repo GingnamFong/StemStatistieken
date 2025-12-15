@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Long> {
-    List<ForumQuestion> findAllByOrderByCreatedAtAsc();
+    List<ForumQuestion> findAllByOrderByCreatedAtAsc(String questionId);
 
     List<ForumQuestion> findByAuthorIdOrderByCreatedAtAsc(Long authorId);
 

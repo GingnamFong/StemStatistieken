@@ -65,5 +65,10 @@ public class ForumQuestion {
     }
 
 
+    public void setQuestion(ForumQuestion question) {
+    }
 
+    public ForumQuestion getPost() {
+        return null;
+    }
 }
