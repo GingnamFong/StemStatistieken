@@ -145,7 +145,8 @@ public class ForumCommentController {
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
 
-        Optional<ForumComment> commentOpt = forumCommentRepository.findById(commentId);
+        Optional<ForumComment> commentOpt =
+                forumCommentRepository.findByIdWithPostAuthor(commentId);
         if (commentOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
