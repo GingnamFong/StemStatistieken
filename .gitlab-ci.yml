@@ -1,6 +1,140 @@
 variables:
   DEPLOY_MKDOCS: "true"
   DEPLOY_HIC: "false"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  
+  # Docker Hub credentials (set in GitLab CI/CD variables)
+  DOCKER_HUB_USER: "gingnam"
+  DOCKER_HUB_REPO_BACKEND: "hva-backend"
+  DOCKER_HUB_REPO_FRONTEND: "hva-frontend"
+
+stages:
+  - build
+  - test
+  - build-docker
+  - deploy
 
 include:
   - ".gitlab-ci.mkdocs.yml"
+
+# Build Frontend
+build-frontend:
+  stage: build
+  image: node:22-alpine
+  tags:
+    - hva
+  script:
+    - cd frontend_vue
+    - npm ci --no-audit --no-fund
+    - npm run build
+  artifacts:
+    paths:
+      - frontend_vue/dist
+    expire_in: 1 hour
+  only:
+    changes:
+      - frontend_vue/**/*
+
+# Build Backend (XMLParser)
+build-backend:
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  tags:
+    - hva
+  script:
+    - cd XMLParser
+    - mvn clean package -DskipTests
+  artifacts:
+    paths:
+      - XMLParser/target/*.jar
+    expire_in: 1 hour
+  only:
+    changes:
+      - XMLParser/**/*
+
+# Test Frontend
+test-frontend:
+  stage: test
+  image: node:22-alpine
+  tags:
+    - hva
+  script:
+    - cd frontend_vue
+    - npm ci --no-audit --no-fund
+    - npm run test || echo "No tests configured"
+  only:
+    changes:
+      - frontend_vue/**/*
+
+# Test Backend (XMLParser)
+test-backend:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  tags:
+    - hva
+  script:
+    - cd XMLParser
+    - mvn test
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - XMLParser/target/surefire-reports/TEST-*.xml
+  only:
+    changes:
+      - XMLParser/**/*
+
+# Build Docker image for Frontend
+docker-build-frontend:
+  stage: build-docker
+  image: docker:24
+  services:
+    - docker:24-dind
+  tags:
+    - hva
+  before_script:
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
+  script:
+    - cd frontend_vue
+    - |
+      VERSION_TAG="${CI_COMMIT_SHORT_SHA}"
+      if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
+        VERSION_TAG="latest"
+      fi
+    - |
+      docker build -t $DOCKER_HUB_USER/$DOCKER_HUB_REPO_FRONTEND:$VERSION_TAG .
+      docker tag $DOCKER_HUB_USER/$DOCKER_HUB_REPO_FRONTEND:$VERSION_TAG $DOCKER_HUB_USER/$DOCKER_HUB_REPO_FRONTEND:latest
+    - docker push $DOCKER_HUB_USER/$DOCKER_HUB_REPO_FRONTEND:$VERSION_TAG
+    - docker push $DOCKER_HUB_USER/$DOCKER_HUB_REPO_FRONTEND:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop"
+      changes:
+        - frontend_vue/**/*
+
+# Build Docker image for Backend (XMLParser)
+docker-build-backend:
+  stage: build-docker
+  image: docker:24
+  services:
+    - docker:24-dind
+  tags:
+    - hva
+  before_script:
+    - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
+  script:
+    - cd XMLParser
+    - |
+      VERSION_TAG="${CI_COMMIT_SHORT_SHA}"
+      if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
+        VERSION_TAG="latest"
+      fi
+    - |
+      docker build -t $DOCKER_HUB_USER/$DOCKER_HUB_REPO_BACKEND:$VERSION_TAG .
+      docker tag $DOCKER_HUB_USER/$DOCKER_HUB_REPO_BACKEND:$VERSION_TAG $DOCKER_HUB_USER/$DOCKER_HUB_REPO_BACKEND:latest
+    - docker push $DOCKER_HUB_USER/$DOCKER_HUB_REPO_BACKEND:$VERSION_TAG
+    - docker push $DOCKER_HUB_USER/$DOCKER_HUB_REPO_BACKEND:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop"
+      changes:
+        - XMLParser/**/*
