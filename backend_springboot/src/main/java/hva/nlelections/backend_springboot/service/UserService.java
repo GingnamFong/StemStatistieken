@@ -66,4 +66,26 @@ public class UserService {
 
         return user;
     }
+
+    @Transactional(readOnly = true)
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    @Transactional
+    public User updateUser(Long id, String firstName, String lastName, java.time.LocalDate birthDate) {
+        User user = getUserById(id);
+        if (firstName != null && !firstName.trim().isEmpty()) {
+            user.setFirstName(firstName.trim());
+        }
+        if (lastName != null) {
+            user.setLastName(lastName.trim().isEmpty() ? null : lastName.trim());
+        }
+        if (birthDate != null) {
+            user.setBirthDate(birthDate);
+        }
+        return userRepository.save(user);
+    }
 }
