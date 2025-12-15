@@ -15,22 +15,20 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, UserRepository userRepository) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Auth endpoints open
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
 
-                        // Alles lezen open (teamgenoot veilig)
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
 
-                        // Jouw write endpoints beveiligd
                         .requestMatchers(HttpMethod.POST, "/api/forum/*/comments").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/forum/comments/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/forum/comments/*/like").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/forum/comments/*/like").authenticated()
 
-                        // Rest open laten zodat je niks per ongeluk breekt
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new SimpleTokenAuthFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
