@@ -13,7 +13,7 @@ const getApiBaseUrl = () => {
   }
 
   // Default to local development
-  return import.meta.env.VITE_API_URL || 'http://localhost:8081'
+  return ''
 }
 
 export const API_BASE_URL = getApiBaseUrl()
