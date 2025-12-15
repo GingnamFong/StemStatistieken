@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend_vue
+      dockerfile: Dockerfile
+    container_name: hva-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    networks:
+      - hva-network
+
+  backend:
+    build:
+      context: ./XMLParser
+      dockerfile: Dockerfile
+    container_name: hva-backend
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - hva-network
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+
+networks:
+  hva-network:
+    driver: bridge
+
+

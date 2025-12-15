@@ -80,7 +80,7 @@ import ProvincieService from '@/services/ProvincieService'
 import ElectionService from '@/services/ElectionService'
 import MunicipalityService from '@/services/MunicipalityService'
 import ConstituencyService from '@/services/ConstituencyService'
-import PollingstationService, {PollingStationService} from '@/services/PollingstationService'
+import PollingStationService from '@/services/PollingStationService'
 import CompareSelectionColumn from '@/components/CompareSelectionColumn.vue'
 import CompareAddColumnCard from '@/components/CompareAddColumnCard.vue'
 import CompareResultsTable from '@/components/CompareResultsTable.vue'
@@ -89,9 +89,9 @@ const loading = ref(false)
 const error = ref(null)
 const showThirdColumn = ref(false)
 const columns = ref([
-  { type: '', year: '', selection: '', data: null },
-  { type: '', year: '', selection: '', data: null },
-  { type: '', year: '', selection: '', data: null }
+  { type: '', year: '', selection: '', municipality: '', data: null },
+  { type: '', year: '', selection: '', municipality: '', data: null },
+  { type: '', year: '', selection: '', municipality: '', data: null }
 ])
 const availableSelections = ref([[], [], []])
 const isLoadingData = ref(false)
@@ -114,6 +114,16 @@ const activeColumns = computed(() => {
 const hasAnyResults = computed(() => {
   return activeColumns.value.length > 0
 })
+function getPollingStationId(sb) {
+  return (
+    sb.id ||
+    sb.reportingUnitIdentifier ||
+    sb.reportingUnitId ||
+    `${sb.municipalityId || sb.municipalityCode || 'mun'}-${
+      (sb.postalCode || '').replace(/\s+/g, '').toUpperCase()
+    }-${sb.name || sb.reportingUnitName || 'SB'}`
+  )
+}
 
 function setLoadingState(type) {
   isLoadingData.value = true
@@ -162,7 +172,7 @@ async function addThirdColumn() {
 
 function removeThirdColumn() {
   showThirdColumn.value = false
-  columns.value[2] = { type: '', year: '', selection: '', data: null }
+  columns.value[2] = { type: '', year: '', selection: '', municipality: '',  data: null }
   availableSelections.value[2] = []
 }
 
@@ -178,6 +188,7 @@ function handleTypeChange(index) {
       columns.value[i].type = newType
       columns.value[i].year = ''
       columns.value[i].selection = ''
+      columns.value[i].municipality = ''
       columns.value[i].data = null
       availableSelections.value[i] = []
     }
@@ -186,12 +197,17 @@ function handleTypeChange(index) {
   // Reset current column
   columns.value[index].year = ''
   columns.value[index].selection = ''
+  columns.value[index].municipality = ''
   columns.value[index].data = null
   availableSelections.value[index] = []
 }
 
+
+
 async function handleYearChange(index, year) {
+  // reset selectie voor deze kolom
   columns.value[index].selection = ''
+  columns.value[index].municipality = ''
   columns.value[index].data = null
 
   const type = columns.value[index].type
@@ -207,19 +223,53 @@ async function handleYearChange(index, year) {
       const electionId = `TK${year}`
       const provincies = await ProvincieService.getAllProvincies(electionId)
       availableSelections.value[index] = provincies
+
     } else if (type === 'gemeente') {
       const gemeentes = await MunicipalityService.getMunicipalities(`TK${year}`)
       availableSelections.value[index] = gemeentes
+
     } else if (type === 'kieskring') {
       const kieskringen = await ConstituencyService.getConstituencies(`TK${year}`)
       availableSelections.value[index] = kieskringen
+
     } else if (type === 'stembureau') {
-      // Load ALL polling stations and extract unique postal codes
+      // 1) Haal ALLE stembureaus op voor dit jaar
       const all = await PollingStationService.getAll(`TK${year}`)
 
-      const postcodes = [...new Set(all.map(sb => sb.postalCode))]
+      // 2) Groepeer per gemeente
+      const perGemeente = {}
 
-      availableSelections.value[index] = postcodes.map(pc => ({ id: pc, name: pc }))
+      for (const sb of all) {
+        // probeer een bruikbaar gemeente-id te vinden
+        const munId = sb.municipalityId || sb.municipalityCode || sb.municipalityName
+        if (!munId) continue
+
+        if (!perGemeente[munId]) {
+          perGemeente[munId] = {
+            id: munId,
+            name: sb.municipalityName || `Gemeente ${munId}`,
+            pollingStations: []
+          }
+        }
+
+        // Maak een nette label voor het stembureau
+        const postal = (sb.postalCode || '').replace(/\s+/g, ' ').trim()
+        const name =
+          sb.name ||
+          sb.reportingUnitName ||
+          sb.reportingUnitIdentifierText ||
+          'Stembureau'
+
+        perGemeente[munId].pollingStations.push({
+          id: sb.id || sb.reportingUnitIdentifier || sb.reportingUnitId || `${munId}-${postal}-${name}`,
+          label: postal ? `${postal} – ${name}` : name,
+          postalCode: postal,
+          name
+        })
+      }
+
+      // 3) Stop de gemeenten + hun stembureaus in availableSelections
+      availableSelections.value[index] = Object.values(perGemeente)
     }
 
   } catch (error) {
@@ -229,6 +279,7 @@ async function handleYearChange(index, year) {
     isLoadingData.value = false
   }
 }
+
 
 async function loadColumnData(index) {
   const col = columns.value[index]
@@ -259,7 +310,9 @@ async function loadColumnData(index) {
 
     } else if (col.type === 'kieskring') {
       const allConstituencies = await ConstituencyService.getConstituencies(`TK${col.year}`)
-      const constituency = allConstituencies.find(c => c.id === col.selection || c.name === col.selection)
+      const constituency = allConstituencies.find(
+        c => c.id === col.selection || c.name === col.selection
+      )
 
       if (!constituency) {
         col.data = null
@@ -273,11 +326,12 @@ async function loadColumnData(index) {
           }
         }
 
-        // Bereken totaal stemmen: gebruik totalVotes als beschikbaar, anders tel alle partijstemmen op
         let totaalStemmen = constituency.totalVotes || 0
         if (totaalStemmen === 0) {
-          // Fallback: tel alle partijstemmen op
-          totaalStemmen = Object.values(partijTotaal).reduce((sum, votes) => sum + votes, 0)
+          totaalStemmen = Object.values(partijTotaal).reduce(
+            (sum, votes) => sum + votes,
+            0
+          )
         }
 
         const partijen = Object.entries(partijTotaal).map(([naam, stemmen]) => ({
@@ -291,16 +345,38 @@ async function loadColumnData(index) {
           partijen
         }
       }
+
     } else if (col.type === 'stembureau') {
-      const data = await PollingstationService.getByPostalCode(`TK${col.year}`, col.selection)
+      // We hebben nu een stembureau-ID in col.selection
+      const all = await PollingStationService.getAll(`TK${col.year}`)
+
+      const station = all.find(
+        sb => getPollingStationId(sb) === col.selection
+      )
+
+      if (!station) {
+        col.data = null
+        return
+      }
+
+      const totaalStemmen = station.validVotes || 0
+      const partijen = (station.allParties || []).map(p => ({
+        naam: p.name,
+        stemmen: p.votes,
+        percentage: totaalStemmen > 0 ? ((p.votes / totaalStemmen) * 100).toFixed(1) : '0.0'
+      }))
 
       col.data = {
-        totaalStemmen: data.validVotes || 0,
-        partijen: (data.allParties || []).map(p => ({
-          naam: p.name,
-          stemmen: p.votes,
-          percentage: data.validVotes > 0 ? ((p.votes / data.validVotes) * 100).toFixed(1) : '0.0'
-        }))
+        // extra info voor je tabel
+        gemeente: station.municipalityName || station.municipality || null,
+        postcode: (station.postalCode || '').replace(/\s+/g, ' ').trim(),
+        stembureauNaam:
+          station.name ||
+          station.reportingUnitName ||
+          station.reportingUnitIdentifierText ||
+          'Stembureau',
+        totaalStemmen,
+        partijen
       }
     }
 
@@ -322,7 +398,7 @@ function resetAll() {
   showThirdColumn.value = false
   // Reset all columns and selections
   for (let i = 0; i < 3; i++) {
-    columns.value[i] = { type: '', year: '', selection: '', data: null }
+    columns.value[i] = { type: '', year: '', selection: '',municipality: '', data: null }
     availableSelections.value[i] = []
   }
 }
