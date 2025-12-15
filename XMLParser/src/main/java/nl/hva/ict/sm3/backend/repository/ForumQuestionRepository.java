@@ -9,14 +9,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Long> {
-    List<ForumQuestion> findByQuestionIdOrderByCreatedAtAsc(Long questionId);
+    List<ForumQuestion> findAllByOrderByCreatedAtAsc();
+
+    List<ForumQuestion> findByAuthorIdOrderByCreatedAtAsc(Long authorId);
+
     @Query("""
-        select c from ForumQuestion c
-        join fetch c.question p
-        join fetch p.author
-        where c.id = :questionId
-    """)
-    Optional<ForumQuestion> findByIdWithQuestionAuthor(@Param("questionId") Long questionId);
+    select q from ForumQuestion q
+    join fetch q.author
+    where q.id = :questionId
+""")
+    Optional<ForumQuestion> findByIdWithAuthor(@Param("questionId") Long Id);
 
 
 }
