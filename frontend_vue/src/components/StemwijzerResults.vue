@@ -1,5 +1,6 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { API_BASE_URL } from '@/config/api'
 
 const props = defineProps({
   matchScores: {
@@ -11,6 +12,59 @@ const props = defineProps({
 const emit = defineEmits(['reset'])
 
 const topMatch = computed(() => props.matchScores[0])
+const isLoggedIn = computed(() => localStorage.getItem('token') !== null)
+const isSaving = ref(false)
+const saveMessage = ref('')
+
+async function saveFavoriteParty() {
+  if (!topMatch.value || !isLoggedIn.value) {
+    return
+  }
+
+  isSaving.value = true
+  saveMessage.value = ''
+
+  try {
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      saveMessage.value = 'Gebruiker niet gevonden'
+      return
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/stemwijzer/favorite-party/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        partyId: topMatch.value.party.id
+      })
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Server error:', response.status, errorText)
+      throw new Error(`Server error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    saveMessage.value = 'Favoriete partij opgeslagen!'
+
+    // Update localStorage userData
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}')
+    userData.favoriteParty = topMatch.value.party.id
+    localStorage.setItem('userData', JSON.stringify(userData))
+  } catch (err) {
+    if (err.message && err.message.includes('Failed to fetch')) {
+      saveMessage.value = 'Kan geen verbinding maken met de server'
+    } else {
+      saveMessage.value = 'Fout bij opslaan: ' + (err.message || 'Onbekende fout')
+    }
+    console.error('Error saving favorite party:', err)
+  } finally {
+    isSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -35,6 +89,26 @@ const topMatch = computed(() => props.matchScores[0])
               backgroundColor: topMatch.party.color
             }"
           ></div>
+        </div>
+        <div class="top-match-actions">
+          <div v-if="isLoggedIn">
+            <button
+              @click="saveFavoriteParty"
+              class="btn-favorite"
+              :disabled="isSaving"
+            >
+              <span v-if="!isSaving">⭐ Als favoriet instellen</span>
+              <span v-else>Opslaan...</span>
+            </button>
+            <p v-if="saveMessage" class="save-message" :class="{ success: saveMessage.includes('opgeslagen') }">
+              {{ saveMessage }}
+            </p>
+          </div>
+          <div v-else class="login-prompt">
+            <p class="login-prompt-text">
+              <router-link to="/login" class="login-link">Log in</router-link> om deze partij toe te voegen als uw favoriete partij
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -160,6 +234,79 @@ const topMatch = computed(() => props.matchScores[0])
   height: 100%;
   border-radius: 6px;
   transition: width 0.8s ease;
+}
+
+.top-match-actions {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-favorite {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid #3b82f6;
+  background: white;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Nunito', sans-serif;
+}
+
+.btn-favorite:hover:not(:disabled) {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-favorite:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.save-message {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0;
+  text-align: center;
+}
+
+.save-message.success {
+  color: #059669;
+}
+
+.login-prompt {
+  text-align: center;
+}
+
+.login-prompt-text {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.login-link {
+  color: #3b82f6;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.login-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .results-list {
