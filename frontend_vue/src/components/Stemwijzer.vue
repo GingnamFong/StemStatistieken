@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, defineOptions } from 'vue'
-import { API_BASE_URL } from '@/config/api'
+import StemwijzerService from '@/services/StemwijzerService.js'
 import StemwijzerProgress from './StemwijzerProgress.vue'
 import StemwijzerQuestion from './StemwijzerQuestion.vue'
 import StemwijzerResults from './StemwijzerResults.vue'
@@ -88,26 +88,7 @@ async function calculateMatches() {
   error.value = null
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/stemwijzer/calculate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(answers.value)
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      const errorMessage = errorData.message || errorData.error || 'Failed to calculate matches'
-      throw new Error(errorMessage)
-    }
-
-    const results = await response.json()
-
-    // Check if response is an error object
-    if (results.error) {
-      throw new Error(results.message || results.error)
-    }
+    const results = await StemwijzerService.calculateMatches(answers.value)
 
     matchScores.value = results.map(result => ({
       party: {
