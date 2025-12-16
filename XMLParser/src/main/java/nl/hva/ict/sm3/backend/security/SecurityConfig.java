@@ -48,12 +48,15 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, UserRepository userRepository) throws Exception {
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+                // Disable CSRF for all endpoints (stateless REST API)
+                .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Configure endpoint access rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/h2-console/**").permitAll()
+                        // Allow OPTIONS requests for CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
 
@@ -61,6 +64,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
 
                         // Protected forum write actions
+                        .requestMatchers(HttpMethod.POST, "/api/forum/questions").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/forum/*/questions").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/forum/questions/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/forum/*/comments").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/forum/comments/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/forum/comments/*/like").authenticated()

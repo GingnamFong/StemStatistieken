@@ -497,7 +497,18 @@ async function loadPosts() {
   error.value = ''
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE_URL}/api/forum`)
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('authToken')
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+
+    const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
+      headers
+    })
     if (!res.ok) {
       throw new Error('Kon forumberichten niet laden.')
     }
@@ -506,11 +517,11 @@ async function loadPosts() {
     if (data && data.length > 0) {
       posts.value = data.map(p => ({
         id: p.id,
-        title: p.question,
-        content: p.answer,
-        author: 'Anoniem',
+        title: p.body, // ForumQuestion uses 'body' field
+        content: '', // ForumQuestion doesn't have separate title/content
+        author: p.author?.name || 'Anoniem',
         score: 0,
-        comments: 0,
+        comments: p.comments?.length || 0,
         createdAt: p.createdAt ? new Date(p.createdAt) : new Date()
       }))
     }
@@ -573,12 +584,30 @@ async function submitPost() {
   }
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE_URL}/api/forum`, {
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('authToken')
+    if (!token) {
+      error.value = 'Je moet ingelogd zijn om een post te plaatsen.'
+      loading.value = false
+      return
+    }
+
+    // Combine title and content into body (ForumQuestion uses single 'body' field)
+    const bodyText = newPostTitle.value.trim() + '\n\n' + newPostContent.value.trim()
+
+    const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: newPostTitle.value, answer: newPostContent.value })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ body: bodyText })
     })
+    
     if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('Je moet ingelogd zijn om een post te plaatsen.')
+      }
       throw new Error('Fout bij opslaan in de server.')
     }
     await loadPosts()
