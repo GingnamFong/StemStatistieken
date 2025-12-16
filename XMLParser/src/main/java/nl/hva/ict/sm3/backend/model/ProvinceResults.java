@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Geaggregeerde resultaten voor een provincie: totaalstemmen en partijen met percentage.
+ * Aggregated results for a province: total votes and parties with percentage.
  */
 public class ProvinceResults {
     private final int totalVotes;
@@ -22,12 +22,12 @@ public class ProvinceResults {
     }
 
     public int getTotalVotes() {
-        // Geeft totaal aantal stemmen in de provincie
+        // Returns total number of votes in the province
         return totalVotes;
     }
 
     public List<PartyResult> getParties() {
-        // Geeft de partijresultaten (naam, stemmen, percentage)
+        // Returns party results (name, votes, percentage)
         return new ArrayList<>(parties);
     }
 
@@ -46,22 +46,22 @@ public class ProvinceResults {
         }
 
         public String getName() {
-            // Partijnaam
+            // Party name
             return name;
         }
 
         public int getVotes() {
-            // Aantal stemmen voor deze partij
+            // Number of votes for this party
             return votes;
         }
 
         public double getPercentage() {
-            // Percentage van totaalstemmen
+            // Percentage of total votes
             return percentage;
         }
 
         public String getPercentageFormatted() {
-            // Percentage als tekst (bijv. 12,3)
+            // Percentage as text (e.g., 12.3)
             return String.format("%.1f", percentage);
         }
     }
