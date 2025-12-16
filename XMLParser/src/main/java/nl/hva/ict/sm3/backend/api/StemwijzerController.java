@@ -32,15 +32,27 @@ public class StemwijzerController {
      * @return list of match results
      */
     @PostMapping("/calculate")
-    public ResponseEntity<List<Map<String, Object>>> calculateMatches(
+    public ResponseEntity<?> calculateMatches(
             @RequestBody Map<Integer, String> answers) {
         
         if (answers == null || answers.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of("error", "Answers cannot be empty"));
         }
 
-        List<Map<String, Object>> results = stemwijzerService.calculateMatches(answers);
-        return ResponseEntity.ok(results);
+        try {
+            List<Map<String, Object>> results = stemwijzerService.calculateMatches(answers);
+            return ResponseEntity.ok(results);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "TK2025 election data not available",
+                    "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", "Failed to calculate matches",
+                    "message", e.getMessage()
+            ));
+        }
     }
 
     /**
