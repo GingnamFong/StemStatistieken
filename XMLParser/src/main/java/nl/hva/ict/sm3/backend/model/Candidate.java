@@ -8,9 +8,17 @@ import jakarta.persistence.*;
  * A candidate is associated with a political party and contains personal information
  * such as name, initials, residence, and vote count. The candidate identifier
  * represents their position on the party's candidate list.
+ * 
+ * <p>Performance optimizations:
+ * <ul>
+ *   <li>Caching - Entity is cached at the second level to reduce database queries</li>
+ * </ul>
+ * </p>
  */
 @Entity
 @Table(name = "candidates")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
 public class Candidate {
     @Id
     private String id;
