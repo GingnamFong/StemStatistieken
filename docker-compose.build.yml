@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend_vue
+      dockerfile: Dockerfile
+    container_name: hva-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      - VITE_API_BASE_URL=http://13.48.214.231:8081
+    networks:
+      - hva-network
+
+  backend:
+    build:
+      context: ./XMLParser
+      dockerfile: Dockerfile
+    container_name: hva-backend
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+    volumes:
+      - ./XMLParser/src/main/resources:/app/src/main/resources:ro
+      - backend-db-data:/app
+    networks:
+      - hva-network
+
+networks:
+  hva-network:
+    driver: bridge
+
+volumes:
+  backend-db-data:
+
