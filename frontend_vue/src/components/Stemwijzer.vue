@@ -97,10 +97,18 @@ async function calculateMatches() {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to calculate matches')
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.message || errorData.error || 'Failed to calculate matches'
+      throw new Error(errorMessage)
     }
 
     const results = await response.json()
+
+    // Check if response is an error object
+    if (results.error) {
+      throw new Error(results.message || results.error)
+    }
+
     matchScores.value = results.map(result => ({
       party: {
         id: result.partyId,
@@ -113,7 +121,7 @@ async function calculateMatches() {
 
     showResults.value = true
   } catch (err) {
-    error.value = err.message
+    error.value = err.message || 'Er is een fout opgetreden bij het berekenen van de resultaten'
     console.error('Error calculating matches:', err)
   } finally {
     isLoading.value = false
@@ -146,7 +154,7 @@ function reset() {
     <div class="stemwijzer-container">
       <div class="stemwijzer-header">
         <div class="header-icon">🗳️</div>
-        <h2 class="section-title">Stemwijzer</h2>
+        <h2 class="section-title">Stemwijzer 2025</h2>
         <p class="section-subtitle">
           Ontdek welke partij het beste bij jou past door 10 stellingen te beantwoorden
         </p>
