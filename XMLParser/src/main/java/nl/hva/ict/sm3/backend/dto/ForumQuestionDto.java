@@ -79,12 +79,20 @@ public class ForumQuestionDto {
 
         // Convert author - only safe fields, no password
         if (question.getAuthor() != null) {
+            String name = question.getAuthor().getName() != null ? question.getAuthor().getName() : "Anoniem";
+            String lastName = question.getAuthor().getLastName() != null ? question.getAuthor().getLastName() : "";
+            String email = question.getAuthor().getEmail() != null ? question.getAuthor().getEmail() : "";
+            Long id = question.getAuthor().getId() != null ? question.getAuthor().getId() : 0L;
+            
             dto.setAuthor(new AuthorDto(
-                question.getAuthor().getId(),
-                question.getAuthor().getName(),
-                question.getAuthor().getLastName(),
-                question.getAuthor().getEmail()
+                id,
+                name,
+                lastName,
+                email
             ));
+        } else {
+            // Set a default author if null
+            dto.setAuthor(new AuthorDto(0L, "Anoniem", "", ""));
         }
 
         // Convert comments recursively

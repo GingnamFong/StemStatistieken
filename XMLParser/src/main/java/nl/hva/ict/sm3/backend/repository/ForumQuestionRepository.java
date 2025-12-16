@@ -23,8 +23,10 @@ public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Lo
 
     // Find all top-level questions (posts without a parent question)
     @Query("""
-    select q from ForumQuestion q
-    join fetch q.author
+    select distinct q from ForumQuestion q
+    left join fetch q.author
+    left join fetch q.comments c
+    left join fetch c.author
     where q.question is null
     order by q.createdAt desc
 """)

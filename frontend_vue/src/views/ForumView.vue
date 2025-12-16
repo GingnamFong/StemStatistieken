@@ -506,17 +506,28 @@ async function loadPosts() {
       headers['Authorization'] = `Bearer ${token}`
     }
 
+    console.log('Fetching forum posts from:', `${API_BASE_URL}/api/forum/questions`)
     const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
       headers
     })
+    
+    console.log('Response status:', res.status)
+    
     if (!res.ok) {
-      throw new Error('Kon forumberichten niet laden.')
+      const errorText = await res.text()
+      console.error('Error response:', errorText)
+      throw new Error(`Kon forumberichten niet laden: ${res.status} ${errorText}`)
     }
+    
     const data = await res.json()
+    console.log('Received data:', data)
+    
     // Replace posts with data from API (even if empty, to clear dummy posts)
     if (data && Array.isArray(data)) {
       if (data.length > 0) {
         posts.value = data.map(p => {
+          console.log('Processing post:', p)
+          
           // Split body into title and content (title is first line, rest is content)
           const bodyParts = p.body ? p.body.split('\n\n') : ['']
           const title = bodyParts[0] || p.body || 'Geen titel'
@@ -536,26 +547,49 @@ async function loadPosts() {
             createdAt = new Date()
           }
           
+          // Handle author - check both possible structures
+          let authorName = 'Anoniem'
+          if (p.author) {
+            if (typeof p.author === 'string') {
+              authorName = p.author
+            } else if (p.author.name) {
+              authorName = p.author.name
+              if (p.author.lastName) {
+                authorName += ' ' + p.author.lastName
+              }
+            } else if (p.author.firstName) {
+              authorName = p.author.firstName
+              if (p.author.lastName) {
+                authorName += ' ' + p.author.lastName
+              }
+            }
+          }
+          
           return {
             id: p.id,
             title: title,
             content: content,
-            author: p.author?.name || 'Anoniem',
+            author: authorName,
             score: 0,
             comments: p.comments?.length || 0,
             createdAt: createdAt,
             userVote: null
           }
         })
+        console.log('Mapped posts:', posts.value)
       } else {
         // No posts from API, clear the list
+        console.log('No posts found in API response')
         posts.value = []
       }
+    } else {
+      console.warn('Unexpected data format:', data)
+      posts.value = []
     }
   } catch (e) {
-    console.error(e)
-    // Keep dummy posts on error, don't show error message
-    // error.value = e.message || 'Er is een fout opgetreden bij het laden van de berichten.'
+    console.error('Error loading posts:', e)
+    error.value = e.message || 'Er is een fout opgetreden bij het laden van de berichten.'
+    // Keep dummy posts on error for now, but show error
   } finally {
     loading.value = false
   }

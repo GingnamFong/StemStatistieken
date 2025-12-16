@@ -31,11 +31,25 @@ public class ForumQuestionController {
     // GET all top-level questions (posts without parent)
     @GetMapping("/questions")
     public ResponseEntity<List<ForumQuestionDto>> getAllTopLevelQuestions() {
-        List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
-        List<ForumQuestionDto> responseDtos = questions.stream()
-            .map(ForumQuestionDto::from)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(responseDtos);
+        try {
+            List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
+            System.out.println("Found " + questions.size() + " top-level questions");
+            
+            List<ForumQuestionDto> responseDtos = questions.stream()
+                .map(question -> {
+                    System.out.println("Processing question ID: " + question.getId() + ", Author: " + 
+                        (question.getAuthor() != null ? question.getAuthor().getName() : "null"));
+                    return ForumQuestionDto.from(question);
+                })
+                .collect(Collectors.toList());
+            
+            System.out.println("Returning " + responseDtos.size() + " DTOs");
+            return ResponseEntity.ok(responseDtos);
+        } catch (Exception e) {
+            System.err.println("Error in getAllTopLevelQuestions: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // GET a specific question with its comments
