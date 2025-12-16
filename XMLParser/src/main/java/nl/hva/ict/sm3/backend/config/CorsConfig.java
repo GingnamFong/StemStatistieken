@@ -24,7 +24,10 @@ public class CorsConfig {
             "http://localhost:5173",
             "http://localhost:5174",
             "http://localhost:3000",
-            "https://hva-frontend.onrender.com"
+            "https://hva-frontend.onrender.com",
+            "http://13.48.214.231",
+            "http://stemstatistieken.me",
+            "https://stemstatistieken.me"
         ));
         
         // Allow all common HTTP methods
