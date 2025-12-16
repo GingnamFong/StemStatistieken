@@ -1,5 +1,8 @@
 package nl.hva.ict.sm3.backend.service;
 
+import nl.hva.ict.sm3.backend.model.Election;
+import nl.hva.ict.sm3.backend.model.National;
+import nl.hva.ict.sm3.backend.model.Party;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -11,30 +14,207 @@ import java.util.stream.Collectors;
 @Service
 public class StemwijzerService {
 
-    // Party information: partyId -> (name, color)
-    private static final Map<String, PartyInfo> PARTIES = createParties();
+    private final DutchElectionService electionService;
+    private static final String ELECTION_ID = "TK2025";
 
-    private static Map<String, PartyInfo> createParties() {
-        Map<String, PartyInfo> parties = new HashMap<>();
-        parties.put("VVD", new PartyInfo("VVD", "#014A7F"));
-        parties.put("D66", new PartyInfo("D66", "#00A1CD"));
-        parties.put("PVV", new PartyInfo("PVV", "#0079D3"));
-        parties.put("CDA", new PartyInfo("CDA", "#009639"));
-        parties.put("SP", new PartyInfo("SP", "#E30613"));
-        parties.put("PvdA", new PartyInfo("PvdA", "#E30613"));
-        parties.put("GL", new PartyInfo("GroenLinks", "#00A651"));
-        parties.put("PvdD", new PartyInfo("Partij voor de Dieren", "#8BC34A"));
-        parties.put("CU", new PartyInfo("ChristenUnie", "#00A1CD"));
-        parties.put("SGP", new PartyInfo("SGP", "#003E7E"));
-        parties.put("DENK", new PartyInfo("DENK", "#FFD700"));
-        parties.put("FVD", new PartyInfo("Forum voor Democratie", "#000000"));
-        parties.put("JA21", new PartyInfo("JA21", "#FF6B00"));
-        parties.put("Volt", new PartyInfo("Volt", "#502379"));
-        parties.put("BBB", new PartyInfo("BoerBurgerBeweging", "#00A651"));
-        parties.put("NSC", new PartyInfo("NSC", "#1E3A8A"));
-        return Collections.unmodifiableMap(parties);
+    // Color mapping: partyId (without election prefix) -> color
+    private static final Map<String, String> PARTY_COLORS = createPartyColors();
+
+    private static Map<String, String> createPartyColors() {
+        Map<String, String> colors = new HashMap<>();
+        colors.put("VVD", "#014A7F");
+        colors.put("D66", "#00A1CD");
+        colors.put("PVV", "#0079D3");
+        colors.put("CDA", "#009639");
+        colors.put("SP", "#E30613");
+        colors.put("PvdA", "#E30613");
+        colors.put("GL", "#00A651");
+        colors.put("PvdD", "#8BC34A");
+        colors.put("CU", "#00A1CD");
+        colors.put("SGP", "#003E7E");
+        colors.put("DENK", "#FFD700");
+        colors.put("FVD", "#000000");
+        colors.put("JA21", "#FF6B00");
+        colors.put("Volt", "#502379");
+        colors.put("BBB", "#00A651");
+        colors.put("NSC", "#1E3A8A");
+        return Collections.unmodifiableMap(colors);
     }
 
+    public StemwijzerService(DutchElectionService electionService) {
+        this.electionService = electionService;
+    }
+
+    /**
+     * Gets party information from XML data (TK2025) combined with hardcoded colors.
+     * Only includes parties that have positions defined in PARTY_POSITIONS.
+     *
+     * @return map of partyId -> (name, color)
+     */
+    private Map<String, PartyInfo> getParties() {
+        Map<String, PartyInfo> parties = new HashMap<>();
+        
+        // Get all party IDs that have positions defined
+        Set<String> knownPartyIds = PARTY_POSITIONS.values().stream()
+                .flatMap(positions -> positions.keySet().stream())
+                .collect(Collectors.toSet());
+        
+        try {
+            Election election = electionService.getElectionById(ELECTION_ID);
+            if (election == null) {
+                throw new IllegalStateException("TK2025 election data niet gevonden. Zorg ervoor dat de verkiezingsdata is geladen in de database.");
+            }
+            
+            // Force initialization of parties collection
+            List<Party> partyList = election.getParties();
+            if (partyList == null || partyList.isEmpty()) {
+                throw new IllegalStateException("Geen partijen gevonden in TK2025 verkiezingsdata. Zorg ervoor dat de verkiezingsdata volledig is geladen.");
+            }
+            
+            // Create a mapping of party names to IDs for better matching
+            // Include actual names from XML
+            Map<String, String> nameToIdMap = new HashMap<>();
+            nameToIdMap.put("VVD", "VVD");
+            nameToIdMap.put("D66", "D66");
+            nameToIdMap.put("D 66", "D66");
+            nameToIdMap.put("PVV", "PVV");
+            nameToIdMap.put("Partij voor de Vrijheid", "PVV");
+            nameToIdMap.put("PVV (Partij voor de Vrijheid)", "PVV");
+            nameToIdMap.put("CDA", "CDA");
+            nameToIdMap.put("SP", "SP");
+            nameToIdMap.put("Socialistische Partij", "SP");
+            nameToIdMap.put("SP (Socialistische Partij)", "SP");
+            nameToIdMap.put("PvdA", "PvdA");
+            nameToIdMap.put("Partij van de Arbeid", "PvdA");
+            nameToIdMap.put("GROENLINKS / Partij van de Arbeid (PvdA)", "PvdA");
+            nameToIdMap.put("GL", "GL");
+            nameToIdMap.put("GroenLinks", "GL");
+            nameToIdMap.put("GROENLINKS", "GL");
+            nameToIdMap.put("PvdD", "PvdD");
+            nameToIdMap.put("Partij voor de Dieren", "PvdD");
+            nameToIdMap.put("CU", "CU");
+            nameToIdMap.put("ChristenUnie", "CU");
+            nameToIdMap.put("SGP", "SGP");
+            nameToIdMap.put("Staatkundig Gereformeerde Partij", "SGP");
+            nameToIdMap.put("Staatkundig Gereformeerde Partij (SGP)", "SGP");
+            nameToIdMap.put("DENK", "DENK");
+            nameToIdMap.put("FVD", "FVD");
+            nameToIdMap.put("Forum voor Democratie", "FVD");
+            nameToIdMap.put("Forum voor Democratie (FVD)", "FVD");
+            nameToIdMap.put("JA21", "JA21");
+            nameToIdMap.put("Volt", "Volt");
+            nameToIdMap.put("BBB", "BBB");
+            nameToIdMap.put("BoerBurgerBeweging", "BBB");
+            nameToIdMap.put("NSC", "NSC");
+            nameToIdMap.put("Nieuw Sociaal Contract", "NSC");
+            nameToIdMap.put("Nieuw Sociaal Contract (NSC)", "NSC");
+            
+            // Get seat allocations - try from map first, then from National records
+            Map<String, Integer> seatAllocations = election.getSeatAllocations();
+            if (seatAllocations == null || seatAllocations.isEmpty()) {
+                // Try to get seats from National records
+                seatAllocations = new HashMap<>();
+                for (National national : election.getNationalVotes()) {
+                    if (national != null && national.getNumberOfSeats() > 0 && national.getPartyId() != null) {
+                        seatAllocations.put(national.getPartyId(), national.getNumberOfSeats());
+                    }
+                }
+            }
+            
+            boolean hasSeatData = !seatAllocations.isEmpty();
+            
+            for (Party party : partyList) {
+                String partyId = party.getId();
+                String partyName = party.getName();
+                
+                if (partyName == null) {
+                    continue;
+                }
+                
+                // Check if party has 1+ seats (if seat data is available)
+                if (hasSeatData) {
+                    int seats = seatAllocations.getOrDefault(partyId, 0);
+                    if (seats < 1) {
+                        continue;
+                    }
+                }
+                // If no seat data available, include all parties (they will be filtered by positions)
+                
+                // Match by name (since IDs are numbers, not letter codes)
+                String matchedId = null;
+                String normalizedName = partyName.trim();
+                
+                // Direct match
+                matchedId = nameToIdMap.get(normalizedName);
+                
+                // Try case-insensitive match
+                if (matchedId == null) {
+                    for (Map.Entry<String, String> entry : nameToIdMap.entrySet()) {
+                        if (normalizedName.equalsIgnoreCase(entry.getKey())) {
+                            matchedId = entry.getValue();
+                            break;
+                        }
+                    }
+                }
+                
+                // Try partial match (contains)
+                if (matchedId == null) {
+                    for (Map.Entry<String, String> entry : nameToIdMap.entrySet()) {
+                        if (normalizedName.contains(entry.getKey()) || entry.getKey().contains(normalizedName)) {
+                            matchedId = entry.getValue();
+                            break;
+                        }
+                    }
+                }
+                
+                // Try matching key parts of the name (case-insensitive)
+                if (matchedId == null) {
+                    String upperName = normalizedName.toUpperCase();
+                    // Check for specific patterns from XML
+                    if (upperName.contains("VVD") && !upperName.contains("PARTIJ")) matchedId = "VVD";
+                    else if (upperName.contains("D66") || upperName.contains("D 66")) matchedId = "D66";
+                    else if (upperName.contains("PVV") || (upperName.contains("PARTIJ") && upperName.contains("VRIJHEID"))) matchedId = "PVV";
+                    else if (upperName.contains("CDA")) matchedId = "CDA";
+                    else if (upperName.contains("SP") && upperName.contains("SOCIALIST")) matchedId = "SP";
+                    else if (upperName.contains("GROENLINKS") && upperName.contains("ARBEID")) matchedId = "PvdA"; // "GROENLINKS / Partij van de Arbeid (PvdA)"
+                    else if (upperName.contains("GROENLINKS") || (upperName.contains("GL") && !upperName.contains("PARTIJ") && !upperName.contains("ARBEID"))) matchedId = "GL";
+                    else if (upperName.contains("PARTIJ") && upperName.contains("DIEREN")) matchedId = "PvdD";
+                    else if (upperName.contains("CHRISTENUNIE") || (upperName.contains("CU") && !upperName.contains("PARTIJ"))) matchedId = "CU";
+                    else if (upperName.contains("STAATKUNDIG") || (upperName.contains("SGP") && !upperName.contains("PARTIJ"))) matchedId = "SGP";
+                    else if (upperName.contains("DENK")) matchedId = "DENK";
+                    else if (upperName.contains("FORUM") || (upperName.contains("FVD") && !upperName.contains("PARTIJ"))) matchedId = "FVD";
+                    else if (upperName.contains("JA21")) matchedId = "JA21";
+                    else if (upperName.contains("VOLT")) matchedId = "Volt";
+                    else if (upperName.contains("BOERBURGER") || upperName.contains("BBB")) matchedId = "BBB";
+                    else if (upperName.contains("NIEUW SOCIAAL") || (upperName.contains("NSC") && !upperName.contains("PARTIJ"))) matchedId = "NSC";
+                }
+                
+                // Only include parties that have positions defined
+                if (matchedId != null && knownPartyIds.contains(matchedId)) {
+                    // Get color from mapping, default to gray if not found
+                    String color = PARTY_COLORS.getOrDefault(matchedId, "#64748b");
+                    parties.put(matchedId, new PartyInfo(partyName, color));
+                }
+            }
+            
+            if (parties.isEmpty()) {
+                // Log available parties for debugging
+                System.err.println("ERROR: No parties matched. Available parties:");
+                for (Party party : partyList) {
+                    int seats = hasSeatData ? election.getSeatsForParty(party.getId()) : -1;
+                    System.err.println("  - " + party.getId() + ": " + party.getName() + (hasSeatData ? " (" + seats + " seats)" : ""));
+                }
+                throw new IllegalStateException("Geen partijen met posities gevonden in TK2025 verkiezingsdata.");
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("Fout bij het laden van TK2025 verkiezingsdata: " + e.getMessage(), e);
+        }
+        
+        return parties;
+    }
+    
     // Party positions per question: questionId -> partyId -> position (eens/oneens)
     private static final Map<Integer, Map<String, String>> PARTY_POSITIONS = createPartyPositions();
 
@@ -129,20 +309,31 @@ public class StemwijzerService {
      *
      * @param answers map of questionId to answer
      * @return list of match results sorted by percentage
+     * @throws IllegalStateException if TK2025 election data is not available
      */
     public List<Map<String, Object>> calculateMatches(Map<Integer, String> answers) {
         if (answers == null || answers.isEmpty()) {
             return new ArrayList<>();
         }
 
+        // Get parties from XML data
+        Map<String, PartyInfo> parties;
+        try {
+            parties = getParties();
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("TK2025 election data not available. Please ensure the election is loaded in the database.", e);
+        }
+        
         // Calculate scores for each party using streams
-        return PARTIES.keySet().stream()
+        // Only process parties that have positions defined
+        return parties.keySet().stream()
                 .map(partyId -> {
                     PartyScore score = calculatePartyScore(partyId, answers);
-                    PartyInfo partyInfo = PARTIES.get(partyId);
+                    PartyInfo partyInfo = parties.get(partyId);
                     
+                    // All parties in the map should have positions, but double-check
                     if (score.totalQuestions == 0) {
-                        return null; // Skip parties with no valid answers
+                        return null;
                     }
                     
                     int matchPercentage = Math.round((float) score.matchingAnswers / score.totalQuestions * 100);
@@ -155,7 +346,7 @@ public class StemwijzerService {
                     
                     return result;
                 })
-                .filter(Objects::nonNull) // Filter out null results
+                .filter(Objects::nonNull)
                 .sorted((a, b) -> {
                     // Sort by match percentage descending, then by party name alphabetically
                     int percentageCompare = Integer.compare(
@@ -200,6 +391,10 @@ public class StemwijzerService {
                 if (partyPosition != null && partyPosition.equals(userAnswer)) {
                     matchingAnswers++;
                 }
+                // If party has no position defined, it doesn't match (counts as 0% for that question)
+            } else {
+                // If question has no positions defined, skip it
+                totalQuestions--;
             }
         }
 
