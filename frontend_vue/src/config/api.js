@@ -13,7 +13,7 @@ const getApiBaseUrl = () => {
   }
 
   // Default to local development
-  return ''
+  return 'http://localhost:8081/api'
 }
 
 export const API_BASE_URL = getApiBaseUrl()
