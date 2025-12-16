@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/forum/**").permitAll()
 
                         // Protected forum write actions
+                        .requestMatchers(HttpMethod.POST, "/api/forum/questions").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/forum/*/comments").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/forum/comments/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/forum/comments/*/like").authenticated()
