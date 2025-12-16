@@ -255,9 +255,9 @@
         <!-- Sidebar -->
         <div class="forum-sidebar">
           <div class="sidebar-card">
-            <h3>Over het forum</h3>
+            <h3>Over r/Forum</h3>
             <p>
-              Stel hier je vragen, deel je standpunten en gedachten of bespreek de verkiezingen en politieke onderwerpen.
+              Stel hier je vragen, deel je standpunten en gedachten of bespreek de verkiezingen en andere politieke onderwerpen.
             </p>
             <div class="sidebar-stats">
               <div class="stat">
@@ -426,7 +426,7 @@ const sortedPosts = computed(() => {
   // Apply author filter
   if (filterAuthor.value.trim()) {
     const authorQuery = filterAuthor.value.toLowerCase().trim()
-    filtered = filtered.filter(post => 
+    filtered = filtered.filter(post =>
       post.author?.toLowerCase().includes(authorQuery)
     )
   }
