@@ -1,26 +1,39 @@
 <!--
-  Component voor interactieve provinciekaart van Nederland.
-  Toont SVG kaart waar gebruikers op provincies kunnen klikken.
-  Laadt en toont verkiezingsresultaten per provincie.
+  Component for interactive province map of the Netherlands.
+  Displays SVG map where users can click on provinces.
+  Loads and displays election results per province.
 -->
 <template>
   <div class="dutch-map-wrapper">
     <div class="map-layout" :class="{ 'no-data-section': !showDataSection }">
-      <!-- Kaart sectie -->
+      <!-- Map section -->
       <div class="map-section">
         <div class="map-container" ref="mapContainer">
           <div ref="svgContainer" v-html="svgContent"></div>
         </div>
       </div>
 
-      <!-- Data sectie naast de kaart -->
+      <!-- Data section next to the map -->
       <div v-if="showDataSection" class="data-section">
-        <div v-if="selectedProvincie" class="provincie-info">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="loading-container">
+          <div class="spinner"></div>
+          <p class="loading-text">Provincie data laden...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="error-container">
+          <p class="error-text">{{ error }}</p>
+          <button @click="error = null" class="error-button">Sluiten</button>
+        </div>
+
+        <!-- Success State: Provincie Data -->
+        <div v-else-if="selectedProvincie" class="provincie-info">
           <h3>{{ selectedProvincie.name }}</h3>
           <p v-if="kieskringen && kieskringen.length > 0" class="kieskringen-text">
             <strong>Kieskringen:</strong> {{ kieskringen.map(k => cleanKieskringName(k.naam)).join(', ') }}
           </p>
-          <p><strong>Stemmen:</strong> {{ selectedProvincie.stemmen || 'Laden...' }}</p>
+          <p><strong>Stemmen:</strong> {{ selectedProvincie.stemmen || '0' }}</p>
           <div v-if="selectedProvincie.resultaten && selectedProvincie.resultaten.length > 0" class="resultaten">
             <h4>Verkiezingsresultaten {{ props.year }}:</h4>
             <div class="partij-lijst">
@@ -36,10 +49,10 @@
           </div>
         </div>
 
-        <!-- Placeholder als geen provincie geselecteerd -->
+        <!-- Empty State: No province selected -->
         <div v-else class="no-selection">
-          <h3>Selecteer een provincie</h3>
-          <p>Klik op een provincie in de kaart om verkiezingsresultaten te bekijken</p>
+          <h3>Select a province</h3>
+          <p>Click on a province in the map to view election results</p>
         </div>
       </div>
     </div>
@@ -56,6 +69,8 @@ const svgContainer = ref(null)
 const svgContent = ref('')
 const selectedProvincie = ref(null)
 const kieskringen = ref([])
+const isLoading = ref(false)
+const error = ref(null)
 const props = defineProps({
   showDataSection: {
     type: Boolean,
@@ -76,7 +91,7 @@ onMounted(async () => {
     svgContent.value = await response.text()
     setTimeout(() => addPathListeners(), 200)
   } catch {
-    svgContent.value = '<div style="text-align: center; padding: 50px; color: #666;">Kon SVG niet laden. Controleer of /images/NederlandSVG.svg bestaat.</div>'
+    svgContent.value = '<div style="text-align: center; padding: 50px; color: #666;">Could not load SVG. Check if /images/NederlandSVG.svg exists.</div>'
   }
 })
 watch(() => props.year, () => {
@@ -112,8 +127,9 @@ const addPathListeners = () => {
       path.addEventListener('click', async () => {
       const provincieNaam = getProvincieNameFromPath(path)
       if (provincieNaam) {
-        selectedProvincie.value = { name: provincieNaam, stemmen: 'Laden...', resultaten: [] }
+        selectedProvincie.value = { name: provincieNaam, stemmen: '0', resultaten: [] }
         kieskringen.value = []
+        error.value = null
         paths.forEach(p => { p.style.fill = '#ffffff'; p.style.fillOpacity = '1' })
         path.style.fill = '#1a237e'
         path.style.fillOpacity = '0.8'
@@ -160,12 +176,12 @@ const getProvincieNameFromPath = (path) => {
 const cleanKieskringName = (name) => {
   if (!name) return name
 
-  // Vervang underscores met spaties
+  // Replace underscores with spaces
   let cleaned = name.replace(/_/g, ' ')
 
   cleaned = cleaned.split(' ').map(word => {
     if (word.includes('-')) {
-      // Voor namen met streepjes zoals "s-Gravenhage"
+      // For names with hyphens like "s-Gravenhage"
       const parts = word.split('-')
       return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join('-')
     }
@@ -176,15 +192,15 @@ const cleanKieskringName = (name) => {
 }
 
 const loadProvincieData = async (provincieNaam) => {
+  isLoading.value = true
+  error.value = null
+
   try {
     // Use the year prop to construct electionId (e.g., 2021 -> "TK2021")
     const electionId = `TK${props.year}`
 
-    console.log(`Loading province data for ${provincieNaam} in election ${electionId}`)
-
     // Use the ProvincieService instead of direct fetch
     const resultaten = await ProvincieService.getProvincieResultaten(provincieNaam, electionId)
-    console.log('Province results received:', resultaten)
 
     selectedProvincie.value = {
       ...selectedProvincie.value,
@@ -192,21 +208,24 @@ const loadProvincieData = async (provincieNaam) => {
       resultaten: resultaten.partijen || []
     }
 
-    // Haal ook de kieskringen op voor deze provincie
+    // Also retrieve constituencies for this province
     try {
       const kieskringenData = await ProvincieService.getKieskringenInProvincie(provincieNaam)
       kieskringen.value = kieskringenData || []
     } catch {
       kieskringen.value = []
     }
-  } catch (error) {
-    console.error('Error loading province data:', error)
+  } catch (err) {
+    console.error('Error loading province data:', err)
+    error.value = `Could not load data for ${provincieNaam}. Please try again.`
     selectedProvincie.value = {
       ...selectedProvincie.value,
-      stemmen: 'Error',
+      stemmen: '0',
       resultaten: []
     }
     kieskringen.value = []
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -287,7 +306,7 @@ const hideTooltip = () => {
 
 .data-section {
   flex: 1;
-  min-width: 300px; /* Minimum breedte voor data */
+  min-width: 300px; /* Minimum width for data */
 }
 
 .map-container > div {
@@ -296,7 +315,7 @@ const hideTooltip = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center; /* Centreer de SVG */
+  text-align: center; /* Center the SVG */
 }
 
 .provincie-info {
@@ -305,7 +324,7 @@ const hideTooltip = () => {
   border-radius: 8px;
   padding: 1.5rem;
   margin: 0;
-  text-align: left; /* Links uitlijnen voor naast kaart */
+  text-align: left; /* Left align for next to map */
   animation: slideIn 0.3s ease-out;
   height: fit-content;
 }
@@ -393,6 +412,70 @@ const hideTooltip = () => {
   margin: 0.25rem 0;
 }
 
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #1a237e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.error-container {
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
+}
+
+.error-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.error-button:hover {
+  background: #dc2626;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -435,23 +518,23 @@ const hideTooltip = () => {
   width: auto;
   height: auto;
   display: block;
-  margin: 0 auto; /* Centreer de SVG */
+  margin: 0 auto; /* Center the SVG */
 }
 
 :deep(path) {
   transition: fill 0.2s ease, fill-opacity 0.2s ease;
-  cursor: default !important; /* Normale muis cursor in plaats van pointer */
-  stroke: none; /* Geen stroke standaard */
+  cursor: default !important; /* Normal mouse cursor instead of pointer */
+  stroke: none; /* No stroke by default */
   stroke-width: 0;
 }
 
-/* Alleen provincie paths krijgen een stroke */
+/* Only province paths get a stroke */
 :deep(path[id*="provincie"], path[id*="province"]) {
-  stroke: #333; /* Donkere grenzen voor provincies */
+  stroke: #333; /* Dark borders for provinces */
   stroke-width: 1;
 }
 
-/* Fix cursor voor alle SVG elementen */
+/* Fix cursor for all SVG elements */
 :deep(svg) {
   cursor: default !important;
 }
@@ -460,12 +543,12 @@ const hideTooltip = () => {
   cursor: default !important;
 }
 
-/* Verberg alle interne grenzen - maak gemeenten/kieskringen onzichtbaar */
+/* Hide all internal borders - make municipalities/constituencies invisible */
 :deep(path:not([id*="provincie"]):not([id*="province"])) {
-  display: none !important; /* Verberg alle interne paths volledig */
+  display: none !important; /* Hide all internal paths completely */
 }
 
-/* Alleen provincie paths zijn zichtbaar */
+/* Only province paths are visible */
 :deep(path[id*="provincie"], path[id*="province"]) {
   display: block !important;
 }
