@@ -16,6 +16,13 @@ import java.util.List;
  * credentials, personal details, and preferences. Users can create forum posts,
  * which are linked through a one-to-many relationship.</p>
  * 
+ * <p>Performance optimizations:
+ * <ul>
+ *   <li>Lazy loading - Forum posts are loaded only when accessed</li>
+ *   <li>Caching - Entity is cached at the second level to reduce database queries</li>
+ * </ul>
+ * </p>
+ * 
  * <p>Relationships:
  * <ul>
  *   <li>One-to-Many with {@link ForumPost} - A user can create multiple forum posts</li>
@@ -24,6 +31,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "users")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
 public class User {
 
     @Id
@@ -65,11 +74,19 @@ public class User {
      * One-to-many relationship with ForumPost.
      * A user can create multiple forum posts.
      * 
-     * <p>Cascade operations are set to ALL, meaning that when a user is deleted,
-     * all associated forum posts will also be deleted. Fetch type is LAZY to
-     * improve performance by loading posts only when needed. Orphan removal is
-     * enabled to automatically remove posts when they are no longer associated
-     * with a user.</p>
+     * <p>Performance optimizations:
+     * <ul>
+     *   <li>Cascade operations are set to ALL, meaning that when a user is deleted,
+     *       all associated forum posts will also be deleted</li>
+     *   <li>Fetch type is LAZY to improve performance by loading posts only when needed</li>
+     *   <li>Orphan removal is enabled to automatically remove posts when they are no longer
+     *       associated with a user</li>
+     * </ul>
+     * </p>
+     * 
+     * <p>Lazy loading strategy: The forum posts collection is not loaded from the database
+     * until it is explicitly accessed, reducing initial query overhead and memory usage.
+     * This prevents N+1 query problems and improves application performance.</p>
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ForumPost> forumPosts = new ArrayList<>();
