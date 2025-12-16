@@ -498,7 +498,7 @@ async function loadPosts() {
   loading.value = true
   try {
     // Get authentication token from localStorage
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('token')
     const headers = {
       'Content-Type': 'application/json'
     }
@@ -513,19 +513,45 @@ async function loadPosts() {
       throw new Error('Kon forumberichten niet laden.')
     }
     const data = await res.json()
-    // Only replace dummy posts if API returns data
-    if (data && data.length > 0) {
-      posts.value = data.map(p => ({
-        id: p.id,
-        title: p.body, // ForumQuestion uses 'body' field
-        content: '', // ForumQuestion doesn't have separate title/content
-        author: p.author?.name || 'Anoniem',
-        score: 0,
-        comments: p.comments?.length || 0,
-        createdAt: p.createdAt ? new Date(p.createdAt) : new Date()
-      }))
+    // Replace posts with data from API (even if empty, to clear dummy posts)
+    if (data && Array.isArray(data)) {
+      if (data.length > 0) {
+        posts.value = data.map(p => {
+          // Split body into title and content (title is first line, rest is content)
+          const bodyParts = p.body ? p.body.split('\n\n') : ['']
+          const title = bodyParts[0] || p.body || 'Geen titel'
+          const content = bodyParts.slice(1).join('\n\n').trim()
+          
+          // Parse createdAt - handle both string and Date formats
+          let createdAt
+          if (p.createdAt) {
+            if (typeof p.createdAt === 'string') {
+              createdAt = new Date(p.createdAt)
+            } else if (p.createdAt instanceof Date) {
+              createdAt = p.createdAt
+            } else {
+              createdAt = new Date()
+            }
+          } else {
+            createdAt = new Date()
+          }
+          
+          return {
+            id: p.id,
+            title: title,
+            content: content,
+            author: p.author?.name || 'Anoniem',
+            score: 0,
+            comments: p.comments?.length || 0,
+            createdAt: createdAt,
+            userVote: null
+          }
+        })
+      } else {
+        // No posts from API, clear the list
+        posts.value = []
+      }
     }
-    // Otherwise keep dummy posts
   } catch (e) {
     console.error(e)
     // Keep dummy posts on error, don't show error message
@@ -585,7 +611,7 @@ async function submitPost() {
   loading.value = true
   try {
     // Get authentication token from localStorage
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('token')
     if (!token) {
       error.value = 'Je moet ingelogd zijn om een post te plaatsen.'
       loading.value = false
@@ -608,7 +634,22 @@ async function submitPost() {
       if (res.status === 401) {
         throw new Error('Je moet ingelogd zijn om een post te plaatsen.')
       }
-      throw new Error('Fout bij opslaan in de server.')
+      // Try to get error message from response
+      let errorMessage = 'Fout bij opslaan in de server.'
+      try {
+        const errorText = await res.text()
+        if (errorText) {
+          try {
+            const errorJson = JSON.parse(errorText)
+            errorMessage = errorJson.message || errorJson.error || errorText || errorMessage
+          } catch {
+            errorMessage = errorText || errorMessage
+          }
+        }
+      } catch (e) {
+        console.error('Error reading response:', e)
+      }
+      throw new Error(errorMessage)
     }
     await loadPosts()
     closePostForm()

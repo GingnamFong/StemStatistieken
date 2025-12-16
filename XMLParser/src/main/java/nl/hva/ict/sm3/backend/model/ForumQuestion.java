@@ -23,7 +23,7 @@ public class ForumQuestion {
 
     // Parent question (null for top-level questions, non-null for comments)
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "question_id", nullable = true)
+    @JoinColumn(name = "question_id", nullable = true, columnDefinition = "BIGINT")
     @JsonIgnore // avoids JSON recursion
     private ForumQuestion question;
 
@@ -35,7 +35,6 @@ public class ForumQuestion {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
     private User author;
 
     @PrePersist
