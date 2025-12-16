@@ -32,19 +32,101 @@
       <div class="forum-layout">
         <!-- Main Content -->
         <div class="forum-main">
-          <!-- Sort Options -->
-          <div class="sort-bar">
-            <button
-              v-for="sort in sortOptions"
-              :key="sort.value"
-              @click="selectedSort = sort.value"
-              :class="['sort-btn', { active: selectedSort === sort.value }]"
-            >
-              <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path :d="sort.icon" />
-              </svg>
-              {{ sort.label }}
-            </button>
+          <!-- Filter and Sort Bar -->
+          <div class="filter-sort-container">
+            <!-- Search and Filters -->
+            <div class="filter-section">
+              <div class="search-filter-wrapper">
+                <div class="search-input-wrapper">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="7" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Zoeken op titel of inhoud..."
+                    class="search-filter-input"
+                    @input="applyFilters"
+                  />
+                </div>
+                <button @click="showFilters = !showFilters" class="filter-toggle-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                  </svg>
+                  Filters
+                  <span v-if="activeFilterCount > 0" class="filter-badge">{{ activeFilterCount }}</span>
+                </button>
+              </div>
+
+              <!-- Advanced Filters Panel -->
+              <div v-if="showFilters" class="filters-panel">
+                <div class="filter-group">
+                  <label class="filter-label">Auteur</label>
+                  <input
+                    v-model="filterAuthor"
+                    type="text"
+                    placeholder="Zoek op auteur..."
+                    class="filter-input"
+                    @input="applyFilters"
+                  />
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Datum</label>
+                  <select v-model="filterDate" class="filter-select" @change="applyFilters">
+                    <option value="">Alle datums</option>
+                    <option value="today">Vandaag</option>
+                    <option value="week">Deze week</option>
+                    <option value="month">Deze maand</option>
+                    <option value="year">Dit jaar</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Minimale score</label>
+                  <input
+                    v-model.number="filterMinScore"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    class="filter-input"
+                    @input="applyFilters"
+                  />
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Minimaal aantal reacties</label>
+                  <input
+                    v-model.number="filterMinComments"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    class="filter-input"
+                    @input="applyFilters"
+                  />
+                </div>
+
+                <div class="filter-actions">
+                  <button @click="clearFilters" class="clear-filters-btn">Filters wissen</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sort Options -->
+            <div class="sort-bar">
+              <button
+                v-for="sort in sortOptions"
+                :key="sort.value"
+                @click="selectedSort = sort.value"
+                :class="['sort-btn', { active: selectedSort === sort.value }]"
+              >
+                <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path :d="sort.icon" />
+                </svg>
+                {{ sort.label }}
+              </button>
+            </div>
           </div>
 
           <!-- Create Post Card -->
@@ -102,6 +184,14 @@
                 <p v-if="error" class="error-text">{{ error }}</p>
               </div>
             </div>
+          </div>
+
+          <!-- Filter Results Info -->
+          <div v-if="activeFilterCount > 0" class="filter-results-info">
+            <span class="filter-results-text">
+              {{ sortedPosts.length }} van {{ posts.length }} posts getoond
+            </span>
+            <button @click="clearFilters" class="clear-filters-link">Filters wissen</button>
           </div>
 
           <!-- Posts List -->
@@ -208,6 +298,14 @@ const newPostContent = ref('')
 const loading = ref(false)
 const error = ref('')
 
+// Filter states
+const searchQuery = ref('')
+const showFilters = ref(false)
+const filterAuthor = ref('')
+const filterDate = ref('')
+const filterMinScore = ref(null)
+const filterMinComments = ref(null)
+
 const sortOptions = [
   { value: 'hot', label: 'Populair', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
   { value: 'new', label: 'Nieuw', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' },
@@ -300,23 +398,96 @@ const dummyPosts = [
 
 const posts = ref([...dummyPosts])
 
+// Computed property for active filter count
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (searchQuery.value.trim()) count++
+  if (filterAuthor.value.trim()) count++
+  if (filterDate.value) count++
+  if (filterMinScore.value !== null && filterMinScore.value > 0) count++
+  if (filterMinComments.value !== null && filterMinComments.value > 0) count++
+  return count
+})
+
+// Filter and sort posts
 const sortedPosts = computed(() => {
-  const sorted = [...posts.value]
+  let filtered = [...posts.value]
+
+  // Apply text search filter
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(post => {
+      const titleMatch = post.title?.toLowerCase().includes(query)
+      const contentMatch = post.content?.toLowerCase().includes(query)
+      return titleMatch || contentMatch
+    })
+  }
+
+  // Apply author filter
+  if (filterAuthor.value.trim()) {
+    const authorQuery = filterAuthor.value.toLowerCase().trim()
+    filtered = filtered.filter(post => 
+      post.author?.toLowerCase().includes(authorQuery)
+    )
+  }
+
+  // Apply date filter
+  if (filterDate.value) {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000)
+
+    filtered = filtered.filter(post => {
+      const postDate = new Date(post.createdAt)
+      switch (filterDate.value) {
+        case 'today':
+          return postDate >= today
+        case 'week':
+          return postDate >= weekAgo
+        case 'month':
+          return postDate >= monthAgo
+        case 'year':
+          return postDate >= yearAgo
+        default:
+          return true
+      }
+    })
+  }
+
+  // Apply minimum score filter
+  if (filterMinScore.value !== null && filterMinScore.value > 0) {
+    filtered = filtered.filter(post => post.score >= filterMinScore.value)
+  }
+
+  // Apply minimum comments filter
+  if (filterMinComments.value !== null && filterMinComments.value > 0) {
+    filtered = filtered.filter(post => (post.comments || 0) >= filterMinComments.value)
+  }
+
+  // Apply sorting
   switch (selectedSort.value) {
     case 'new':
-      return sorted.sort((a, b) => b.createdAt - a.createdAt)
+      return filtered.sort((a, b) => b.createdAt - a.createdAt)
     case 'top':
-      return sorted.sort((a, b) => b.score - a.score)
+      return filtered.sort((a, b) => b.score - a.score)
     case 'hot':
     default:
       // Hot = combination of score and recency
-      return sorted.sort((a, b) => {
+      return filtered.sort((a, b) => {
         const scoreWeight = b.score - a.score
         const timeWeight = (b.createdAt - a.createdAt) / (1000 * 60 * 60) // hours
         return scoreWeight * 0.7 - timeWeight * 0.3
       })
   }
 })
+
+// Apply filters function (can be called manually if needed)
+function applyFilters() {
+  // Filters are automatically applied through computed property
+  // This function can be used for debouncing if needed
+}
 
 const totalComments = computed(() => {
   return posts.value.reduce((sum, post) => sum + (post.comments || 0), 0)
@@ -418,6 +589,14 @@ async function submitPost() {
   } finally {
     loading.value = false
   }
+}
+
+function clearFilters() {
+  searchQuery.value = ''
+  filterAuthor.value = ''
+  filterDate.value = ''
+  filterMinScore.value = null
+  filterMinComments.value = null
 }
 
 onMounted(() => {
@@ -556,6 +735,176 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Filter and Sort Container */
+.filter-sort-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Filter Section */
+.filter-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.search-filter-wrapper {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  align-items: center;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper .search-icon {
+  position: absolute;
+  left: 12px;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.search-filter-input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.2s;
+}
+
+.search-filter-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Nunito', sans-serif;
+  position: relative;
+}
+
+.filter-toggle-btn:hover {
+  background: #f1f5f9;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.filter-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.filter-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Filters Panel */
+.filters-panel {
+  padding: 16px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-input,
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+  background: white;
+  transition: all 0.2s;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-select {
+  cursor: pointer;
+}
+
+.filter-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.clear-filters-btn {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Nunito', sans-serif;
+}
+
+.clear-filters-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 /* Sort Bar */
@@ -947,6 +1296,39 @@ onMounted(() => {
   margin-top: 8px;
 }
 
+.filter-results-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.filter-results-text {
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.clear-filters-link {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: 'Nunito', sans-serif;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.clear-filters-link:hover {
+  color: #2563eb;
+}
+
 /* Sidebar */
 .forum-sidebar {
   display: flex;
@@ -1061,6 +1443,23 @@ onMounted(() => {
 
   .forum-layout {
     gap: 16px;
+  }
+
+  .filter-sort-container {
+    gap: 8px;
+  }
+
+  .search-filter-wrapper {
+    flex-direction: column;
+  }
+
+  .filter-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters-panel {
+    grid-template-columns: 1fr;
   }
 
   .sort-bar {
