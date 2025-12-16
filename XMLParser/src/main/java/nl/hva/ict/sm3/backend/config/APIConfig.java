@@ -14,9 +14,9 @@ public class APIConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         String[] origins = Arrays.stream(allowed.split(","))
-                                 .map(String::trim)
-                                 .filter(s -> !s.isEmpty())
-                                 .toArray(String[]::new);
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
 
         registry.addMapping("/**")
                 // use allowedOrigins if explicit, otherwise a permissive pattern for dev

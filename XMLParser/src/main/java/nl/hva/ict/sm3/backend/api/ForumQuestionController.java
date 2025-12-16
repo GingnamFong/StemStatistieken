@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/forum")
@@ -29,14 +30,31 @@ public class ForumQuestionController {
 
     // GET all top-level questions (posts without parent)
     @GetMapping("/questions")
-    public ResponseEntity<List<ForumQuestion>> getAllTopLevelQuestions() {
-        List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
-        return ResponseEntity.ok(questions);
+    public ResponseEntity<List<ForumQuestionDto>> getAllTopLevelQuestions() {
+        try {
+            List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
+            System.out.println("Found " + questions.size() + " top-level questions");
+            
+            List<ForumQuestionDto> responseDtos = questions.stream()
+                .map(question -> {
+                    System.out.println("Processing question ID: " + question.getId() + ", Author: " + 
+                        (question.getAuthor() != null ? question.getAuthor().getName() : "null"));
+                    return ForumQuestionDto.from(question);
+                })
+                .collect(Collectors.toList());
+            
+            System.out.println("Returning " + responseDtos.size() + " DTOs");
+            return ResponseEntity.ok(responseDtos);
+        } catch (Exception e) {
+            System.err.println("Error in getAllTopLevelQuestions: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // GET a specific question with its comments
     @GetMapping("/questions/{questionId}")
-    public ResponseEntity<ForumQuestion> getQuestion(@PathVariable Long questionId) {
+    public ResponseEntity<ForumQuestionDto> getQuestion(@PathVariable Long questionId) {
         Optional<ForumQuestion> questionOpt = forumQuestionRepository.findByIdWithAuthor(questionId);
         if (questionOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -46,12 +64,12 @@ public class ForumQuestionController {
         List<ForumQuestion> comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
         question.getComments().clear();
         question.getComments().addAll(comments);
-        return ResponseEntity.ok(question);
+        return ResponseEntity.ok(ForumQuestionDto.from(question));
     }
 
     // POST create a new top-level question (post)
     @PostMapping("/questions")
-    public ResponseEntity<ForumQuestion> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
+    public ResponseEntity<ForumQuestionDto> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
             return ResponseEntity.status(401).build();
@@ -69,22 +87,25 @@ public class ForumQuestionController {
         question.setAuthor(user);
 
         ForumQuestion saved = forumQuestionRepository.save(question);
-        return ResponseEntity.status(201).body(saved);
+        return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
     }
 
     // GET all comments for a specific question
     @GetMapping("/{questionId}/questions")
-    public ResponseEntity<List<ForumQuestion>> getQuestionComments(@PathVariable("questionId") Long questionId) {
+    public ResponseEntity<List<ForumQuestionDto>> getQuestionComments(@PathVariable("questionId") Long questionId) {
         if (!forumQuestionRepository.existsById(questionId)) {
             return ResponseEntity.notFound().build();
         }
         List<ForumQuestion> comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
-        return ResponseEntity.ok(comments);
+        List<ForumQuestionDto> responseDtos = comments.stream()
+            .map(ForumQuestionDto::from)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(responseDtos);
     }
 
     // POST create a comment on a question
     @PostMapping("/{questionId}/questions")
-    public ResponseEntity<ForumQuestion> addQuestion(@PathVariable Long questionId,
+    public ResponseEntity<ForumQuestionDto> addQuestion(@PathVariable Long questionId,
                                                      @Valid @RequestBody ForumQuestionDto dto) {
         ForumQuestion parentQuestion = forumQuestionRepository.findById(questionId).orElse(null);
         if (parentQuestion == null) {
@@ -109,10 +130,10 @@ public class ForumQuestionController {
         question.setAuthor(user);
 
         ForumQuestion saved = forumQuestionRepository.save(question);
-        return ResponseEntity.status(201).body(saved);
+        return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
     }
     @DeleteMapping("/questions/{questionId}")
-    public ResponseEntity<ForumQuestion> deleteQuestion(@PathVariable("questionId") Long questionId) {
+    public ResponseEntity<Void> deleteQuestion(@PathVariable("questionId") Long questionId) {
 
         Optional<ForumQuestion> questionOpt  = forumQuestionRepository.findById(questionId);
         if (questionOpt.isEmpty()) {
@@ -141,6 +162,7 @@ public class ForumQuestionController {
 
         forumQuestionRepository.delete(question);
         return ResponseEntity.noContent().build();
+
     }
 
 }

@@ -497,28 +497,99 @@ async function loadPosts() {
   error.value = ''
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE_URL}/api/forum`)
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token')
+    const headers = {
+      'Content-Type': 'application/json'
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+
+    console.log('Fetching forum posts from:', `${API_BASE_URL}/api/forum/questions`)
+    const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
+      headers
+    })
+    
+    console.log('Response status:', res.status)
+    
     if (!res.ok) {
-      throw new Error('Kon forumberichten niet laden.')
+      const errorText = await res.text()
+      console.error('Error response:', errorText)
+      throw new Error(`Kon forumberichten niet laden: ${res.status} ${errorText}`)
     }
+    
     const data = await res.json()
-    // Only replace dummy posts if API returns data
-    if (data && data.length > 0) {
-      posts.value = data.map(p => ({
-        id: p.id,
-        title: p.question,
-        content: p.answer,
-        author: 'Anoniem',
-        score: 0,
-        comments: 0,
-        createdAt: p.createdAt ? new Date(p.createdAt) : new Date()
-      }))
+    console.log('Received data:', data)
+    
+    // Replace posts with data from API (even if empty, to clear dummy posts)
+    if (data && Array.isArray(data)) {
+      if (data.length > 0) {
+        posts.value = data.map(p => {
+          console.log('Processing post:', p)
+          
+          // Split body into title and content (title is first line, rest is content)
+          const bodyParts = p.body ? p.body.split('\n\n') : ['']
+          const title = bodyParts[0] || p.body || 'Geen titel'
+          const content = bodyParts.slice(1).join('\n\n').trim()
+          
+          // Parse createdAt - handle both string and Date formats
+          let createdAt
+          if (p.createdAt) {
+            if (typeof p.createdAt === 'string') {
+              createdAt = new Date(p.createdAt)
+            } else if (p.createdAt instanceof Date) {
+              createdAt = p.createdAt
+            } else {
+              createdAt = new Date()
+            }
+          } else {
+            createdAt = new Date()
+          }
+          
+          // Handle author - check both possible structures
+          let authorName = 'Anoniem'
+          if (p.author) {
+            if (typeof p.author === 'string') {
+              authorName = p.author
+            } else if (p.author.name) {
+              authorName = p.author.name
+              if (p.author.lastName) {
+                authorName += ' ' + p.author.lastName
+              }
+            } else if (p.author.firstName) {
+              authorName = p.author.firstName
+              if (p.author.lastName) {
+                authorName += ' ' + p.author.lastName
+              }
+            }
+          }
+          
+          return {
+            id: p.id,
+            title: title,
+            content: content,
+            author: authorName,
+            score: 0,
+            comments: p.comments?.length || 0,
+            createdAt: createdAt,
+            userVote: null
+          }
+        })
+        console.log('Mapped posts:', posts.value)
+      } else {
+        // No posts from API, clear the list
+        console.log('No posts found in API response')
+        posts.value = []
+      }
+    } else {
+      console.warn('Unexpected data format:', data)
+      posts.value = []
     }
-    // Otherwise keep dummy posts
   } catch (e) {
-    console.error(e)
-    // Keep dummy posts on error, don't show error message
-    // error.value = e.message || 'Er is een fout opgetreden bij het laden van de berichten.'
+    console.error('Error loading posts:', e)
+    error.value = e.message || 'Er is een fout opgetreden bij het laden van de berichten.'
+    // Keep dummy posts on error for now, but show error
   } finally {
     loading.value = false
   }
@@ -573,13 +644,46 @@ async function submitPost() {
   }
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE_URL}/api/forum`, {
+    // Get authentication token from localStorage
+    const token = localStorage.getItem('token')
+    if (!token) {
+      error.value = 'Je moet ingelogd zijn om een post te plaatsen.'
+      loading.value = false
+      return
+    }
+
+    // Combine title and content into body (ForumQuestion uses single 'body' field)
+    const bodyText = newPostTitle.value.trim() + '\n\n' + newPostContent.value.trim()
+
+    const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: newPostTitle.value, answer: newPostContent.value })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ body: bodyText })
     })
+    
     if (!res.ok) {
-      throw new Error('Fout bij opslaan in de server.')
+      if (res.status === 401) {
+        throw new Error('Je moet ingelogd zijn om een post te plaatsen.')
+      }
+      // Try to get error message from response
+      let errorMessage = 'Fout bij opslaan in de server.'
+      try {
+        const errorText = await res.text()
+        if (errorText) {
+          try {
+            const errorJson = JSON.parse(errorText)
+            errorMessage = errorJson.message || errorJson.error || errorText || errorMessage
+          } catch {
+            errorMessage = errorText || errorMessage
+          }
+        }
+      } catch (e) {
+        console.error('Error reading response:', e)
+      }
+      throw new Error(errorMessage)
     }
     await loadPosts()
     closePostForm()

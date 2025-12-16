@@ -114,6 +114,10 @@ public class AuthController {
         response.put("userId", user.getId());
         response.put("token", token);
         response.put("email", user.getEmail());
+        // Map 'name' to 'firstName' for frontend compatibility
+        response.put("firstName", user.getName());
+        response.put("lastName", user.getLastName());
+        response.put("birthDate", user.getBirthDate());
         
         return ResponseEntity.ok(response);
     }
