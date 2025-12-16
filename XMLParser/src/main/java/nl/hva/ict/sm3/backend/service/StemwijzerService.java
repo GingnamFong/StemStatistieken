@@ -3,6 +3,8 @@ package nl.hva.ict.sm3.backend.service;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.model.Party;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 @Service
 public class StemwijzerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(StemwijzerService.class);
+    
     private final DutchElectionService electionService;
     private static final String ELECTION_ID = "TK2025";
 
@@ -62,13 +66,15 @@ public class StemwijzerService {
         try {
             Election election = electionService.getElectionById(ELECTION_ID);
             if (election == null) {
-                throw new IllegalStateException("TK2025 election data niet gevonden. Zorg ervoor dat de verkiezingsdata is geladen in de database.");
+                logger.error("TK2025 election data not found. Ensure election data is loaded in the database.");
+                throw new IllegalStateException("TK2025 election data not found. Please ensure the election data is loaded in the database.");
             }
             
             // Force initialization of parties collection
             List<Party> partyList = election.getParties();
             if (partyList == null || partyList.isEmpty()) {
-                throw new IllegalStateException("Geen partijen gevonden in TK2025 verkiezingsdata. Zorg ervoor dat de verkiezingsdata volledig is geladen.");
+                logger.error("No parties found in TK2025 election data. Ensure election data is fully loaded.");
+                throw new IllegalStateException("No parties found in TK2025 election data. Please ensure the election data is fully loaded.");
             }
             
             // Create a mapping of party names to IDs for better matching
@@ -199,29 +205,32 @@ public class StemwijzerService {
             
             if (parties.isEmpty()) {
                 // Log available parties for debugging
-                System.err.println("ERROR: No parties matched. Available parties:");
+                logger.error("No parties matched. Available parties:");
                 for (Party party : partyList) {
                     int seats = hasSeatData ? election.getSeatsForParty(party.getId()) : -1;
-                    System.err.println("  - " + party.getId() + ": " + party.getName() + (hasSeatData ? " (" + seats + " seats)" : ""));
+                    logger.error("  - {}: {} {}", party.getId(), party.getName(), hasSeatData ? "(" + seats + " seats)" : "");
                 }
-                throw new IllegalStateException("Geen partijen met posities gevonden in TK2025 verkiezingsdata.");
+                throw new IllegalStateException("No parties with positions found in TK2025 election data.");
             }
+            
+            logger.debug("Successfully loaded {} parties for stemwijzer", parties.size());
         } catch (IllegalStateException e) {
             throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Fout bij het laden van TK2025 verkiezingsdata: " + e.getMessage(), e);
+            logger.error("Error loading TK2025 election data: {}", e.getMessage(), e);
+            throw new IllegalStateException("Error loading TK2025 election data: " + e.getMessage(), e);
         }
         
         return parties;
     }
     
-    // Party positions per question: questionId -> partyId -> position (eens/oneens)
+    // Party positions per question: questionId -> partyId -> position (agree/disagree)
     private static final Map<Integer, Map<String, String>> PARTY_POSITIONS = createPartyPositions();
 
     private static Map<Integer, Map<String, String>> createPartyPositions() {
         Map<Integer, Map<String, String>> positions = new HashMap<>();
         
-        // Question 1: Klimaat
+        // Question 1: Climate
         Map<String, String> q1 = new HashMap<>();
         q1.put("VVD", "eens"); q1.put("D66", "eens"); q1.put("PVV", "oneens"); q1.put("CDA", "eens");
         q1.put("SP", "eens"); q1.put("PvdA", "eens"); q1.put("GL", "eens"); q1.put("PvdD", "eens");
@@ -229,7 +238,7 @@ public class StemwijzerService {
         q1.put("JA21", "oneens"); q1.put("Volt", "eens"); q1.put("BBB", "oneens"); q1.put("NSC", "eens");
         positions.put(1, Collections.unmodifiableMap(q1));
         
-        // Question 2: Immigratie
+        // Question 2: Immigration
         Map<String, String> q2 = new HashMap<>();
         q2.put("VVD", "eens"); q2.put("D66", "oneens"); q2.put("PVV", "eens"); q2.put("CDA", "eens");
         q2.put("SP", "oneens"); q2.put("PvdA", "oneens"); q2.put("GL", "oneens"); q2.put("PvdD", "oneens");
@@ -237,7 +246,7 @@ public class StemwijzerService {
         q2.put("JA21", "eens"); q2.put("Volt", "oneens"); q2.put("BBB", "eens"); q2.put("NSC", "eens");
         positions.put(2, Collections.unmodifiableMap(q2));
         
-        // Question 3: Zorg
+        // Question 3: Healthcare
         Map<String, String> q3 = new HashMap<>();
         q3.put("VVD", "eens"); q3.put("D66", "oneens"); q3.put("PVV", "oneens"); q3.put("CDA", "eens");
         q3.put("SP", "oneens"); q3.put("PvdA", "oneens"); q3.put("GL", "oneens"); q3.put("PvdD", "oneens");
@@ -245,7 +254,7 @@ public class StemwijzerService {
         q3.put("JA21", "eens"); q3.put("Volt", "oneens"); q3.put("BBB", "oneens"); q3.put("NSC", "eens");
         positions.put(3, Collections.unmodifiableMap(q3));
         
-        // Question 4: Woningmarkt
+        // Question 4: Housing market
         Map<String, String> q4 = new HashMap<>();
         q4.put("VVD", "eens"); q4.put("D66", "eens"); q4.put("PVV", "eens"); q4.put("CDA", "eens");
         q4.put("SP", "eens"); q4.put("PvdA", "eens"); q4.put("GL", "oneens"); q4.put("PvdD", "oneens");
@@ -253,7 +262,7 @@ public class StemwijzerService {
         q4.put("JA21", "eens"); q4.put("Volt", "eens"); q4.put("BBB", "oneens"); q4.put("NSC", "eens");
         positions.put(4, Collections.unmodifiableMap(q4));
         
-        // Question 5: Minimumloon
+        // Question 5: Minimum wage
         Map<String, String> q5 = new HashMap<>();
         q5.put("VVD", "oneens"); q5.put("D66", "eens"); q5.put("PVV", "eens"); q5.put("CDA", "eens");
         q5.put("SP", "eens"); q5.put("PvdA", "eens"); q5.put("GL", "eens"); q5.put("PvdD", "eens");
@@ -261,7 +270,7 @@ public class StemwijzerService {
         q5.put("JA21", "oneens"); q5.put("Volt", "eens"); q5.put("BBB", "eens"); q5.put("NSC", "eens");
         positions.put(5, Collections.unmodifiableMap(q5));
         
-        // Question 6: Europa
+        // Question 6: Europe
         Map<String, String> q6 = new HashMap<>();
         q6.put("VVD", "eens"); q6.put("D66", "eens"); q6.put("PVV", "oneens"); q6.put("CDA", "eens");
         q6.put("SP", "eens"); q6.put("PvdA", "eens"); q6.put("GL", "eens"); q6.put("PvdD", "eens");
@@ -269,7 +278,7 @@ public class StemwijzerService {
         q6.put("JA21", "oneens"); q6.put("Volt", "eens"); q6.put("BBB", "eens"); q6.put("NSC", "eens");
         positions.put(6, Collections.unmodifiableMap(q6));
         
-        // Question 7: Onderwijs
+        // Question 7: Education
         Map<String, String> q7 = new HashMap<>();
         q7.put("VVD", "oneens"); q7.put("D66", "eens"); q7.put("PVV", "oneens"); q7.put("CDA", "eens");
         q7.put("SP", "eens"); q7.put("PvdA", "eens"); q7.put("GL", "eens"); q7.put("PvdD", "eens");
@@ -277,7 +286,7 @@ public class StemwijzerService {
         q7.put("JA21", "oneens"); q7.put("Volt", "eens"); q7.put("BBB", "eens"); q7.put("NSC", "eens");
         positions.put(7, Collections.unmodifiableMap(q7));
         
-        // Question 8: Bedrijfsbelastingen
+        // Question 8: Corporate taxes
         Map<String, String> q8 = new HashMap<>();
         q8.put("VVD", "eens"); q8.put("D66", "oneens"); q8.put("PVV", "eens"); q8.put("CDA", "eens");
         q8.put("SP", "oneens"); q8.put("PvdA", "oneens"); q8.put("GL", "oneens"); q8.put("PvdD", "oneens");
@@ -285,7 +294,7 @@ public class StemwijzerService {
         q8.put("JA21", "eens"); q8.put("Volt", "oneens"); q8.put("BBB", "eens"); q8.put("NSC", "eens");
         positions.put(8, Collections.unmodifiableMap(q8));
         
-        // Question 9: Biodiversiteit
+        // Question 9: Biodiversity
         Map<String, String> q9 = new HashMap<>();
         q9.put("VVD", "eens"); q9.put("D66", "eens"); q9.put("PVV", "oneens"); q9.put("CDA", "eens");
         q9.put("SP", "eens"); q9.put("PvdA", "eens"); q9.put("GL", "eens"); q9.put("PvdD", "eens");
@@ -293,7 +302,7 @@ public class StemwijzerService {
         q9.put("JA21", "oneens"); q9.put("Volt", "eens"); q9.put("BBB", "oneens"); q9.put("NSC", "eens");
         positions.put(9, Collections.unmodifiableMap(q9));
         
-        // Question 10: Defensie
+        // Question 10: Defense
         Map<String, String> q10 = new HashMap<>();
         q10.put("VVD", "eens"); q10.put("D66", "eens"); q10.put("PVV", "eens"); q10.put("CDA", "eens");
         q10.put("SP", "oneens"); q10.put("PvdA", "eens"); q10.put("GL", "oneens"); q10.put("PvdD", "oneens");
@@ -321,8 +330,11 @@ public class StemwijzerService {
         try {
             parties = getParties();
         } catch (IllegalStateException e) {
+            logger.error("Failed to get parties: {}", e.getMessage());
             throw new IllegalStateException("TK2025 election data not available. Please ensure the election is loaded in the database.", e);
         }
+        
+        logger.debug("Calculating matches for {} answers against {} parties", answers.size(), parties.size());
         
         // Calculate scores for each party using streams
         // Only process parties that have positions defined
@@ -378,7 +390,7 @@ public class StemwijzerService {
             Integer questionId = entry.getKey();
             String userAnswer = entry.getValue();
 
-            // Skip "geen-mening" answers using filtering
+            // Skip "no opinion" answers using filtering
             if ("geen-mening".equals(userAnswer)) {
                 continue;
             }
