@@ -14,26 +14,16 @@ public class APIConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         String[] origins = Arrays.stream(allowed.split(","))
-                                 .map(String::trim)
-                                 .filter(s -> !s.isEmpty())
-                                 .toArray(String[]::new);
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
 
-        if (origins.length > 0) {
-            // Use explicit origins when configured
-            registry.addMapping("/**")
-                    .allowedOrigins(origins)
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                    .allowedHeaders("Authorization", "Cache-Control", "Content-Type", "X-Requested-With")
-                    .allowCredentials(true)
-                    .maxAge(3600); // Cache preflight for 1 hour
-        } else {
-            // Permissive CORS for development (no explicit origins configured)
-            registry.addMapping("/**")
-                    .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                    .allowedHeaders("*")
-                    .allowCredentials(false) // Can't use credentials with wildcard
-                    .maxAge(3600);
-        }
+        registry.addMapping("/**")
+                // use allowedOrigins if explicit, otherwise a permissive pattern for dev
+                .allowedOrigins(origins.length > 0 ? origins : new String[] {})
+                .allowedOriginPatterns(origins.length == 0 ? new String[] {"*"} : new String[] {})
+                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
+                .allowedHeaders("Authorization","Cache-Control","Content-Type")
+                .allowCredentials(origins.length > 0); // Only allow set origin
     }
 }
