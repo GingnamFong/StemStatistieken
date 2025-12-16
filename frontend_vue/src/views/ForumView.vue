@@ -51,7 +51,7 @@ onMounted(() => {
 
 <template>
   <div class="forum-page">
-    <h1>Forum</h1>
+    <h1>Forum forum</h1>
 
     <form class="forum-form" @submit.prevent="submitForm">
       <label>

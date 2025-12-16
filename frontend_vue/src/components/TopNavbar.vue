@@ -26,6 +26,7 @@
         <router-link to="/Candidate" class="nav-link" @click="closeMenu">Kandidaten</router-link>
         <router-link to="/vergelijken" class="nav-link" @click="closeMenu">Vergelijken</router-link>
         <router-link to="/forum" class="nav-link" @click="closeMenu">Forum</router-link>
+        <router-link to="/forum2" class="nav-link" @click="closeMenu">Forum 2</router-link>
         <router-link to="/over-ons" class="nav-link" @click="closeMenu">Over Ons</router-link>
         <!-- Profile and Logout only shown in mobile menu -->
         <router-link v-if="isLoggedIn" to="/profile" class="nav-link nav-link-mobile-only" @click="closeMenu">Profiel</router-link>
