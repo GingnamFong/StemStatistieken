@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { API_BASE_URL } from '@/config/api'
+import StemwijzerService from '@/services/StemwijzerService.js'
 
 const props = defineProps({
   matchScores: {
@@ -31,23 +31,7 @@ async function saveFavoriteParty() {
       return
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/stemwijzer/favorite-party/${userId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        partyId: topMatch.value.party.id
-      })
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Server error:', response.status, errorText)
-      throw new Error(`Server error: ${response.status}`)
-    }
-
-    const data = await response.json()
+    await StemwijzerService.setFavoriteParty(userId, topMatch.value.party.id)
     saveMessage.value = 'Favoriete partij opgeslagen!'
 
     // Update localStorage userData
