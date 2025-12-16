@@ -172,7 +172,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { API_BASE_URL } from '../config/api.js'
+import { UserService } from '../services/UserService.js'
 import { ElectionService } from '../services/ElectionService.js'
 
 const router = useRouter()
@@ -211,91 +211,35 @@ async function loadUser() {
 
   // Always fetch from API to get latest data from database
   try {
-    const url = `${API_BASE_URL}/api/auth/user/${userId}`
-    console.log('Fetching user from:', url)
+    const data = await UserService.getUser(userId)
+    console.log('User data received from database:', data)
 
-    const res = await fetch(url)
-    console.log('Response status:', res.status)
-
-    if (res.ok) {
-      const data = await res.json()
-      console.log('User data received from database:', data)
-
-      // Update localStorage with fresh data from database
-      localStorage.setItem('userData', JSON.stringify({
-        id: data.id,
-        firstName: data.firstName || null,
-        lastName: data.lastName || null,
-        email: data.email || 'Geen email',
-        birthDate: data.birthDate || null,
-        favoriteParty: data.favoriteParty || null,
-        profilePicture: data.profilePicture || null
-      }))
-
-      user.value = {
-        id: data.id,
-        firstName: data.firstName || null,
-        lastName: data.lastName || null,
-        email: data.email || 'Geen email',
-        birthDate: data.birthDate || null,
-        favoriteParty: data.favoriteParty || null,
-        profilePicture: data.profilePicture || null
-      }
-
-      // Dispatch event to update navbar
-      window.dispatchEvent(new Event('profileUpdated'))
-    } else if (res.status === 404) {
-      const errorText = await res.text()
-      console.error('User not found in database:', res.status, errorText)
-      errorMessage.value = `Gebruiker niet gevonden in database. Status: ${res.status}`
-
-      // Fallback to localStorage if available
-      const storedUserData = localStorage.getItem('userData')
-      if (storedUserData) {
-        try {
-          const data = JSON.parse(storedUserData)
-          console.log('Using fallback data from localStorage:', data)
-          user.value = {
-            id: data.id || userId,
-            firstName: data.firstName || null,
-            lastName: data.lastName || null,
-            email: data.email || 'Geen email',
-            birthDate: data.birthDate || null,
-            profilePicture: data.profilePicture || null
-          }
-        } catch (e) {
-          console.error('Error parsing stored user data:', e)
-        }
-      }
-    } else if (res.status === 401) {
-      console.log('Unauthorized, redirecting to login')
-      router.push('/login')
-    } else {
-      const errorText = await res.text()
-      console.error('Error response:', res.status, errorText)
-      errorMessage.value = `Kon profiel niet laden: ${res.status}. ${errorText}`
-
-      // Fallback to localStorage if available
-      const storedUserData = localStorage.getItem('userData')
-      if (storedUserData) {
-        try {
-          const data = JSON.parse(storedUserData)
-          console.log('Using fallback data from localStorage:', data)
-          user.value = {
-            id: data.id || userId,
-            firstName: data.firstName || null,
-            lastName: data.lastName || null,
-            email: data.email || 'Geen email',
-            birthDate: data.birthDate || null,
-            profilePicture: data.profilePicture || null
-          }
-        } catch (e) {
-          console.error('Error parsing stored user data:', e)
-        }
-      }
+    // Update localStorage with fresh data from database
+    const userData = {
+      id: data.id,
+      firstName: data.firstName || null,
+      lastName: data.lastName || null,
+      email: data.email || 'Geen email',
+      birthDate: data.birthDate || null,
+      favoriteParty: data.favoriteParty || null,
+      profilePicture: data.profilePicture || null
     }
+
+    localStorage.setItem('userData', JSON.stringify(userData))
+    user.value = userData
+
+    // Dispatch event to update navbar
+    window.dispatchEvent(new Event('profileUpdated'))
   } catch (e) {
     console.error('Exception loading user:', e)
+
+    // Handle specific error cases
+    if (e.message.includes('Unauthorized')) {
+      console.log('Unauthorized, redirecting to login')
+      router.push('/login')
+      return
+    }
+
     errorMessage.value = `Netwerkfout bij het laden van profiel: ${e.message}`
 
     // Fallback to localStorage if available
@@ -309,7 +253,9 @@ async function loadUser() {
           firstName: data.firstName || null,
           lastName: data.lastName || null,
           email: data.email || 'Geen email',
-          birthDate: data.birthDate || null
+          birthDate: data.birthDate || null,
+          favoriteParty: data.favoriteParty || null,
+          profilePicture: data.profilePicture || null
         }
       } catch (parseError) {
         console.error('Error parsing stored user data:', parseError)
@@ -421,52 +367,47 @@ async function saveProfile() {
     const userId = localStorage.getItem('userId')
     const token = localStorage.getItem('token')
 
-    const res = await fetch(`${API_BASE_URL}/api/auth/user/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        firstName: editForm.value.firstName || null,
-        lastName: editForm.value.lastName || null,
-        birthDate: editForm.value.birthDate || null,
-        favoriteParty: editForm.value.favoriteParty || null,
-        profilePicture: editForm.value.profilePicture || null
-      })
+    if (!token) {
+      errorMessage.value = 'Geen authenticatietoken gevonden. Log opnieuw in.'
+      saving.value = false
+      return
+    }
+
+    const data = await UserService.updateUser(userId, token, {
+      firstName: editForm.value.firstName,
+      lastName: editForm.value.lastName,
+      birthDate: editForm.value.birthDate,
+      favoriteParty: editForm.value.favoriteParty,
+      profilePicture: editForm.value.profilePicture
     })
 
-    if (res.ok) {
-      const data = await res.json()
-      // Update user data with response
-      user.value.firstName = data.firstName
-      user.value.lastName = data.lastName
-      user.value.birthDate = data.birthDate
-      user.value.favoriteParty = data.favoriteParty
-      user.value.profilePicture = data.profilePicture
-      localStorage.setItem('userData', JSON.stringify({
-        id: data.id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        birthDate: data.birthDate,
-        favoriteParty: data.favoriteParty,
-        profilePicture: data.profilePicture
-      }))
-      // Dispatch event to update navbar
-      window.dispatchEvent(new Event('profileUpdated'))
-      isEditing.value = false
-      successMessage.value = 'Profiel succesvol bijgewerkt!'
-      setTimeout(() => {
-        successMessage.value = ''
-      }, 3000)
-    } else {
-      const errorText = await res.text()
-      errorMessage.value = `Kon profiel niet bijwerken: ${errorText}`
-    }
+    // Update user data with response
+    user.value.firstName = data.firstName
+    user.value.lastName = data.lastName
+    user.value.birthDate = data.birthDate
+    user.value.favoriteParty = data.favoriteParty
+    user.value.profilePicture = data.profilePicture
+
+    localStorage.setItem('userData', JSON.stringify({
+      id: data.id,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      birthDate: data.birthDate,
+      favoriteParty: data.favoriteParty,
+      profilePicture: data.profilePicture
+    }))
+
+    // Dispatch event to update navbar
+    window.dispatchEvent(new Event('profileUpdated'))
+    isEditing.value = false
+    successMessage.value = 'Profiel succesvol bijgewerkt!'
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
   } catch (e) {
     console.error('Error updating profile:', e)
-    errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
+    errorMessage.value = `Kon profiel niet bijwerken: ${e.message}`
   } finally {
     saving.value = false
   }
