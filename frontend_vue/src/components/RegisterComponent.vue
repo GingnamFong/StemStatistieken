@@ -654,20 +654,20 @@ onUnmounted(() => {
   .success-modal {
     padding: 32px 24px;
   }
-  
+
   .success-icon-circle {
     width: 64px;
     height: 64px;
   }
-  
+
   .success-checkmark {
     font-size: 36px;
   }
-  
+
   .success-modal h3 {
     font-size: 1.75rem;
   }
-  
+
   .success-modal p {
     font-size: 14px;
   }
