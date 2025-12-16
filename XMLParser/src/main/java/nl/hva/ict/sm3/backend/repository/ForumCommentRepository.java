@@ -1,10 +1,13 @@
 package nl.hva.ict.sm3.backend.repository;
 
 import nl.hva.ict.sm3.backend.model.ForumComment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +18,7 @@ import java.util.Optional;
  * to efficiently load related entities needed for authorization checks.
  */
 public interface ForumCommentRepository extends JpaRepository<ForumComment, Long> {
-
+    Page<ForumComment> findByPostIdOrderByCreatedAtAsc(Long postId, Pageable pageable);
     /**
      * Retrieves all comments for a specific forum post ordered by creation time ascending.
      *

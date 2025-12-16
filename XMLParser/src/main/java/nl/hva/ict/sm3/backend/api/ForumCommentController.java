@@ -13,6 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Optional;
 import nl.hva.ict.sm3.backend.model.User;
 import nl.hva.ict.sm3.backend.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.util.Map;
 
 
 
@@ -69,11 +72,13 @@ public class ForumCommentController {
      */
     // GET /api/forum/{postId}/comments
     @GetMapping("/{postId}/comments")
-    public ResponseEntity<List<ForumComment>> getComments(@PathVariable Long postId) {
+    public ResponseEntity<?>  getComments(@PathVariable Long postId, Pageable pageable) {
         if (!forumPostRepository.existsById(postId)) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(Map.of("message", "Forum post not found"));
         }
-        List<ForumComment> comments = forumCommentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+
+        Page<ForumComment> comments =
+                forumCommentRepository.findByPostIdOrderByCreatedAtAsc(postId, pageable);
         return ResponseEntity.ok(comments);
     }
 
@@ -96,22 +101,21 @@ public class ForumCommentController {
      */
     // POST /api/forum/{postId}/comments
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<ForumComment> addComment(@PathVariable Long postId,
+    public ResponseEntity<?> addComment(@PathVariable Long postId,
                                                    @Valid @RequestBody ForumCommentDto dto) {
         ForumPost post = forumPostRepository.findById(postId).orElse(null);
         if (post == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(Map.of("message", "Forum post not found"));
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
         }
 
-        String email = auth.getName();
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findByEmail(auth.getName()).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
         }
 
         ForumComment comment = new ForumComment();
@@ -143,30 +147,30 @@ public class ForumCommentController {
      * @return empty response indicating the outcome
      */
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+    public ResponseEntity<?>deleteComment(@PathVariable Long commentId) {
 
         Optional<ForumComment> commentOpt =
                 forumCommentRepository.findByIdWithPostAuthor(commentId);
         if (commentOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(Map.of("message", "Comment not found"));
         }
 
         ForumComment comment = commentOpt.get();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
         }
 
         User user = userRepository.findByEmail(auth.getName()).orElse(null);
         if (user == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
         }
 
         if (comment.getPost() == null
                 || comment.getPost().getAuthor() == null
                 || !comment.getPost().getAuthor().getId().equals(user.getId())) {
-            return ResponseEntity.status(403).build();
+            return ResponseEntity.status(403).body(Map.of("message", "Forbidden"));
         }
 
         forumCommentRepository.delete(comment);
