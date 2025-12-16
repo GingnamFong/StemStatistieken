@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,7 +28,7 @@ public class ForumQuestion {
     private ForumQuestion question;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ForumQuestion> comments;
+    private List<ForumQuestion> comments = new ArrayList<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -52,6 +53,8 @@ public class ForumQuestion {
 
     public ForumQuestion getQuestion() { return question; }
     public void setQuestion(ForumQuestion question) { this.question = question; }
+
+    public List<ForumQuestion> getComments() { return comments; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 

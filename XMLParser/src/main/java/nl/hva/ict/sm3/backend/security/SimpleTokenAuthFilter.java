@@ -14,14 +14,48 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+
+/**
+ * SimpleTokenAuthFilter is a lightweight authentication filter that
+ * authenticates users based on a simple Bearer token.
+ *
+ * <p>The expected token format is:
+ * <ul>
+ *   <li>{@code user-{id}}</li>
+ *   <li>{@code user-{id}-{timestamp}}</li>
+ * </ul>
+ *
+ * <p>The filter extracts the user ID from the token, retrieves the corresponding
+ * {@link User} from the database, and sets the authentication in the
+ * {@link SecurityContextHolder}.
+ *
+ *
+ */
+
 public class SimpleTokenAuthFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
-
+    /**
+     * Creates a new {@code SimpleTokenAuthFilter}.
+     *
+     * @param userRepository repository used to load users by ID
+     */
     public SimpleTokenAuthFilter(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
+    /**
+     * Processes each incoming HTTP request and checks for a Bearer token
+     * in the {@code Authorization} header.
+     *
+     * <p>If a valid token is found and no authentication is present yet,
+     * the user is authenticated and stored in the security context.
+     *
+     * @param request  the incoming HTTP request
+     * @param response the HTTP response
+     * @param chain    the remaining filter chain
+     * @throws ServletException if the filter fails
+     * @throws IOException      if an I/O error occurs
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -44,7 +78,18 @@ public class SimpleTokenAuthFilter extends OncePerRequestFilter {
 
         chain.doFilter(request, response);
     }
-
+    /**
+     * Extracts the user ID from a token string.
+     *
+     * <p>Supports tokens in the following formats:
+     * <ul>
+     *   <li>{@code user-123}</li>
+     *   <li>{@code user-123-<timestamp>}</li>
+     * </ul>
+     *
+     * @param token the raw token value (without "Bearer ")
+     * @return the extracted user ID, or {@code null} if the token is invalid
+     */
     private Long parseUserId(String token) {
         try {
             if (!token.startsWith("user-")) return null;
