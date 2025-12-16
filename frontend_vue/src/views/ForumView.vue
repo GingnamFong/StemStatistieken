@@ -7,7 +7,8 @@ const posts = ref([])
 const loading = ref(false)
 const error = ref('')
 
-const API_BASE = 'http://localhost:8081/api/forum'
+import { API_BASE_URL } from '@/config/api'
+const API_BASE = `${API_BASE_URL}/api/forum`
 
 async function loadPosts() {
   try {
