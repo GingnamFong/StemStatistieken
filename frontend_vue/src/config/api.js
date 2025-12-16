@@ -12,6 +12,16 @@ const getApiBaseUrl = () => {
     return 'https://hva-backend-c647.onrender.com'
   }
 
+  // Detect AWS server (13.48.214.231)
+  if (location.hostname === '13.48.214.231' || location.hostname.includes('13.48.214.231')) {
+    return 'http://13.48.214.231:8081'
+  }
+
+  // Detect stemstatistieken.me domain
+  if (location.hostname === 'stemstatistieken.me' || location.hostname.includes('stemstatistieken.me')) {
+    return 'http://13.48.214.231:8081'
+  }
+
   // Default to local development
   return import.meta.env.VITE_API_URL || 'http://localhost:8081'
 }
