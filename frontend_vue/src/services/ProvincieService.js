@@ -1,14 +1,14 @@
 import { API_BASE_URL } from '../config/api.js'
 
 /**
- * Service voor provincie data ophalen van de backend API.
- * Haalt provincies, resultaten en kieskringen op via REST endpoints.
+ * Service for retrieving province data from the backend API.
+ * Retrieves provinces, results and constituencies via REST endpoints.
  */
 export const ProvincieService = {
   /**
-   * Haalt alle provincies op voor een verkiezing.
-   * @param {string} electionId - Verkiezing ID (bijv. 'TK2023')
-   * @returns {Promise<Array>} Lijst van provincies
+   * Retrieves all provinces for an election.
+   * @param {string} electionId - Election ID (e.g. 'TK2023')
+   * @returns {Promise<Array>} List of provinces
    */
   async getAllProvincies(electionId = 'TK2023') {
     const response = await fetch(`${API_BASE_URL}/provincies?electionId=${electionId}`)
@@ -17,10 +17,10 @@ export const ProvincieService = {
   },
 
   /**
-   * Haalt verkiezingsresultaten op voor een specifieke provincie.
-   * @param {string} provincieNaam - Naam van de provincie
-   * @param {string} electionId - Verkiezing ID (bijv. 'TK2023')
-   * @returns {Promise<Object>} Resultaten met totaalStemmen en partijen
+   * Retrieves election results for a specific province.
+   * @param {string} provincieNaam - Name of the province
+   * @param {string} electionId - Election ID (e.g. 'TK2023')
+   * @returns {Promise<Object>} Results with total votes and parties
    */
   async getProvincieResultaten(provincieNaam, electionId = 'TK2023') {
     const response = await fetch(`${API_BASE_URL}/provincies/${encodeURIComponent(provincieNaam)}/resultaten?electionId=${electionId}`)
@@ -29,9 +29,9 @@ export const ProvincieService = {
   },
 
   /**
-   * Haalt alle kieskringen op die bij een provincie horen.
-   * @param {string} provincieNaam - Naam van de provincie
-   * @returns {Promise<Array>} Lijst van kieskringen
+   * Retrieves all constituencies that belong to a province.
+   * @param {string} provincieNaam - Name of the province
+   * @returns {Promise<Array>} List of constituencies
    */
   async getKieskringenInProvincie(provincieNaam) {
     const response = await fetch(`${API_BASE_URL}/provincies/${encodeURIComponent(provincieNaam)}/kieskringen`)
