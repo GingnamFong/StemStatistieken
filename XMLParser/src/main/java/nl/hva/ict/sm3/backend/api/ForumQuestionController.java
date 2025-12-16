@@ -27,15 +27,62 @@ public class ForumQuestionController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/{questionId}/questions")
-    public ResponseEntity<List<ForumQuestion>> getForumQuestions(@PathVariable("questionId") Long questionId) {
-        if (!forumQuestionRepository.existsById(questionId)) {
-            return ResponseEntity.notFound().build();
-        }
-        List<ForumQuestion> questions = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
+    // GET all top-level questions (posts without parent)
+    @GetMapping("/questions")
+    public ResponseEntity<List<ForumQuestion>> getAllTopLevelQuestions() {
+        List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
         return ResponseEntity.ok(questions);
     }
 
+    // GET a specific question with its comments
+    @GetMapping("/questions/{questionId}")
+    public ResponseEntity<ForumQuestion> getQuestion(@PathVariable Long questionId) {
+        Optional<ForumQuestion> questionOpt = forumQuestionRepository.findByIdWithAuthor(questionId);
+        if (questionOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        ForumQuestion question = questionOpt.get();
+        // Load comments
+        List<ForumQuestion> comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
+        question.getComments().clear();
+        question.getComments().addAll(comments);
+        return ResponseEntity.ok(question);
+    }
+
+    // POST create a new top-level question (post)
+    @PostMapping("/questions")
+    public ResponseEntity<ForumQuestion> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        ForumQuestion question = new ForumQuestion();
+        question.setBody(dto.getBody());
+        question.setQuestion(null); // Top-level question has no parent
+        question.setAuthor(user);
+
+        ForumQuestion saved = forumQuestionRepository.save(question);
+        return ResponseEntity.status(201).body(saved);
+    }
+
+    // GET all comments for a specific question
+    @GetMapping("/{questionId}/questions")
+    public ResponseEntity<List<ForumQuestion>> getQuestionComments(@PathVariable("questionId") Long questionId) {
+        if (!forumQuestionRepository.existsById(questionId)) {
+            return ResponseEntity.notFound().build();
+        }
+        List<ForumQuestion> comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
+        return ResponseEntity.ok(comments);
+    }
+
+    // POST create a comment on a question
     @PostMapping("/{questionId}/questions")
     public ResponseEntity<ForumQuestion> addQuestion(@PathVariable Long questionId,
                                                      @Valid @RequestBody ForumQuestionDto dto) {
@@ -65,9 +112,9 @@ public class ForumQuestionController {
         return ResponseEntity.status(201).body(saved);
     }
     @DeleteMapping("/questions/{questionId}")
-    public ResponseEntity<ForumQuestion> deleteQuestion(@PathVariable("questionId") String questionId) {
+    public ResponseEntity<ForumQuestion> deleteQuestion(@PathVariable("questionId") Long questionId) {
 
-        Optional<ForumQuestion> questionOpt  = forumQuestionRepository.findById(Long.valueOf(questionId));
+        Optional<ForumQuestion> questionOpt  = forumQuestionRepository.findById(questionId);
         if (questionOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
