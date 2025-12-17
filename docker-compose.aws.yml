@@ -26,7 +26,7 @@ services:
     image: gingnam/hva-frontend:latest
     container_name: hva-frontend
     ports:
-      - "80:80"
+      - "8080:80"  # Changed to 8080 so Nginx on host can use 80/443
     restart: unless-stopped
     environment:
       # Set API URL to point to backend on same host
