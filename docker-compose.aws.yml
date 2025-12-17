@@ -1,0 +1,46 @@
+services:
+  backend:
+    image: gingnam/hva-backend:latest
+    container_name: hva-backend
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:/app/database/election-database;DB_CLOSE_DELAY=-1
+    volumes:
+      # Mount data-files directory from EC2 host to the expected resource path
+      - /home/ubuntu/data-files:/app/src/main/resources:ro
+      # Mount database directory for persistence
+      - backend-db:/app/database
+    networks:
+      - hva-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/elections || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: gingnam/hva-frontend:latest
+    container_name: hva-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      # Set API URL to point to backend on same host
+      - VITE_API_BASE_URL=http://13.48.214.231:8081
+    networks:
+      - hva-network
+    depends_on:
+      - backend
+
+volumes:
+  backend-db:
+    driver: local
+
+networks:
+  hva-network:
+    driver: bridge
+

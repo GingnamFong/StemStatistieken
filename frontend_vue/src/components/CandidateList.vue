@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { CandidateService } from '@/services/CandidateService'
 
 const router = useRouter()
 const candidates = ref([])
@@ -11,8 +12,6 @@ const sortKey = ref('lastName')
 const sortDir = ref('asc')
 const selectedYear = ref(2023)
 
-import { API_BASE_URL } from '@/config/api'
-
 const availableYears = [2021, 2023, 2025]
 
 const electionId = computed(() => `TK${selectedYear.value}`)
@@ -21,14 +20,7 @@ async function loadCandidates() {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch(`${API_BASE_URL}/elections/${electionId.value}/candidates/lists`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    if (!response.ok) throw new Error('Failed to load candidate data')
-    const data = await response.json()
+    const data = await CandidateService.loadCandidateLists(electionId.value)
     candidates.value = data.candidates || []
   } catch (err) {
     error.value = err.message

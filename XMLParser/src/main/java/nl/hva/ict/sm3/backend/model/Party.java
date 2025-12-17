@@ -8,9 +8,17 @@ import jakarta.persistence.*;
  * <p>
  * A party contains an identifier, a name, and a vote count.
  * The vote count may represent national totals or local municipality votes.
+ * 
+ * <p>Performance optimizations:
+ * <ul>
+ *   <li>Caching - Entity is cached at the second level to reduce database queries</li>
+ * </ul>
+ * </p>
  */
 @Entity
 @Table(name = "parties")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
 public class Party {
     @Id
     private String id;
