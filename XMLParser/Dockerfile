@@ -26,8 +26,12 @@ WORKDIR /app
 # Kopieer de gebouwde JAR van de build fase
 COPY --from=build /app/target/*.jar app.jar
 
+# Maak data directory voor Azure Files mount
+RUN mkdir -p /home/data
+
 # Java geheugen instellingen
 ENV JAVA_OPTS="-Xms256m -Xmx512m"
+ENV H2_DATABASE_URL="jdbc:h2:file:/home/data/election-database;DB_CLOSE_DELAY=-1"
 
 # Poort 8081 alleen toegankelijk maken
 EXPOSE 8081
