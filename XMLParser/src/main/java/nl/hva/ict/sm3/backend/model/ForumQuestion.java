@@ -8,18 +8,51 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a forum post or comment.
+ *
+ * <p>This entity is self-referencing: a ForumQuestion can have a parent question
+ * (for comments) or be a top-level question (parent is null).
+ * It also maintains a list of comments (children).
+ *
+ * <p>Fields include:
+ * - body: content of the question/comment
+ * - author: the user who posted it
+ * - createdAt: timestamp
+ * - question: parent question (null for top-level)
+ * - comments: list of child comments
+ * - createdAt: timestamp
+ * - author: the user who posted
+ *
+ *  <p>JPA annotations ensure persistence, lazy loading, cascading, and orphan removal.
+ *  JSON serialization is configured to avoid infinite recursion.
+ */
+
+
 @Entity
-@Table(name = "forum_questions")
+@Table(name = "forum_questions") // in database
 
 public class ForumQuestion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Unique identifier for each forum question or comment
     private Long id;
+
+    /**
+     * The text content of the forum question or comment.
+     * Cannot be blank and limited to 10000 characters.
+     */
 
     @NotBlank
     @Column(nullable = false, length = 10000)
     private String body;
+
+    /**
+     * The parent question of this comment.
+     * Null if this is a top-level question.
+     *
+     * <p>Ignored in JSON to prevent infinite recursion.
+     */
 
     // Parent question (null for top-level questions, non-null for comments)
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
@@ -27,11 +60,32 @@ public class ForumQuestion {
     @JsonIgnore // avoids JSON recursion
     private ForumQuestion question;
 
+    /**
+     * List of child comments for this forum question.
+     *
+     * <p>Each comment references this question as its parent.
+     * Cascade operations ensure that changes to the parent question
+     * propagate to the child comments. OrphanRemoval deletes comments
+     * that are no longer linked to a parent.
+     */
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ForumQuestion> comments = new ArrayList<>();
 
+    /**
+     * Timestamp indicating when the question or comment was created.
+     * Automatically set before the entity is persisted.
+     */
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    /**
+     * The user who created this question or comment.
+     *
+     * <p>This field is mandatory and establishes a many-to-one relationship
+     * with the User entity.
+     */
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
