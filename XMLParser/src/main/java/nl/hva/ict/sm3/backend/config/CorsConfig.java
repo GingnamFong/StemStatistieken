@@ -20,12 +20,16 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         
-        // Use allowedOriginPatterns for flexibility (supports patterns and works with credentials)
-        config.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "http://127.0.0.1:*",
+        // Use allowedOrigins for exact matches (required when allowCredentials is true)
+        // Cannot use wildcards in patterns when credentials are enabled
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
             "https://hva-frontend.onrender.com",
             "http://13.48.214.231",
+            "https://13.48.214.231",
             "http://stemstatistieken.me",
             "https://stemstatistieken.me",
             "https://*.azurewebsites.net"
