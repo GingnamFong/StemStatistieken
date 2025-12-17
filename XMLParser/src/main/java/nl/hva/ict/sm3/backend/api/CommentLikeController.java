@@ -1,3 +1,4 @@
+/*
 package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.CommentLike;
@@ -86,3 +87,5 @@ public class CommentLikeController {
         );
     }
 }
+
+ */
