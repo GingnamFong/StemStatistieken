@@ -1,35 +1,35 @@
-# Bouw fase
+# Build stage
 FROM node:22-alpine AS build
-# Werk in de app map
+# Set working directory
 WORKDIR /app
 
-# Runtime detection gebruikt automatisch de juiste backend URL
+# Runtime detection automatically uses the correct backend URL
 
-# kopiëer alle bestanden die beginnen met package en eindigen met json
+# Copy package files
 COPY package*.json ./
-# installeer dependencies zonder meldingen
+# Install dependencies without notifications
 RUN npm ci --no-audit --no-fund
 
-# Alle bestanden kopiëren en in de app map bouwen   
+# Copy all files and build in app directory
 COPY . .
 
-# Bouw de app
+# Build the app
 RUN npm run build
 
 
-# Run fase
+# Runtime stage
 FROM nginx:alpine
 
-# Statische build naar de Nginx webroot
+# Copy static build to Nginx webroot
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Eigen Nginx-config met SPA fallback
+# Custom Nginx config with SPA fallback
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# poort 80 alleen toegankelijk maken
+# Expose port 80
 EXPOSE 80
 
-# zorg ervoor dat nginx op de voorkant runned niet achtergrond
+# Run nginx in foreground, not as daemon
 CMD ["nginx", "-g", "daemon off;"]
 
 
