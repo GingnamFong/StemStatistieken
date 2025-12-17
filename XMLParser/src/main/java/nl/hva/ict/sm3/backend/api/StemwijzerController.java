@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.api;
 
+import nl.hva.ict.sm3.backend.dto.StemwijzerDto;
 import nl.hva.ict.sm3.backend.model.User;
 import nl.hva.ict.sm3.backend.repository.UserRepository;
 import nl.hva.ict.sm3.backend.service.StemwijzerService;
@@ -47,7 +48,7 @@ public class StemwijzerController {
         }
 
         try {
-            List<Map<String, Object>> results = stemwijzerService.calculateMatches(answers);
+            List<StemwijzerDto> results = stemwijzerService.calculateMatches(answers);
             logger.debug("Successfully calculated {} matches", results.size());
             return ResponseEntity.ok(results);
         } catch (IllegalStateException e) {
@@ -75,11 +76,11 @@ public class StemwijzerController {
     @PostMapping("/favorite-party/{userId}")
     public ResponseEntity<?> setFavoriteParty(
             @PathVariable Long userId,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody StemwijzerDto request) {
         
         logger.info("POST /api/stemwijzer/favorite-party/{} - Setting favorite party", userId);
         
-        if (request == null || !request.containsKey("partyId")) {
+        if (request == null || request.getPartyId() == null || request.getPartyId().trim().isEmpty()) {
             logger.warn("Invalid request: partyId is missing for user {}", userId);
             return ResponseEntity.badRequest().body("partyId is required");
         }
@@ -91,7 +92,7 @@ public class StemwijzerController {
         }
 
         User user = userOpt.get();
-        String partyId = request.get("partyId").toString();
+        String partyId = request.getPartyId();
         user.setFavoriteParty(partyId);
         userRepository.save(user);
 
