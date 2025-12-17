@@ -27,13 +27,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests voor ForumQuestionController.
- * 
- * Test categorieën:
- * - Happy flows: normale, verwachte input
- * - Invalid input: verkeerde parameters, foutieve waarden, of ontbrekende data
- * - Foutafhandeling: werpt de code de juiste exception, of geeft de API de juiste statuscode terug?
- * - Business rules: zijn alle regels en validaties correct geïmplementeerd
+ * Unit tests for ForumQuestionController.
+ *
+ * Test categories:
+ * - Happy flows: normal, expected input
+ * - Invalid input: incorrect parameters, incorrect values, or missing data
+ * - Error handling: does the code throw the correct exception, or does the API return the correct status code?
+ * - Business rules: are all rules and validations implemented correctly?
  */
 @ExtendWith(MockitoExtension.class)
 class ForumQuestionControllerTest {
@@ -63,65 +63,71 @@ class ForumQuestionControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(forumQuestionController).build();
         objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules(); // Voor LocalDateTime support
+        objectMapper.findAndRegisterModules(); // For LocalDateTime support
 
         // Test data
-        testUser = new User("Jan", "Jansen", "jan@example.com", "password123");
+        testUser = new User("Gert", null, "gert@hotmail.com", "password123");
         testUser.setId(1L);
 
         savedQuestion = new ForumQuestion();
         savedQuestion.setId(1L);
-        savedQuestion.setBody("Wat is de beste partij voor het milieu?");
+        savedQuestion.setBody("What is the best party for the environment?");
         savedQuestion.setAuthor(testUser);
         savedQuestion.setQuestion(null); // Top-level question
 
-        // Reset SecurityContext voor elke test
+        // Reset SecurityContext for each test
         SecurityContextHolder.clearContext();
     }
 
-    // HAPPY FLOW - normale, verwachte input
+    // HAPPY FLOW - normal, expected input
 
     @Test
     void testCreateTopLevelQuestion_HappyFlow() throws Exception {
-        // Arrange: Mock authentication en repositories
-        String userEmail = "jan@example.com";
-        
-        // Mock SecurityContext en Authentication
+        // Arrange: Mock authentication and repositories
+        String userEmail = "gert@hotmail.com";
+
+        // Mock SecurityContext and Authentication
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        
-        // Mock Authentication - gebruiker is ingelogd
+
+        // Mock Authentication - user is logged in
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getName()).thenReturn(userEmail);
-        
-        // Mock UserRepository - gebruiker bestaat
+
+        // Mock UserRepository - user exists
         when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(testUser));
-        
-        // Mock ForumQuestionRepository - wanneer save wordt aangeroepen, geef de opgeslagen vraag terug
+
+        // Mock ForumQuestionRepository - when save is called, return the saved question
         when(forumQuestionRepository.save(any(ForumQuestion.class))).thenAnswer(invocation -> {
             ForumQuestion question = invocation.getArgument(0);
-            // Simuleer dat de repository het ID zet (createdAt wordt automatisch gezet door @PrePersist)
+            // Simulate the repository setting the ID (createdAt is automatically set by @PrePersist)
             question.setId(1L);
             return question;
         });
 
-        // Maak DTO voor de request
+        // Create DTO for request
         ForumQuestionDto requestDto = new ForumQuestionDto();
-        requestDto.setBody("Wat is de beste partij voor het milieu?");
+        requestDto.setBody("What is the best party for the environment?");
 
-        // Act & Assert: POST request naar /api/forum/questions
+        // Act & Assert: POST request to /api/forum/questions
         mockMvc.perform(post("/api/forum/questions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated()) // 201 Created
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.body").value("Wat is de beste partij voor het milieu?"))
+                .andExpect(jsonPath("$.body").value("What is the best party for the environment?"))
                 .andExpect(jsonPath("$.author").exists())
-                .andExpect(jsonPath("$.author.email").value("jan@example.com"))
-                .andExpect(jsonPath("$.author.name").value("Jan"));
+                .andExpect(jsonPath("$.author.email").value("gert@hotmail.com"))
+                .andExpect(jsonPath("$.author.name").value("Gert"));
 
-        // Verify: check of repositories zijn aangeroepen
+        // Verify: check if repositories have been called
         verify(userRepository, times(1)).findByEmail(userEmail);
         verify(forumQuestionRepository, times(1)).save(any(ForumQuestion.class));
+        
+        // Success message
+        System.out.println("✓ Test passed: Creating a forum question works correctly!");
+        System.out.println("  - Status code: 201 Created");
+        System.out.println("  - Question saved with ID: 1");
+        System.out.println("  - Author information (Gert, gert@hotmail.com) is correctly returned");
     }
 }
