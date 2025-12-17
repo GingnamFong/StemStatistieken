@@ -4,7 +4,7 @@
     <header class="dashboard-header">
       <div class="header-content">
         <div class="breadcrumb">
-          <router-link to="/" class="breadcrumb-item">Home</router-link>
+          <router-link to="/" class="breadcrumb-item">Home </router-link>
           <span class="breadcrumb-separator">/</span>
           <span class="breadcrumb-item active">Forum 2</span>
         </div>

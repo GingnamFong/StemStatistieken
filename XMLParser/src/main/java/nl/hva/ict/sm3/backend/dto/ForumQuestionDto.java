@@ -77,31 +77,19 @@ public class ForumQuestionDto {
         dto.setBody(question.getBody());
         dto.setCreatedAt(question.getCreatedAt());
 
-        // Convert author - only safe fields, no password
         if (question.getAuthor() != null) {
             String name = question.getAuthor().getName() != null ? question.getAuthor().getName() : "Anoniem";
             String lastName = question.getAuthor().getLastName() != null ? question.getAuthor().getLastName() : "";
             String email = question.getAuthor().getEmail() != null ? question.getAuthor().getEmail() : "";
             Long id = question.getAuthor().getId() != null ? question.getAuthor().getId() : 0L;
-            
-            dto.setAuthor(new AuthorDto(
-                id,
-                name,
-                lastName,
-                email
-            ));
+
+            dto.setAuthor(new AuthorDto(id, name, lastName, email));
         } else {
-            // Set a default author if null
             dto.setAuthor(new AuthorDto(0L, "Anoniem", "", ""));
         }
 
-        // Convert comments recursively
-        if (question.getComments() != null) {
-            List<ForumQuestionDto> commentDtos = question.getComments().stream()
-                .map(ForumQuestionDto::from)
-                .collect(Collectors.toList());
-            dto.setComments(commentDtos);
-        }
+        // IMPORTANT: do NOT touch question.getComments() here (prevents LazyInitializationException)
+        dto.setComments(null);
 
         return dto;
     }
