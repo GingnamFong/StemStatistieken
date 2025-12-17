@@ -17,10 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Integration tests voor ForumQuestionRepository.
  * 
- * Deze tests verifiëren dat de relaties tussen questions en comments correct werken:
- * - Een question (top-level) kan meerdere comments hebben
- * - Een comment heeft altijd één parent question
- * - Comments kunnen niet meerdere questions hebben
+ * These tests verify that the relations between questions and comments work correctly:
+ * - A question on top level can have more comments
+ * - A comment always has one parent question
+ * - Comments cannot have more questions
  */
 @DataJpaTest
 @DisplayName("ForumQuestion Repository Tests")
@@ -39,7 +39,7 @@ class ForumQuestionRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Maak een test gebruiker aan
+        // Makes a test user
         testUser = new User();
         testUser.setName("Test User");
         testUser.setEmail("test@example.com");
@@ -50,12 +50,12 @@ class ForumQuestionRepositoryTest {
     }
 
     @Test
-    @DisplayName("Een top-level question kan worden aangemaakt zonder parent")
+    @DisplayName("A top-level question can be created without a parent")
     void testCreateTopLevelQuestion() {
         // Arrange & Act
         ForumQuestion question = new ForumQuestion();
-        question.setBody("Dit is een top-level vraag");
-        question.setQuestion(null); // Geen parent
+        question.setBody("This is a top-level question");
+        question.setQuestion(null); // No parent
         question.setAuthor(testUser);
         
         ForumQuestion saved = forumQuestionRepository.save(question);
@@ -65,16 +65,16 @@ class ForumQuestionRepositoryTest {
         // Assert
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getQuestion()).isNull();
-        assertThat(saved.getBody()).isEqualTo("Dit is een top-level vraag");
+        assertThat(saved.getBody()).isEqualTo("DThis is a top-level question");
         assertThat(saved.getAuthor()).isNotNull();
     }
 
     @Test
-    @DisplayName("Een question kan meerdere comments hebben")
+    @DisplayName("A question can have more comments")
     void testQuestionCanHaveMultipleComments() {
-        // Arrange: Maak een top-level question
+        // Arrange: Makes a top-level question
         ForumQuestion parentQuestion = new ForumQuestion();
-        parentQuestion.setBody("Hoofdvraag");
+        parentQuestion.setBody("Main question");
         parentQuestion.setQuestion(null);
         parentQuestion.setAuthor(testUser);
         parentQuestion = forumQuestionRepository.save(parentQuestion);
@@ -83,19 +83,19 @@ class ForumQuestionRepositoryTest {
 
         // Act: Voeg meerdere comments toe
         ForumQuestion comment1 = new ForumQuestion();
-        comment1.setBody("Eerste comment");
+        comment1.setBody("First comment");
         comment1.setQuestion(parentQuestion);
         comment1.setAuthor(testUser);
         forumQuestionRepository.save(comment1);
 
         ForumQuestion comment2 = new ForumQuestion();
-        comment2.setBody("Tweede comment");
+        comment2.setBody("Second comment");
         comment2.setQuestion(parentQuestion);
         comment2.setAuthor(testUser);
         forumQuestionRepository.save(comment2);
 
         ForumQuestion comment3 = new ForumQuestion();
-        comment3.setBody("Derde comment");
+        comment3.setBody("Third comment");
         comment3.setQuestion(parentQuestion);
         comment3.setAuthor(testUser);
         forumQuestionRepository.save(comment3);
@@ -103,25 +103,25 @@ class ForumQuestionRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        // Assert: Check of alle comments zijn opgeslagen
+        // Assert: Check if all comments have been saved
         List<ForumQuestion> comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(parentQuestion.getId());
         assertThat(comments).hasSize(3);
         assertThat(comments.get(0).getBody()).isEqualTo("Eerste comment");
         assertThat(comments.get(1).getBody()).isEqualTo("Tweede comment");
         assertThat(comments.get(2).getBody()).isEqualTo("Derde comment");
         
-        // Check dat alle comments dezelfde parent hebben
+        // Check if all comments have the same parent
         assertThat(comments.get(0).getQuestion().getId()).isEqualTo(parentQuestion.getId());
         assertThat(comments.get(1).getQuestion().getId()).isEqualTo(parentQuestion.getId());
         assertThat(comments.get(2).getQuestion().getId()).isEqualTo(parentQuestion.getId());
     }
 
     @Test
-    @DisplayName("Een comment heeft altijd één parent question")
+    @DisplayName("One comment always has one parent question")
     void testCommentHasOneParent() {
         // Arrange
         ForumQuestion parent = new ForumQuestion();
-        parent.setBody("Parent vraag");
+        parent.setBody("Parent question");
         parent.setQuestion(null);
         parent.setAuthor(testUser);
         parent = forumQuestionRepository.save(parent);
@@ -130,7 +130,7 @@ class ForumQuestionRepositoryTest {
 
         // Act
         ForumQuestion comment = new ForumQuestion();
-        comment.setBody("Dit is een comment");
+        comment.setBody("This is a comment");
         comment.setQuestion(parent);
         comment.setAuthor(testUser);
         ForumQuestion savedComment = forumQuestionRepository.save(comment);
@@ -141,28 +141,28 @@ class ForumQuestionRepositoryTest {
         ForumQuestion retrieved = forumQuestionRepository.findById(savedComment.getId()).orElseThrow();
         assertThat(retrieved.getQuestion()).isNotNull();
         assertThat(retrieved.getQuestion().getId()).isEqualTo(parent.getId());
-        assertThat(retrieved.getQuestion().getBody()).isEqualTo("Parent vraag");
+        assertThat(retrieved.getQuestion().getBody()).isEqualTo("Parent question");
     }
 
     @Test
-    @DisplayName("findAllTopLevelQuestions retourneert alleen questions zonder parent")
+    @DisplayName("findAllTopLevelQuestions returns only questions without a parent")
     void testFindAllTopLevelQuestions() {
         // Arrange: Maak 2 top-level questions en 1 comment
         ForumQuestion question1 = new ForumQuestion();
-        question1.setBody("Vraag 1");
+        question1.setBody("Question 1");
         question1.setQuestion(null);
         question1.setAuthor(testUser);
         forumQuestionRepository.save(question1);
 
         ForumQuestion question2 = new ForumQuestion();
-        question2.setBody("Vraag 2");
+        question2.setBody("Question 2");
         question2.setQuestion(null);
         question2.setAuthor(testUser);
         ForumQuestion savedQuestion2 = forumQuestionRepository.save(question2);
 
         // Maak een comment (niet top-level)
         ForumQuestion comment = new ForumQuestion();
-        comment.setBody("Comment op vraag 2");
+        comment.setBody("Comment on question 2");
         comment.setQuestion(savedQuestion2);
         comment.setAuthor(testUser);
         forumQuestionRepository.save(comment);
@@ -176,12 +176,12 @@ class ForumQuestionRepositoryTest {
         // Assert: Alleen de 2 top-level questions, niet de comment
         assertThat(topLevelQuestions).hasSize(2);
         assertThat(topLevelQuestions).extracting(ForumQuestion::getBody)
-                .containsExactlyInAnyOrder("Vraag 1", "Vraag 2");
+                .containsExactlyInAnyOrder("Question 1", "Question 2");
         assertThat(topLevelQuestions).allMatch(q -> q.getQuestion() == null);
     }
 
     @Test
-    @DisplayName("Wanneer een parent question wordt verwijderd, worden alle comments ook verwijderd (cascade)")
+    @DisplayName("When a parent question is deleted, all comments are also deleted (cascade)")
     void testCascadeDelete() {
         // Arrange
         ForumQuestion parent = new ForumQuestion();
@@ -205,24 +205,24 @@ class ForumQuestionRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        // Verify comments bestaan
+        // Verify comments exist
         assertThat(forumQuestionRepository.findById(savedComment1.getId())).isPresent();
         assertThat(forumQuestionRepository.findById(savedComment2.getId())).isPresent();
 
-        // Act: Verwijder parent
+        // Act: Delete parent
         forumQuestionRepository.delete(parent);
         entityManager.flush();
         entityManager.clear();
 
-        // Assert: Comments moeten ook verwijderd zijn (cascade)
+        // Assert: Comments should also be deleted (cascade)
         assertThat(forumQuestionRepository.findById(savedComment1.getId())).isEmpty();
         assertThat(forumQuestionRepository.findById(savedComment2.getId())).isEmpty();
     }
 
     @Test
-    @DisplayName("Een comment kan niet meerdere questions hebben (one-to-many relatie)")
+    @DisplayName("A comment cannot have multiple questions (one-to-many relation)")
     void testCommentCannotHaveMultipleParents() {
-        // Arrange: Maak 2 parent questions
+        // Arrange: Makes 2 parent questions
         ForumQuestion parent1 = new ForumQuestion();
         parent1.setBody("Parent 1");
         parent1.setQuestion(null);
@@ -235,28 +235,28 @@ class ForumQuestionRepositoryTest {
         parent2.setAuthor(testUser);
         parent2 = forumQuestionRepository.save(parent2);
 
-        // Act: Maak een comment en probeer beide parents te koppelen
+        // Act: Make a comment and try to link both parents
         ForumQuestion comment = new ForumQuestion();
         comment.setBody("Comment");
-        comment.setQuestion(parent1); // Eerst parent1
+        comment.setQuestion(parent1); // First parent1
         comment.setAuthor(testUser);
         ForumQuestion saved = forumQuestionRepository.save(comment);
         entityManager.flush();
         entityManager.clear();
 
-        // Verander naar parent2
+        // Changes to parent2
         ForumQuestion retrieved = forumQuestionRepository.findById(saved.getId()).orElseThrow();
         retrieved.setQuestion(parent2);
         forumQuestionRepository.save(retrieved);
         entityManager.flush();
         entityManager.clear();
 
-        // Assert: Comment heeft nu alleen parent2 (niet beide)
+        // Assert: Comment now only has parent2 (not both)
         ForumQuestion finalComment = forumQuestionRepository.findById(saved.getId()).orElseThrow();
         assertThat(finalComment.getQuestion().getId()).isEqualTo(parent2.getId());
         assertThat(finalComment.getQuestion().getId()).isNotEqualTo(parent1.getId());
         
-        // Verify: parent1 heeft geen comments meer
+        // Verify: parent1 has no more comments
         List<ForumQuestion> parent1Comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(parent1.getId());
         assertThat(parent1Comments).isEmpty();
     }
