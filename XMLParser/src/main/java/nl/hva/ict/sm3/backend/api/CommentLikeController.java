@@ -31,73 +31,63 @@ public class CommentLikeController {
         this.userRepository = userRepository;
     }
 
-    // POST /api/forum/comments/{commentId}/like
     @PostMapping("/comments/{commentId}/like")
     public ResponseEntity<?> like(@PathVariable Long commentId) {
         User user = requireUser();
 
         ForumQuestion comment = forumQuestionRepository.findById(commentId).orElse(null);
         if (comment == null) return ResponseEntity.notFound().build();
+        if (comment.getQuestion() == null) return ResponseEntity.status(400).body("Not a comment");
 
-        // Optional safety: only allow liking real comments (not top-level posts)
-        if (comment.getQuestion() == null) {
-            return ResponseEntity.status(400).body("Not a comment");
-        }
-
-        if (!commentLikeRepository.existsByUserIdAndCommentId(user.getId(), commentId)) {
+        if (!commentLikeRepository.existsByUserIdAndForumQuestionId(user.getId(), commentId)) {
             CommentLike like = new CommentLike();
             like.setUser(user);
-            like.setComment(comment);
+            like.setForumQuestion(comment);
             commentLikeRepository.save(like);
         }
 
-        long count = commentLikeRepository.countByCommentId(commentId);
+        long count = commentLikeRepository.countByForumQuestionId(commentId);
         return ResponseEntity.status(201).body(Map.of("commentId", commentId, "likes", count));
     }
 
-    // DELETE /api/forum/comments/{commentId}/like
     @DeleteMapping("/comments/{commentId}/like")
     public ResponseEntity<?> unlike(@PathVariable Long commentId) {
         User user = requireUser();
 
         if (!forumQuestionRepository.existsById(commentId)) return ResponseEntity.notFound().build();
 
-        commentLikeRepository.deleteByUserIdAndCommentId(user.getId(), commentId);
+        commentLikeRepository.deleteByUserIdAndForumQuestionId(user.getId(), commentId);
 
-        long count = commentLikeRepository.countByCommentId(commentId);
+        long count = commentLikeRepository.countByForumQuestionId(commentId);
         return ResponseEntity.ok(Map.of("commentId", commentId, "likes", count));
     }
 
-    // GET /api/forum/comments/{commentId}/likes
     @GetMapping("/comments/{commentId}/likes")
     public ResponseEntity<?> count(@PathVariable Long commentId) {
         if (!forumQuestionRepository.existsById(commentId)) return ResponseEntity.notFound().build();
 
-        long count = commentLikeRepository.countByCommentId(commentId);
+        long count = commentLikeRepository.countByForumQuestionId(commentId);
 
         boolean likedByMe = false;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             User user = userRepository.findByEmail(auth.getName()).orElse(null);
             if (user != null) {
-                likedByMe = commentLikeRepository.existsByUserIdAndCommentId(user.getId(), commentId);
+                likedByMe = commentLikeRepository.existsByUserIdAndForumQuestionId(user.getId(), commentId);
             }
         }
 
-        return ResponseEntity.ok(Map.of(
-                "commentId", commentId,
-                "likes", count,
-                "likedByMe", likedByMe
-        ));
+        return ResponseEntity.ok(Map.of("commentId", commentId, "likes", count, "likedByMe", likedByMe));
     }
 
     private User requireUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED);
         }
-
-        return userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        return userRepository.findByEmail(auth.getName()).orElseThrow(() ->
+                new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED)
+        );
     }
 }
+

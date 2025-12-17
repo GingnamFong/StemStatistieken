@@ -22,10 +22,10 @@ import java.time.LocalDateTime;
         name = "comment_likes",
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_like_user_comment",
-                columnNames = {"user_id", "comment_id"}
+                columnNames = {"user_id", "forum_question_id"}
         ),
         indexes = {
-                @Index(name = "idx_like_comment", columnList = "comment_id"),
+                @Index(name = "idx_like_forum_question", columnList = "forum_question_id"),
                 @Index(name = "idx_like_user", columnList = "user_id")
         }
 )
@@ -35,42 +35,27 @@ public class CommentLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * The user who liked the comment.
-     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    /**
-     * The liked comment (stored as a ForumQuestion with a parent).
-     *
-     * <p>Column name remains "comment_id" but it references {@code forum_questions.id}.
-     */
+    // This points to FORUM_QUESTIONS (your comments are there)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "comment_id", nullable = false)
-    private ForumQuestion comment;
+    @JoinColumn(name = "forum_question_id", nullable = false)
+    private ForumQuestion forumQuestion;
 
-    /**
-     * Timestamp indicating when the like was created.
-     */
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public CommentLike() {}
 
-    @PrePersist
-    void onCreate() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
-    }
-
     public Long getId() { return id; }
-
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
-    public ForumQuestion getComment() { return comment; }
-    public void setComment(ForumQuestion comment) { this.comment = comment; }
+    public ForumQuestion getForumQuestion() { return forumQuestion; }
+    public void setForumQuestion(ForumQuestion forumQuestion) { this.forumQuestion = forumQuestion; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
+
