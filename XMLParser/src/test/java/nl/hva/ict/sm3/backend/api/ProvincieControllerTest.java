@@ -23,21 +23,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Unit tests voor ProvincieController.
- * Deze tests checken of de REST endpoints goed werken.
- * - Happy flows: normale requests die zouden moeten werken
- * - Invalid input: foute requests die niet zouden moeten werken
- * - Error handling: wat gebeurt er als er iets mis gaat
- * - Business rules: belangrijke regels zoals validatie
+ * These tests check if the REST endpoints work correctly.
+ * - Happy flows: normal requests that should work
+ * - Invalid input: wrong requests that should not work
+ * - Error handling: what happens when something goes wrong
+ * - Business rules: important rules like validation
  */
 
 @ExtendWith(MockitoExtension.class)
 class ProvincieControllerTest {
 
-    // Dit is een mock versie van ProvincieService
+    // This is a mock version of ProvincieService
     @Mock
     private ProvincieService provincieService;
 
-    // Dit is de echte controller die we testen
+    // This is the real controller we are testing
     @InjectMocks
     private ProvincieController provincieController;
 
@@ -45,30 +45,30 @@ class ProvincieControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Deze methode wordt voor elke test uitgevoerd
+        // This method is executed before each test
         mockMvc = MockMvcBuilders.standaloneSetup(provincieController).build();
     }
 
     // HAPPY FLOW
     @Test
     void testGetAllProvincies_HappyFlow() throws Exception {
-        // Arrange: maak test data en zet mock klaar
+        // Arrange: create test data and set up mock
         List<Province> provinces = new ArrayList<>();
         provinces.add(new Province("Groningen"));
         provinces.add(new Province("Gelderland"));
         
-        // Als getAllProvinciesForElection wordt aangeroepen geef dan deze lijst terug
+        // When getAllProvinciesForElection is called, return this list
         when(provincieService.getAllProvinciesForElection("TK2023")).thenReturn(provinces);
 
-        // Act en Assert: doe een HTTP GET request en check of het goed gaat
-        mockMvc.perform(get("/provincies")  // GET request naar /provincies
+        // Act and Assert: do an HTTP GET request and check if it works
+        mockMvc.perform(get("/provincies")  // GET request to /provincies
                         .param("electionId", "TK2023"))  // parameter electionId=TK2023
-                .andExpect(status().isOk())  // Verwacht status 200 (OK)
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))  // Verwacht JSON
-                .andExpect(jsonPath("$").isArray())  // Verwacht een array
-                .andExpect(jsonPath("$[0].naam").exists());  // Eerste item moet een "naam" hebben
+                .andExpect(status().isOk())  // Expect status 200 (OK)
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))  // Expect JSON
+                .andExpect(jsonPath("$").isArray())  // Expect an array
+                .andExpect(jsonPath("$[0].naam").exists());  // First item must have a "naam"
 
-        // Verify: check of de service is aangeroepen
+        // Verify: check if the service was called
         verify(provincieService).getAllProvinciesForElection("TK2023");
     }
 
@@ -97,35 +97,35 @@ class ProvincieControllerTest {
     // INVALID INPUT
     @Test
     void testGetProvincieData_GevaarlijkeKarakters() throws Exception {
-        // Act & Assert: test met gevaarlijke karakters zoals <script>
-        // De controller heeft validatie die dit moet afvangen
+        // Act & Assert: test with dangerous characters like <script>
+        // The controller has validation that should catch this
         try {
-            mockMvc.perform(get("/provincies/test<script>")  // Provincie naam met <script>
+            mockMvc.perform(get("/provincies/test<script>")  // Province name with <script>
                             .param("electionId", "TK2023"));
         } catch (Exception e) {
-            // De controller moet een IllegalArgumentException gooien
-            // Dit betekent dat de validatie werkt
+            // The controller should throw an IllegalArgumentException
+            // This means the validation works
             assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class);
         }
         
-        // Verify: de service mag NIET worden aangeroepen
-        // De validatie moet het blokkeren voordat het bij de service komt
+        // Verify: the service should NOT be called
+        // The validation should block it before it reaches the service
         verify(provincieService, never()).getProvincieDataForElection(anyString(), anyString());
     }
 
     // ERROR HANDLING
     @Test
     void testGetProvincieData_ServiceThrowsRuntimeException() throws Exception {
-        // Arrange: zet mock zo dat de service een exception gooit
+        // Arrange: set mock so that the service throws an exception
         doThrow(new RuntimeException("Unexpected error"))
                 .when(provincieService).getProvincieDataForElection("TK2023", "Groningen");
 
-        // Act en Assert: doe een request ook al gooit de service een exception
+        // Act and Assert: do a request even though the service throws an exception
         try {
             mockMvc.perform(get("/provincies/Groningen")
                             .param("electionId", "TK2023"));
         } catch (Exception e) {
-            // De exception wordt doorgegeven dit is goed
+            // The exception is passed through, this is good
             assertThat(e.getCause()).isInstanceOf(RuntimeException.class);
         }
     }
@@ -143,7 +143,7 @@ class ProvincieControllerTest {
         when(provincieService.getAllProvinciesForElection("TK2021")).thenReturn(provinces2021);
         when(provincieService.getAllProvinciesForElection("TK2023")).thenReturn(provinces2023);
 
-        // Act en Assert verschillende electionIds
+        // Act and Assert different electionIds
         mockMvc.perform(get("/provincies")
                         .param("electionId", "TK2021"))
                 .andExpect(status().isOk());
@@ -169,7 +169,7 @@ class ProvincieControllerTest {
         when(provincieService.getProvincieResultatenForElection("TK2023", "Groningen"))
                 .thenReturn(results);
 
-        // Act en Assert percentages moeten goed berekend zijn
+        // Act and Assert percentages should be calculated correctly
         mockMvc.perform(get("/provincies/Groningen/resultaten")
                         .param("electionId", "TK2023"))
                 .andExpect(status().isOk())

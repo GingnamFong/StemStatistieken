@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -82,11 +85,10 @@ public class PathUtils {
                 try {
                     return new File(url.toURI()).getPath();
                 } catch (IllegalArgumentException e) {
-                    // Handle jar: URLs - extract the path part
+                    // Handle jar: URLs - extract to temp directory
                     String urlString = url.toString();
                     if (urlString.startsWith("jar:")) {
-                        // For jar resources, try to extract path or use alternative
-                        // For now, fall through to filesystem search
+                        return extractJarResource(resourceName);
                     } else {
                         throw e;
                     }
@@ -96,21 +98,13 @@ public class PathUtils {
             // Try to find via classpath root
             URL rootUrl = PathUtils.class.getResource("/");
             if (rootUrl != null) {
+                // If running from JAR, extract resources
+                if ("jar".equals(rootUrl.getProtocol())) {
+                    return extractJarResource("/" + cleanResourceName);
+                }
                 try {
                     URI projectRootURI = rootUrl.toURI();
                     String rootPath = projectRootURI.getPath();
-                    
-                    // Handle jar:file: URIs
-                    if (rootPath == null && rootUrl.toString().startsWith("jar:")) {
-                        // Extract path from jar URL: jar:file:/path/to.jar!/ 
-                        String jarUrl = rootUrl.toString();
-                        int exclMark = jarUrl.indexOf('!');
-                        if (exclMark > 0) {
-                            String jarPath = jarUrl.substring(4, exclMark); // Remove "jar:" prefix
-                            // For jar resources, try filesystem fallback
-                            rootPath = new File(jarPath).getParent();
-                        }
-                    }
                     
                     if (rootPath != null) {
                         String resourceFilePath = new File(rootPath, cleanResourceName).getPath();
@@ -157,6 +151,293 @@ public class PathUtils {
         }
 
         return null;
+    }
+    
+    private static String extractJarResource(String resourceName) {
+        System.err.println("DEBUG: ===== extractJarResource START =====");
+        System.err.println("DEBUG: extractJarResource called with: " + resourceName);
+        System.err.flush();
+        
+        try {
+            String trimmedName = resourceName.startsWith("/") ? resourceName.substring(1) : resourceName;
+            System.err.println("DEBUG: Trimmed resource name: " + trimmedName);
+            System.err.flush();
+            
+            // Method 1: Try to get JAR location from the resource URL itself
+            System.err.println("DEBUG: Method 1: Trying to get resource URL...");
+            URL resourceUrl = PathUtils.class.getResource("/" + trimmedName);
+            System.err.println("DEBUG: Direct resource URL: " + resourceUrl);
+            if (resourceUrl == null) {
+                resourceUrl = PathUtils.class.getClassLoader().getResource(trimmedName);
+                System.err.println("DEBUG: ClassLoader resource URL: " + resourceUrl);
+            }
+            
+            String jarPath = null;
+            if (resourceUrl != null && "jar".equals(resourceUrl.getProtocol())) {
+                // Extract JAR path from jar:file:/path/to/jar!/path/in/jar
+                String urlString = resourceUrl.toString();
+                System.err.println("DEBUG: Resource URL string: " + urlString);
+                if (urlString.startsWith("jar:file:")) {
+                    int exclamationIndex = urlString.indexOf("!");
+                    if (exclamationIndex > 0) {
+                        jarPath = urlString.substring(9, exclamationIndex); // Skip "jar:file:"
+                        System.err.println("DEBUG: Method 1 SUCCESS - Extracted JAR path: " + jarPath);
+                    }
+                }
+            }
+            
+            // Method 2: Try ProtectionDomain method (handles jar:file: and jar:nested:)
+            if (jarPath == null) {
+                System.err.println("DEBUG: Method 2: Trying ProtectionDomain...");
+                try {
+                    URL codeSourceUrl = PathUtils.class.getProtectionDomain().getCodeSource().getLocation();
+                    System.err.println("DEBUG: Code source URL: " + codeSourceUrl);
+                    
+                    if (codeSourceUrl != null) {
+                        String urlString = codeSourceUrl.toString();
+                        System.err.println("DEBUG: Code source URL string: " + urlString);
+                        
+                        // Handle jar:nested: protocol (Spring Boot 3.2+)
+                        if (urlString.startsWith("jar:nested:")) {
+                            // Format: jar:nested:/app/app.jar/!BOOT-INF/classes/!/
+                            int exclamationIndex = urlString.indexOf("!");
+                            if (exclamationIndex > 0) {
+                                jarPath = urlString.substring(11, exclamationIndex); // Skip "jar:nested:"
+                                // Remove trailing slash if present
+                                if (jarPath.endsWith("/")) {
+                                    jarPath = jarPath.substring(0, jarPath.length() - 1);
+                                }
+                                System.err.println("DEBUG: Method 2 SUCCESS (nested) - Extracted JAR path: " + jarPath);
+                            }
+                        }
+                        // Handle jar:file: protocol (traditional)
+                        else if (urlString.startsWith("jar:file:")) {
+                            int exclamationIndex = urlString.indexOf("!");
+                            if (exclamationIndex > 0) {
+                                jarPath = urlString.substring(9, exclamationIndex); // Skip "jar:file:"
+                                System.err.println("DEBUG: Method 2 SUCCESS (file) - Extracted JAR path: " + jarPath);
+                            }
+                        }
+                        // Handle file: protocol
+                        else if ("file".equals(codeSourceUrl.getProtocol())) {
+                            try {
+                                jarPath = codeSourceUrl.toURI().getPath();
+                                System.err.println("DEBUG: Method 2 SUCCESS - JAR path from URI: " + jarPath);
+                            } catch (URISyntaxException e) {
+                                jarPath = codeSourceUrl.getPath();
+                                System.err.println("DEBUG: Method 2 SUCCESS - JAR path from getPath: " + jarPath);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("DEBUG: Method 2 FAILED: " + e.getClass().getName() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            
+            // Method 3: Try known Docker/Azure locations FIRST (most reliable)
+            if (jarPath == null || !new File(jarPath).exists()) {
+                System.err.println("DEBUG: Method 3: Trying known JAR locations...");
+                String[] possiblePaths = {
+                    "/app/app.jar",
+                    System.getProperty("user.dir") + "/app.jar",
+                    "./app.jar"
+                };
+                for (String possiblePath : possiblePaths) {
+                    try {
+                        File jarFile = new File(possiblePath);
+                        System.err.println("DEBUG: Checking path: " + possiblePath + " exists: " + jarFile.exists());
+                        if (jarFile.exists() && jarFile.isFile()) {
+                            jarPath = jarFile.getAbsolutePath();
+                            System.err.println("DEBUG: Method 3 SUCCESS - Found JAR at: " + jarPath);
+                            break;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("DEBUG: Error checking " + possiblePath + ": " + e.getMessage());
+                    }
+                }
+            }
+            
+            // Method 4: Try to find JAR from classpath
+            if (jarPath == null || !new File(jarPath).exists()) {
+                System.err.println("DEBUG: Method 4: Trying classpath...");
+                String classPath = System.getProperty("java.class.path");
+                System.err.println("DEBUG: Classpath: " + classPath);
+                if (classPath != null && classPath.contains(".jar")) {
+                    String separator = System.getProperty("path.separator", ":");
+                    String[] paths = classPath.split(separator);
+                    for (String path : paths) {
+                        if (path.endsWith(".jar")) {
+                            File f = new File(path);
+                            if (f.exists()) {
+                                jarPath = f.getAbsolutePath();
+                                System.err.println("DEBUG: Method 4 SUCCESS - Found JAR: " + jarPath);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (jarPath == null) {
+                System.err.println("ERROR: All methods failed to find JAR path!");
+                throw new IOException("Could not determine JAR file location after trying 4 methods");
+            }
+            
+            // Handle Windows paths (remove leading /)
+            if (jarPath.startsWith("/") && jarPath.length() > 2 && jarPath.charAt(2) == ':') {
+                jarPath = jarPath.substring(1);
+                System.err.println("DEBUG: Fixed Windows path: " + jarPath);
+            }
+            
+            // Verify JAR file exists
+            File jarFile = new File(jarPath);
+            if (!jarFile.exists()) {
+                throw new IOException("JAR file does not exist at: " + jarPath);
+            }
+            System.err.println("DEBUG: Verified JAR exists: " + jarPath + " (size: " + jarFile.length() + " bytes)");
+            
+            System.err.println("DEBUG: Final JAR path: " + jarPath);
+            System.err.flush();
+            
+            // Create or get existing FileSystem for JAR
+            URI jarUri = URI.create("jar:file:" + jarPath);
+            System.err.println("DEBUG: JAR URI: " + jarUri);
+            System.err.flush();
+            
+            // Try to get existing FileSystem first, create if it doesn't exist
+            FileSystem fs;
+            try {
+                fs = FileSystems.getFileSystem(jarUri);
+                System.err.println("DEBUG: Reusing existing JAR filesystem");
+            } catch (Exception e) {
+                System.err.println("DEBUG: Creating new JAR filesystem");
+                fs = FileSystems.newFileSystem(jarUri, Collections.emptyMap());
+            }
+            
+            try {
+                System.err.println("DEBUG: Opened JAR filesystem");
+                
+                // Try BOOT-INF/classes/ first (Spring Boot JAR structure)
+                Path resourcePath = null;
+                Path bootInfClasses = fs.getPath("/BOOT-INF/classes/");
+                System.err.println("DEBUG: Checking for BOOT-INF/classes/: " + Files.exists(bootInfClasses));
+                
+                if (Files.exists(bootInfClasses)) {
+                    System.err.println("DEBUG: Found BOOT-INF/classes/ (Spring Boot JAR)");
+                    Path altResourcePath = bootInfClasses.resolve(trimmedName);
+                    System.err.println("DEBUG: Trying Spring Boot path: " + altResourcePath);
+                    if (Files.exists(altResourcePath)) {
+                        resourcePath = altResourcePath;
+                        System.err.println("DEBUG: ✓ Found resource in BOOT-INF/classes/!");
+                    } else {
+                        System.err.println("DEBUG: ✗ Resource not found at: " + altResourcePath);
+                    }
+                }
+                
+                // Fallback to root
+                if (resourcePath == null) {
+                    resourcePath = fs.getPath("/" + trimmedName);
+                    System.err.println("DEBUG: Trying root path: " + resourcePath);
+                    if (Files.exists(resourcePath)) {
+                        System.err.println("DEBUG: ✓ Found resource at root!");
+                    } else {
+                        System.err.println("DEBUG: ✗ Resource not found at root");
+                    }
+                }
+                
+                if (!Files.exists(resourcePath)) {
+                    // List JAR contents for debugging
+                    System.err.println("DEBUG: Listing JAR contents for debugging...");
+                    try {
+                        Path root = fs.getPath("/");
+                        System.err.println("DEBUG: JAR root contents:");
+                        Files.list(root).limit(30).forEach(p -> System.err.println("  - " + p));
+                        
+                        if (Files.exists(bootInfClasses)) {
+                            System.err.println("DEBUG: BOOT-INF/classes/ contents:");
+                            Files.list(bootInfClasses).limit(30).forEach(p -> System.err.println("  - " + p));
+                            
+                            // Check if TK directories exist
+                            Path tk2021Path = bootInfClasses.resolve("TK2021");
+                            Path tk2023Path = bootInfClasses.resolve("TK2023");
+                            Path tk2025Path = bootInfClasses.resolve("TK2025");
+                            System.err.println("DEBUG: TK2021 exists: " + Files.exists(tk2021Path));
+                            System.err.println("DEBUG: TK2023 exists: " + Files.exists(tk2023Path));
+                            System.err.println("DEBUG: TK2025 exists: " + Files.exists(tk2025Path));
+                        }
+                    } catch (Exception listEx) {
+                        System.err.println("DEBUG: Could not list JAR contents: " + listEx.getMessage());
+                        listEx.printStackTrace();
+                    }
+                    throw new IOException("Resource not found in JAR: " + trimmedName + " (searched at: " + resourcePath + ")");
+                }
+                
+                Path tempDir = Files.createTempDirectory("election-resources");
+                tempDir.toFile().deleteOnExit();
+                Path targetDir = tempDir.resolve(trimmedName);
+                Files.createDirectories(targetDir);
+                
+                System.err.println("DEBUG: Created temp directory: " + targetDir);
+                System.err.flush();
+                
+                if (Files.isDirectory(resourcePath)) {
+                    // Check if directory is empty
+                    boolean hasFiles = false;
+                    long fileCount = 0;
+                    try {
+                        fileCount = Files.list(resourcePath).count();
+                        hasFiles = fileCount > 0;
+                        System.err.println("DEBUG: Directory has " + fileCount + " items (hasFiles: " + hasFiles + ")");
+                    } catch (IOException e) {
+                        System.err.println("DEBUG: Error checking directory: " + e.getMessage());
+                    }
+                    
+                    if (!hasFiles) {
+                        System.err.println("WARNING: Directory " + trimmedName + " exists in JAR but is empty!");
+                        return targetDir.toString();
+                    }
+                    
+                    // Copy entire directory recursively
+                    System.err.println("DEBUG: Starting recursive copy from " + resourcePath + " to " + targetDir);
+                    System.err.flush();
+                    final Path finalResourcePath = resourcePath;
+                    final Path finalTargetDir = targetDir;
+                    Files.walkFileTree(resourcePath, new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                            Path relativePath = finalResourcePath.relativize(file);
+                            Path targetFile = finalTargetDir.resolve(relativePath.toString());
+                            Files.createDirectories(targetFile.getParent());
+                            Files.copy(file, targetFile);
+                            System.err.println("DEBUG: Extracted file: " + relativePath);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+                    System.err.println("DEBUG: Finished copying files");
+                } else {
+                    // Single file
+                    Files.copy(resourcePath, targetDir.resolve(resourcePath.getFileName().toString()));
+                    System.err.println("DEBUG: Extracted single file: " + resourcePath.getFileName());
+                }
+                
+                System.err.println("DEBUG: ✓ Successfully extracted resource to: " + targetDir);
+                System.err.println("DEBUG: ===== extractJarResource SUCCESS =====");
+                System.err.flush();
+                return targetDir.toString();
+            } finally {
+                // Don't close the FileSystem - it might be reused by other threads
+                // The JVM will close it when the application shuts down
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: ===== extractJarResource FAILED =====");
+            System.err.println("ERROR: Exception type: " + e.getClass().getName());
+            System.err.println("ERROR: Exception message: " + e.getMessage());
+            System.err.println("ERROR: Stack trace:");
+            e.printStackTrace();
+            System.err.flush();
+            throw new RuntimeException("Failed to extract JAR resource: " + resourceName + " - " + e.getMessage(), e);
+        }
     }
 
 }

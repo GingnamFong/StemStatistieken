@@ -1,37 +1,41 @@
-# Bouw fase
+# Build stage
 FROM maven:3.9-eclipse-temurin-21 AS build
 
-# Werk in de app map
+# Set working directory
 WORKDIR /app
 
-# Kopieer pom.xml eerst voor betere Docker cache
+# Copy pom.xml first for better Docker cache
 COPY pom.xml .
 
-# Download alle dependencies zonder internet
+# Download all dependencies
 RUN mvn dependency:go-offline -B
 
-# Kopieer alle source code en bouw de JAR
+# Copy source code and build JAR
 COPY src ./src
 
-# Bouw de JAR file zonder tests voor snelheid
+# Build JAR file without tests for speed
 RUN mvn clean package -DskipTests
 
 
-# Run fase
+# Runtime stage
 FROM eclipse-temurin:21-jre
 
-# Werk in app map
+# Set working directory
 WORKDIR /app
 
-# Kopieer de gebouwde JAR van de build fase
+# Copy built JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Java geheugen instellingen
-ENV JAVA_OPTS="-Xms256m -Xmx512m"
+# Create data directory for Azure Files mount
+RUN mkdir -p /home/data
 
-# Poort 8081 alleen toegankelijk maken
+# Java memory settings
+ENV JAVA_OPTS="-Xms256m -Xmx512m"
+ENV H2_DATABASE_URL="jdbc:h2:file:/home/data/election-database;DB_CLOSE_DELAY=-1"
+
+# Expose port 8081
 EXPOSE 8081
 
-# Start de Spring Boot applicatie
+# Start Spring Boot application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 

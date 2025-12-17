@@ -1,15 +1,8 @@
-# Exclude large XML files from Docker build context
-# These are mounted as volumes instead
-**/TK2021/
-**/TK2023/
-**/TK2025/
-**/*.eml.xml
-**/Gemeente tellingen/
-**/Gemeente tellingen 2/
-**/Kandidatenlijsten/
-
-# Exclude other unnecessary files
+# Exclude unnecessary files from Docker build
 target/
 .git/
 .idea/
 *.iml
+
+# NOTE: XML election data is now INCLUDED in the Docker image
+# Do NOT exclude TK2021, TK2023, TK2025 folders
