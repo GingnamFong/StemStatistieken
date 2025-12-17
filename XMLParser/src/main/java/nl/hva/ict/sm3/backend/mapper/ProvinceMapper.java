@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Mapper voor provincie data.
- * Zet Java objecten om naar JSON formaat voor de API responses.
+ * Mapper for province data.
+ * Converts Java objects to JSON format for API responses.
  */
 public class ProvinceMapper {
     
     /**
-     * Zet provincie om naar basis JSON formaat (zonder resultaten).
+     * Converts province to basic JSON format (without results).
      * 
-     * @param province Provincie object
-     * @return Map met naam en kieskringen
+     * @param province Province object
+     * @return Map with name and constituencies
      */
     public static Map<String, Object> toBasicDTO(Province province) {
         Map<String, Object> map = new HashMap<>();
@@ -28,10 +28,10 @@ public class ProvinceMapper {
     }
     
     /**
-     * Zet provincie om naar JSON formaat inclusief verkiezingsresultaten.
+     * Converts province to JSON format including election results.
      * 
-     * @param province Provincie object
-     * @return Map met naam, kieskringen en resultaten
+     * @param province Province object
+     * @return Map with name, constituencies and results
      */
     public static Map<String, Object> toDTOWithResults(Province province) {
         Map<String, Object> map = toBasicDTO(province);
@@ -41,10 +41,10 @@ public class ProvinceMapper {
     }
     
     /**
-     * Zet alleen verkiezingsresultaten om naar JSON formaat.
+     * Converts only election results to JSON format.
      * 
      * @param results ProvinceResults object
-     * @return Map met totaalStemmen en partijen lijst
+     * @return Map with total votes and parties list
      */
     public static Map<String, Object> toResultsDTO(ProvinceResults results) {
         Map<String, Object> map = new HashMap<>();
@@ -65,11 +65,11 @@ public class ProvinceMapper {
     }
     
     /**
-     * Zet kieskring informatie om naar JSON formaat.
+     * Converts constituency information to JSON format.
      * 
-     * @param kieskringNaam Naam van de kieskring
-     * @param provincieNaam Naam van de provincie
-     * @return Map met kieskring naam en provincie
+     * @param kieskringNaam Name of the constituency
+     * @param provincieNaam Name of the province
+     * @return Map with constituency name and province
      */
     public static Map<String, Object> toConstituencyDTO(String kieskringNaam, String provincieNaam) {
         Map<String, Object> map = new HashMap<>();

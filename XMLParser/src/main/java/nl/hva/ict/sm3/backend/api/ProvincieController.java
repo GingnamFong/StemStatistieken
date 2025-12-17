@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * REST-controller voor provincies.
- * Biedt HTTP endpoints om provincie data op te halen.
- * Verwerkt requests van de frontend en geeft JSON responses terug.
+ * REST controller for provinces.
+ * Provides HTTP endpoints to retrieve province data.
+ * Processes requests from the frontend and returns JSON responses.
  */
 @RestController
 @RequestMapping("/provincies")
@@ -31,11 +31,11 @@ public class ProvincieController {
     }
 
     /**
-     * Haalt alle provincies op voor een verkiezing.
+     * Retrieves all provinces for an election.
      * GET /provincies?electionId=TK2021
      * 
-     * @param electionId Verkiezing ID (bijv. TK2021)
-     * @return Lijst van provincies met basisinformatie
+     * @param electionId Election ID (e.g. TK2021)
+     * @return List of provinces with basic information
      */
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllProvincies(
@@ -50,12 +50,12 @@ public class ProvincieController {
     }
 
     /**
-     * Haalt een provincie op inclusief verkiezingsresultaten.
+     * Retrieves a province including election results.
      * GET /provincies/{provincieNaam}?electionId=TK2021
      * 
-     * @param provincieNaam Naam van de provincie
-     * @param electionId Verkiezing ID (bijv. TK2021)
-     * @return Provincie data met resultaten
+     * @param provincieNaam Name of the province
+     * @param electionId Election ID (e.g. TK2021)
+     * @return Province data with results
      */
     @GetMapping("/{provincieNaam}")
     public ResponseEntity<Map<String, Object>> getProvincieData(
@@ -70,12 +70,12 @@ public class ProvincieController {
     }
 
     /**
-     * Haalt alleen de verkiezingsresultaten op van een provincie.
+     * Retrieves only the election results of a province.
      * GET /provincies/{provincieNaam}/resultaten?electionId=TK2021
      * 
-     * @param provincieNaam Naam van de provincie
-     * @param electionId Verkiezing ID (bijv. TK2021)
-     * @return Resultaten met totaalStemmen en partijen
+     * @param provincieNaam Name of the province
+     * @param electionId Election ID (e.g. TK2021)
+     * @return Results with total votes and parties
      */
     @GetMapping("/{provincieNaam}/resultaten")
     public ResponseEntity<Map<String, Object>> getProvincieResultaten(
@@ -90,11 +90,11 @@ public class ProvincieController {
     }
 
     /**
-     * Haalt alle kieskringen op die bij een provincie horen.
+     * Retrieves all constituencies that belong to a province.
      * GET /provincies/{provincieNaam}/kieskringen
      * 
-     * @param provincieNaam Naam van de provincie
-     * @return Lijst van kieskringen in deze provincie
+     * @param provincieNaam Name of the province
+     * @return List of constituencies in this province
      */
     @GetMapping("/{provincieNaam}/kieskringen")
     public ResponseEntity<List<Map<String, Object>>> getKieskringenInProvincie(
@@ -112,8 +112,10 @@ public class ProvincieController {
     }
 
     /**
-     * Valideert de meegegeven provincienaam.
-
+     * Validates the provided province name.
+     *
+     * @param provincieNaam Province name to validate
+     * @throws IllegalArgumentException if the name is invalid
      */
     private void validateProvinceName(String provincieNaam) {
         if (provincieNaam == null || provincieNaam.trim().isEmpty()) {

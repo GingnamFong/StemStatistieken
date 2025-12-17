@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import Stemwijzer from '@/components/Stemwijzer.vue'
 
 const router = useRouter()
 
@@ -21,16 +22,16 @@ const navigateToCompare = () => {
           <span class="badge-icon">🗳️</span>
           <span class="badge-text">Verkiezingen Nederland</span>
         </div>
-        
+
         <h1 class="hero-title">
           Ontdek de <span class="highlight">verkiezingsuitslagen</span> van Nederland
         </h1>
-        
+
         <p class="hero-description">
-          Interactieve visualisaties en analyses van de Nederlandse verkiezingen. 
+          Interactieve visualisaties en analyses van de Nederlandse verkiezingen.
           Bekijk uitslagen per provincie, gemeente en kieskring, en vergelijk resultaten door de jaren heen.
         </p>
-        
+
         <div class="hero-actions">
           <button @click="navigateToResults" class="btn btn-primary">
             <span>Bekijk Uitslagen</span>
@@ -38,7 +39,7 @@ const navigateToCompare = () => {
               <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
           </button>
-          
+
           <button @click="navigateToCompare" class="btn btn-secondary">
             <span>Vergelijk Resultaten</span>
           </button>
@@ -113,6 +114,9 @@ const navigateToCompare = () => {
         </div>
       </div>
     </section>
+
+    <!-- Stemwijzer Section -->
+    <Stemwijzer />
 
     <!-- CTA Section -->
     <section class="cta-section">

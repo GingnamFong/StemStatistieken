@@ -9,9 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Service voor provincies.
- * Haalt provincie data op en aggregeert verkiezingsresultaten uit kieskringen.
- * Provincies worden opgebouwd door alle gemeenten in de bijbehorende kieskringen samen te voegen.
+ * Service for provinces.
+ * Retrieves province data and aggregates election results from constituencies.
+ * Provinces are built by combining all municipalities in the corresponding constituencies.
  */
 @Service
 public class ProvincieService {
@@ -42,10 +42,10 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt alle provincies op voor een verkiezing.
+     * Retrieves all provinces for an election.
      * 
-     * @param electionId Verkiezing ID (bijv. TK2021)
-     * @return Lijst van alle provincies
+     * @param electionId Election ID (e.g. TK2021)
+     * @return List of all provinces
      */
     public List<Province> getAllProvinciesForElection(String electionId) {
         logger.debug("Retrieving all provinces for election: {}", electionId);
@@ -55,12 +55,12 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt provincie data op inclusief verkiezingsresultaten.
-     * Laadt resultaten automatisch als ze nog niet geladen zijn.
+     * Retrieves province data including election results.
+     * Automatically loads results if they are not yet loaded.
      * 
-     * @param electionId Verkiezing ID (bijv. TK2021)
-     * @param provincieNaam Naam van de provincie
-     * @return Provincie object met resultaten
+     * @param electionId Election ID (e.g. TK2021)
+     * @param provincieNaam Name of the province
+     * @return Province object with results
      */
     public Province getProvincieDataForElection(String electionId, String provincieNaam) {
         logger.debug("Retrieving data for province: {} in election: {}", provincieNaam, electionId);
@@ -74,11 +74,11 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt alleen de verkiezingsresultaten op van een provincie.
+     * Retrieves only the election results of a province.
      * 
-     * @param electionId Verkiezing ID (bijv. TK2021)
-     * @param provincieNaam Naam van de provincie
-     * @return ProvinceResults met totaalStemmen en partijen
+     * @param electionId Election ID (e.g. TK2021)
+     * @param provincieNaam Name of the province
+     * @return ProvinceResults with total votes and parties
      */
     public ProvinceResults getProvincieResultatenForElection(String electionId, String provincieNaam) {
         logger.debug("Retrieving results for province: {} in election: {}", provincieNaam, electionId);
@@ -88,10 +88,10 @@ public class ProvincieService {
     }
 
     /**
-     * Geeft alle kieskringen terug die bij een provincie horen.
+     * Returns all constituencies that belong to a province.
      * 
-     * @param provincieNaam Naam van de provincie
-     * @return Lijst van kieskring namen
+     * @param provincieNaam Name of the province
+     * @return List of constituency names
      */
     public List<String> getKieskringenInProvincie(String provincieNaam) {
         logger.debug("Retrieving constituencies for province: {}", provincieNaam);
@@ -101,10 +101,10 @@ public class ProvincieService {
     }
 
     /**
-     * Haalt provincie uit cache of maakt nieuwe aan voor een verkiezing.
+     * Retrieves province from cache or creates a new one for an election.
      * 
-     * @param electionId Verkiezing ID
-     * @param provincieNaam Naam van de provincie
+     * @param electionId Election ID
+     * @param provincieNaam Name of the province
      * @return Province object
      */
     private Province getOrCreateProvinceForElection(String electionId, String provincieNaam) {
@@ -121,14 +121,14 @@ public class ProvincieService {
     }
 
     /**
-     * Laadt en aggregeert provincie resultaten uit Election data.
-     * Loopt door alle kieskringen van de provincie en telt stemmen van alle gemeenten bij elkaar op.
+     * Loads and aggregates province results from Election data.
+     * Iterates through all constituencies of the province and sums votes from all municipalities.
      * 
-     * @param electionId Verkiezing ID
-     * @param province Provincie object om resultaten aan toe te voegen
+     * @param electionId Election ID
+     * @param province Province object to add results to
      */
     private void loadProvinceResultsForElection(String electionId, Province province) {
-        // Haal de Election op (laadt automatisch als nog niet in cache)
+        // Get the Election (loads automatically if not yet in cache)
         Election election = Optional.ofNullable(electionService.getElectionById(electionId))
                 .orElseGet(() -> electionService.readResults(electionId, electionId));
         
@@ -137,7 +137,7 @@ public class ProvincieService {
             return;
         }
 
-        // Haal de kieskring namen op die bij deze provincie horen
+        // Get the constituency names that belong to this province
         List<String> kieskringNamen = provincieKieskringenMap.get(province.getName());
         if (kieskringNamen == null || kieskringNamen.isEmpty()) {
             logger.warn("No constituencies found for province: {}", province.getName());
@@ -147,9 +147,9 @@ public class ProvincieService {
         logger.debug("Aggregating votes from {} constituencies for province: {} in election: {}", 
                 kieskringNamen.size(), province.getName(), electionId);
 
-        // Voor elke kieskring die bij deze provincie hoort
+        // For each constituency that belongs to this province
         for (String kieskringNaam : kieskringNamen) {
-            // Zoek de constituency in de Election data (match op ID of naam, case-insensitive)
+            // Find the constituency in the Election data (match on ID or name, case-insensitive)
             Constituency constituency = election.getConstituencies().stream()
                     .filter(c -> {
                         String cName = c.getName() != null ? c.getName().trim() : "";
@@ -171,7 +171,7 @@ public class ProvincieService {
                 continue;
             }
 
-            // Aggregeer alle partijen uit alle gemeenten in deze kieskring
+            // Aggregate all parties from all municipalities in this constituency
             constituency.getMunicipalities().stream()
                     .flatMap(municipality -> municipality.getAllParties().stream())
                     .forEach(party -> province.addPartyVotes(party.getId(), party.getName(), party.getVotes()));

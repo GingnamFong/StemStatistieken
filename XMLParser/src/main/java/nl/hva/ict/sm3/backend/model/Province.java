@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Domeinmodel voor een provincie.
- * Bevat naam, kieskringen en verkiezingsresultaten (partijen met stemmen).
+ * Domain model for a province.
+ * Contains name, constituencies and election results (parties with votes).
  */
 public class Province {
     private final String name;
@@ -25,12 +25,12 @@ public class Province {
     }
 
     public List<String> getConstituencyIds() {
-        // Geeft een kopie van de kieskring-IDs terug
+        // Returns a copy of the constituency IDs
         return new ArrayList<>(constituencyIds);
     }
 
     public void addConstituencyId(String constituencyId) {
-        // Voegt een kieskring-ID toe als deze nog niet bestaat
+        // Adds a constituency ID if it doesn't already exist
         if (!constituencyIds.contains(constituencyId)) {
             constituencyIds.add(constituencyId);
         }
@@ -40,7 +40,7 @@ public class Province {
      * Aggregates party votes from constituencies. Call this method to build up the province results.
      */
     public void addPartyVotes(String partyId, String partyName, int votes) {
-        // Telt stemmen op voor een partij binnen deze provincie
+        // Aggregates votes for a party within this province
         Party existingParty = parties.get(partyId);
         if (existingParty != null) {
             existingParty.addVotes(votes);
@@ -53,33 +53,33 @@ public class Province {
      * Calculates total votes from all parties. Should be called after aggregating all party votes.
      */
     public void calculateTotalVotes() {
-        // Berekent totaal aantal stemmen in de provincie
+        // Calculates total number of votes in the province
         totalVotes = parties.values().stream()
                 .mapToInt(Party::getVotes)
                 .sum();
     }
 
     public List<Party> getParties() {
-        // Geeft alle partijen gesorteerd op stemmen (aflopend)
+        // Returns all parties sorted by votes (descending)
         return parties.values().stream()
                 .sorted((p1, p2) -> Integer.compare(p2.getVotes(), p1.getVotes()))
                 .collect(Collectors.toList());
     }
 
     public List<Party> getTopParties(int n) {
-        // Geeft de top N partijen terug
+        // Returns the top N parties
         return getParties().stream()
                 .limit(n)
                 .collect(Collectors.toList());
     }
 
     public Party getPartyById(String partyId) {
-        // Zoekt een partij op basis van ID
+        // Finds a party by ID
         return parties.get(partyId);
     }
 
     public int getTotalVotes() {
-        // Geeft totaal aantal stemmen terug
+        // Returns total number of votes
         return totalVotes;
     }
 
@@ -91,7 +91,7 @@ public class Province {
      * @return true if the constituency exists in this province
      */
     public boolean hasConstituency(String constituencyId) {
-        // Controleert of de provincie een bepaalde kieskring bevat
+        // Checks if the province contains a specific constituency
         return constituencyIds.contains(constituencyId);
     }
     
@@ -101,7 +101,7 @@ public class Province {
      * @return the count of constituencies
      */
     public int getConstituencyCount() {
-        // Geeft het aantal kieskringen
+        // Returns the number of constituencies
         return constituencyIds.size();
     }
 
