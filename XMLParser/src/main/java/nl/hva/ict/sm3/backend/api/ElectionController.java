@@ -1,8 +1,12 @@
 package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.*;
+import nl.hva.ict.sm3.backend.repository.ElectionRepository;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import nl.hva.ict.sm3.backend.service.MunicipalityService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,13 +27,17 @@ import java.util.List;
 @RequestMapping("/elections")
 public class ElectionController {
     private final DutchElectionService electionService;
+    private final ElectionRepository electionRepository;
+    
     /**
      * Constructs the controller with an injected {@link DutchElectionService}.
      *
      * @param electionService service that loads, caches, and provides election data
+     * @param electionRepository repository for paginated election queries
      */
-    public ElectionController(DutchElectionService electionService) {
+    public ElectionController(DutchElectionService electionService, ElectionRepository electionRepository) {
         this.electionService = electionService;
+        this.electionRepository = electionRepository;
     }
 
     /**
@@ -40,6 +48,20 @@ public class ElectionController {
     public ResponseEntity<List<String>> getAllElections() {
         List<String> electionIds = electionService.getAllElectionIds();
         return ResponseEntity.ok(electionIds);
+    }
+
+    /**
+     * Returns paginated list of elections.
+     * Supports pagination via Pageable (page, size, sort parameters).
+     * 
+     * @param pageable Pagination parameters (default: page=0, size=10)
+     * @return Page of elections
+     */
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<Election>> getAllElectionsPaginated(
+            @PageableDefault(size = 10) Pageable pageable) {
+        Page<Election> elections = electionRepository.findAllElections(pageable);
+        return ResponseEntity.ok(elections);
     }
 
     @GetMapping("/{electionId}")
