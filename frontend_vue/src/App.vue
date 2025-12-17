@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import TopNavbar from './components/TopNavbar.vue'
 import OnboardingGuide from "@/components/OnboardingGuide.vue"
+
 </script>
 
 <template>
@@ -12,8 +13,10 @@ import OnboardingGuide from "@/components/OnboardingGuide.vue"
     <RouterView />
   </main>
 
+
   <OnboardingGuide />
 </template>
+
 
 <style>
 /* --- Global page layout --- */

@@ -21,8 +21,8 @@ const getApiBaseUrl = () => {
     }
 
     // Detect stemstatistieken.me domain (with or without www)
-    if (hostname === 'stemstatistieken.me' || 
-        hostname === 'www.stemstatistieken.me' || 
+    if (hostname === 'stemstatistieken.me' ||
+        hostname === 'www.stemstatistieken.me' ||
         hostname.includes('stemstatistieken.me')) {
       return 'http://13.48.214.231:8081'
     }

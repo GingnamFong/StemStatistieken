@@ -65,6 +65,11 @@ const router = createRouter({
       name: 'Profile',
       component: () => import('../views/ProfileView.vue'),
     },
+    {
+      path: "/forum/questions/:id",
+      name: "ForumQuestionDetail",
+      component: () => import("../views/FormQuestionDetail.vue"),
+    }
   ],
 })
 
