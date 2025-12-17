@@ -73,7 +73,7 @@ public class User {
     /**
      * One-to-many relationship with ForumPost.
      * A user can create multiple forum posts.
-     * 
+     *
      * <p>Performance optimizations:
      * <ul>
      *   <li>Cascade operations are set to ALL, meaning that when a user is deleted,
@@ -83,13 +83,13 @@ public class User {
      *       associated with a user</li>
      * </ul>
      * </p>
-     * 
+     *
      * <p>Lazy loading strategy: The forum posts collection is not loaded from the database
      * until it is explicitly accessed, reducing initial query overhead and memory usage.
      * This prevents N+1 query problems and improves application performance.</p>
      */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<ForumPost> forumPosts = new ArrayList<>();
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<ForumQuestion> forumQuestions = new ArrayList<>();
 
     /**
      * Default constructor for JPA.
@@ -161,57 +161,43 @@ public class User {
         this.birthDate = birthDate;
     }
 
-    public String getFavoriteParty() { return favoriteParty; }
-    public void setFavoriteParty(String favoriteParty) { this.favoriteParty = favoriteParty; }
+    public String getFavoriteParty() {
+        return favoriteParty;
+    }
 
-    public String getProfilePicture() { return profilePicture; }
-    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+    public void setFavoriteParty(String favoriteParty) {
+        this.favoriteParty = favoriteParty;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
     /**
      * Gets the list of forum posts created by this user.
      *
      * @return a list of ForumPost entities associated with this user
      */
-    public List<ForumPost> getForumPosts() {
-        return forumPosts;
+    public List<ForumQuestion> getForumQuestions() {
+        return forumQuestions;
     }
 
-    /**
-     * Sets the list of forum posts for this user.
-     * 
-     * <p>Note: This method is typically managed by JPA. To add a post,
-     * use {@link #addForumPost(ForumPost)} instead.</p>
-     *
-     * @param forumPosts the list of forum posts to associate with this user
-     */
-    public void setForumPosts(List<ForumPost> forumPosts) {
-        this.forumPosts = forumPosts;
+    public void setForumQuestions(List<ForumQuestion> forumQuestions) {
+        this.forumQuestions = forumQuestions;
     }
 
-    /**
-     * Adds a forum post to this user's collection.
-     * 
-     * <p>This is a convenience method for adding forum posts to the user's collection.
-     * Note: If ForumPost has a bidirectional relationship, ensure the user is also
-     * set on the ForumPost entity separately.</p>
-     *
-     * @param forumPost the forum post to add
-     */
-    public void addForumPost(ForumPost forumPost) {
-        forumPosts.add(forumPost);
+    public void addForumQuestion(ForumQuestion forumQuestion) {
+        forumQuestions.add(forumQuestion);
+        forumQuestion.setAuthor(this); // belangrijk: beide kanten sync
     }
 
-    /**
-     * Removes a forum post from this user's collection.
-     * 
-     * <p>This method removes a forum post from the user's collection.
-     * Note: If ForumPost has a bidirectional relationship, ensure the user reference
-     * is also cleared on the ForumPost entity separately.</p>
-     *
-     * @param forumPost the forum post to remove
-     */
-    public void removeForumPost(ForumPost forumPost) {
-        forumPosts.remove(forumPost);
+    public void removeForumQuestion(ForumQuestion forumQuestion) {
+        forumQuestions.remove(forumQuestion);
+        forumQuestion.setAuthor(null);
     }
 }
 
