@@ -66,11 +66,10 @@ const router = createRouter({
       component: () => import('../views/ProfileView.vue'),
     },
     {
-      path: '/forum2',
-      name: 'Forum2',
-      component: () => import('../views/Forum2View.vue'),
-
-    },
+      path: "/forum/questions/:id",
+      name: "ForumQuestionDetail",
+      component: () => import("../views/FormQuestionDetail.vue"),
+    }
   ],
 })
 

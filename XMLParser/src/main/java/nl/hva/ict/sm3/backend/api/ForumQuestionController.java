@@ -56,16 +56,18 @@ public class ForumQuestionController {
     @GetMapping("/questions/{questionId}")
     public ResponseEntity<ForumQuestionDto> getQuestion(@PathVariable Long questionId) {
         Optional<ForumQuestion> questionOpt = forumQuestionRepository.findByIdWithAuthor(questionId);
-        if (questionOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        if (questionOpt.isEmpty()) return ResponseEntity.notFound().build();
+
         ForumQuestion question = questionOpt.get();
-        // Load comments
-        List<ForumQuestion> comments = forumQuestionRepository.findByQuestionIdOrderByCreatedAtAsc(questionId);
-        question.getComments().clear();
-        question.getComments().addAll(comments);
-        return ResponseEntity.ok(ForumQuestionDto.from(question));
+
+        List<ForumQuestion> comments = forumQuestionRepository.findCommentsWithAuthor(questionId);
+
+        ForumQuestionDto dto = ForumQuestionDto.from(question); // MUST NOT touch entity comments inside from()
+        dto.setComments(comments.stream().map(ForumQuestionDto::from).toList());
+
+        return ResponseEntity.ok(dto);
     }
+
 
     // POST create a new top-level question (post)
     @PostMapping("/questions")

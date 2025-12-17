@@ -4,7 +4,7 @@
     <header class="dashboard-header">
       <div class="header-content">
         <div class="breadcrumb">
-          <router-link to="/" class="breadcrumb-item">Home</router-link>
+          <router-link to="/" class="breadcrumb-item">Home </router-link>
           <span class="breadcrumb-separator">/</span>
           <span class="breadcrumb-item active">Forum</span>
         </div>
@@ -225,7 +225,9 @@
                   <span class="post-author">u/{{ post.author }}</span>
                   <span class="post-time">{{ formatTime(post.createdAt) }}</span>
                 </div>
-                <h3 class="post-title">{{ post.title }}</h3>
+                <h3 class="post-title" @click="$router.push(`/forum/questions/${post.id}`)">
+                  {{ post.title }}
+                </h3>
                 <p v-if="post.content" class="post-text">{{ post.content }}</p>
                 <div class="post-footer">
                   <button class="post-action">
@@ -510,29 +512,29 @@ async function loadPosts() {
     const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
       headers
     })
-    
+
     console.log('Response status:', res.status)
-    
+
     if (!res.ok) {
       const errorText = await res.text()
       console.error('Error response:', errorText)
       throw new Error(`Kon forumberichten niet laden: ${res.status} ${errorText}`)
     }
-    
+
     const data = await res.json()
     console.log('Received data:', data)
-    
+
     // Replace posts with data from API (even if empty, to clear dummy posts)
     if (data && Array.isArray(data)) {
       if (data.length > 0) {
         posts.value = data.map(p => {
           console.log('Processing post:', p)
-          
+
           // Split body into title and content (title is first line, rest is content)
           const bodyParts = p.body ? p.body.split('\n\n') : ['']
           const title = bodyParts[0] || p.body || 'Geen titel'
           const content = bodyParts.slice(1).join('\n\n').trim()
-          
+
           // Parse createdAt - handle both string and Date formats
           let createdAt
           if (p.createdAt) {
@@ -546,7 +548,7 @@ async function loadPosts() {
           } else {
             createdAt = new Date()
           }
-          
+
           // Handle author - check both possible structures
           let authorName = 'Anoniem'
           if (p.author) {
@@ -564,7 +566,7 @@ async function loadPosts() {
               }
             }
           }
-          
+
           return {
             id: p.id,
             title: title,
@@ -663,7 +665,7 @@ async function submitPost() {
       },
       body: JSON.stringify({ body: bodyText })
     })
-    
+
     if (!res.ok) {
       if (res.status === 401) {
         throw new Error('Je moet ingelogd zijn om een post te plaatsen.')

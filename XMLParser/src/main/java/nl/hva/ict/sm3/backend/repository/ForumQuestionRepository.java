@@ -20,7 +20,13 @@ public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Lo
     where q.id = :questionId
 """)
     Optional<ForumQuestion> findByIdWithAuthor(@Param("questionId") Long questionId);
-
+    @Query("""
+  select c from ForumQuestion c
+  join fetch c.author
+  where c.question.id = :questionId
+  order by c.createdAt asc
+""")
+    List<ForumQuestion> findCommentsWithAuthor(@Param("questionId") Long questionId);
     // Find all top-level questions (posts without a parent question)
     @Query("""
     select distinct q from ForumQuestion q
