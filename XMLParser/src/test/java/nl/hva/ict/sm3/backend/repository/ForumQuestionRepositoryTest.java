@@ -220,7 +220,7 @@ class ForumQuestionRepositoryTest {
     }
 
     @Test
-    @DisplayName("A comment cannot have multiple questions (one-to-many relatie)")
+    @DisplayName("A comment cannot have multiple questions (one-to-many relation)")
     void testCommentCannotHaveMultipleParents() {
         // Arrange: Makes 2 parent questions
         ForumQuestion parent1 = new ForumQuestion();

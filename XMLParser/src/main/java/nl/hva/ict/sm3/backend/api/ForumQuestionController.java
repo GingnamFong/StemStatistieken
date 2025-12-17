@@ -18,23 +18,31 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/forum")
 
+// gets questions, comments and users from the database
 public class ForumQuestionController {
     private final ForumQuestionRepository forumQuestionRepository;
     private final UserRepository userRepository;
 
+    // Constructor injection
     public ForumQuestionController(ForumQuestionRepository forumQuestionRepository,
                                    UserRepository userRepository) {
         this.forumQuestionRepository = forumQuestionRepository;
         this.userRepository = userRepository;
     }
 
+    /**
+     * Retrieves all top-level forum questions (questions without a parent).
+     *
+     * @return list of ForumQuestionDto wrapped in ResponseEntity
+     */
+
     // GET all top-level questions (posts without parent)
     @GetMapping("/questions")
     public ResponseEntity<List<ForumQuestionDto>> getAllTopLevelQuestions() {
-        try {
+        try { // Fetch all questions that do not have a parent question
             List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
             System.out.println("Found " + questions.size() + " top-level questions");
-            
+            // Convert entities to DTOS
             List<ForumQuestionDto> responseDtos = questions.stream()
                 .map(question -> {
                     System.out.println("Processing question ID: " + question.getId() + ", Author: " + 
@@ -67,11 +75,11 @@ public class ForumQuestionController {
         return ResponseEntity.ok(ForumQuestionDto.from(question));
     }
 
-    // POST create a new top-level question (post)
+    // POST create a new top-level question (post). Only for log in users. Makes new main question
     @PostMapping("/questions")
     public ResponseEntity<ForumQuestionDto> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) { // no parent
             return ResponseEntity.status(401).build();
         }
 
@@ -132,6 +140,7 @@ public class ForumQuestionController {
         ForumQuestion saved = forumQuestionRepository.save(question);
         return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
     }
+    // Deleting a question
     @DeleteMapping("/questions/{questionId}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable("questionId") Long questionId) {
 
