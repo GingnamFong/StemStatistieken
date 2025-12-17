@@ -38,9 +38,13 @@
           :disabled="!modelValue.type"
         >
           <option value="">Kies jaar...</option>
-          <option value="2021">2021</option>
-          <option value="2023">2023</option>
-          <option value="2025">2025</option>
+          <option
+            v-for="year in availableYears"
+            :key="year"
+            :value="year"
+          >
+            {{ year }}
+          </option>
         </select>
       </div>
 
@@ -97,7 +101,7 @@
           class="form-select"
           :disabled="!modelValue.year || !availableSelections.length"
         >
-          <option value="">Kies {{ modelValue.type === 'provincie' ? 'provincie' : modelValue.type === 'gemeente' ? 'gemeente' : 'kieskring' }}...</option>
+          <option value="">Select {{ modelValue.type === 'provincie' ? 'province' : modelValue.type === 'gemeente' ? 'municipality' : 'constituency' }}...</option>
           <option
             v-for="item in availableSelections"
             :key="item.id || item.naam"
@@ -112,7 +116,14 @@
 </template>
 
 <script setup>
-import {computed} from "vue";
+import { computed, ref, onMounted } from 'vue'
+import { ElectionService } from '../services/ElectionService.js'
+
+const availableYears = ref([])
+
+onMounted(async () => {
+  availableYears.value = await ElectionService.getAvailableYears()
+})
 
 const props = defineProps({
   columnNumber: {
@@ -157,10 +168,10 @@ function handleSelectionChange(e) {
   emit('update:modelValue', { ...props.modelValue, selection: e.target.value })
   emit('selection-change', e.target.value)
 }
-// 👇 Nieuw: gemeente-change handler
+// Municipality change handler
 function handleMunicipalityChange(e) {
   const municipality = e.target.value
-  // reset stembureau als gemeente verandert
+  // Reset polling station when municipality changes
   emit('update:modelValue', {
     ...props.modelValue,
     municipality,
@@ -168,20 +179,15 @@ function handleMunicipalityChange(e) {
   })
 }
 
-// 👇 Alle stembureaus voor de gekozen gemeente
+// All polling stations for the selected municipality
 const stembureausInSelectedMunicipality = computed(() => {
   if (!props.modelValue.municipality) return []
   const gemeente = props.availableSelections.find(
     gem => gem.id === props.modelValue.municipality
   )
-  // pollingStations komt uit handleYearChange in de parent
+  // pollingStations comes from handleYearChange in the parent
   return gemeente?.pollingStations || []
 })
-function handlePostalInput(e) {
-  const clean = e.target.value.replace(/\s+/g, '').toUpperCase()
-  emit('update:modelValue', { ...props.modelValue, selection: clean })
-  emit('selection-change', clean)
-}
 </script>
 
 <style scoped>
