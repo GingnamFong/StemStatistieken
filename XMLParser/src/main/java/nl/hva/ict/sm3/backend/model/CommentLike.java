@@ -1,18 +1,19 @@
 package nl.hva.ict.sm3.backend.model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
-
 
 /**
  * Entity representing a "like" on a forum comment.
  *
- * <p>A {@code CommentLike} links a {@link User} to a {@link ForumComment},
- * indicating that the user has liked the comment.
+ * <p>In Path A, comments are stored as {@link ForumQuestion} rows with a non-null parent
+ * (i.e., {@code question_id != null}).
  *
- * <p>Each user can like a specific comment only once, enforced by a
- * database-level unique constraint.
+ * <p>A {@code CommentLike} links a {@link User} to a {@link ForumQuestion} (the comment),
+ * indicating that the user has liked that comment.
+ *
+ * <p>Each user can like a specific comment only once, enforced by a database-level
+ * unique constraint.
  *
  * <p>Indexes are added to optimize lookups by comment and by user.
  */
@@ -30,83 +31,46 @@ import java.time.LocalDateTime;
 )
 public class CommentLike {
 
-    /**
-     * Primary key of the comment like.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**
      * The user who liked the comment.
-     *
-     * <p>This relationship is mandatory and loaded lazily.
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     /**
-     * The comment that was liked.
+     * The liked comment (stored as a ForumQuestion with a parent).
      *
-     * <p>This relationship is mandatory and loaded lazily.
+     * <p>Column name remains "comment_id" but it references {@code forum_questions.id}.
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "comment_id", nullable = false)
-    private ForumComment comment;
+    private ForumQuestion comment;
 
     /**
      * Timestamp indicating when the like was created.
-     *
-     * <p>Defaults to the current date and time.
      */
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    /**
-     * Default constructor required by JPA.
-     */
     public CommentLike() {}
 
-    /**
-     * Returns the unique identifier of the like.
-     *
-     * @return the like ID
-     */
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
+
     public Long getId() { return id; }
 
-    /**
-     * Returns the user who liked the comment.
-     *
-     * @return the {@link User} who created the like
-     */
     public User getUser() { return user; }
-
-    /**
-     * Sets the user who liked the comment.
-     *
-     * @param user the user creating the like
-     */
     public void setUser(User user) { this.user = user; }
 
-    /**
-     * Returns the comment that was liked.
-     *
-     * @return the liked {@link ForumComment}
-     */
-    public ForumComment getComment() { return comment; }
-
-    /**
-     * Sets the comment that is being liked.
-     *
-     * @param comment the forum comment
-     */
-    public void setComment(ForumComment comment) { this.comment = comment; }
-    /**
-     * Returns the timestamp when the like was created.
-     *
-     * @return the creation date and time
-     */
+    public ForumQuestion getComment() { return comment; }
+    public void setComment(ForumQuestion comment) { this.comment = comment; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
