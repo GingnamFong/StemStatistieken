@@ -27,7 +27,8 @@ public class CorsConfig {
             "https://hva-frontend.onrender.com",
             "http://13.48.214.231",
             "http://stemstatistieken.me",
-            "https://stemstatistieken.me"
+            "https://stemstatistieken.me",
+            "https://*.azurewebsites.net"
         ));
         
         // Allow all common HTTP methods
