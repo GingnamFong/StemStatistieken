@@ -123,7 +123,7 @@
 <script setup>
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { API_BASE_URL } from '../config/api.js'
+import { UserService } from '../services/UserService.js'
 
 const form = reactive({
   name: '',
@@ -189,32 +189,23 @@ async function handleSubmit() {
   submitting.value = true
   serverError.value = ''
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.name,
-        lastName: form.lastName,
-        email: form.email,
-        password: form.password
-      })
+    await UserService.register({
+      name: form.name,
+      lastName: form.lastName,
+      email: form.email,
+      password: form.password
     })
 
-    if (res.ok) {
-      form.name = ''
-      form.lastName = ''
-      form.email = ''
-      form.password = ''
-      acceptedTerms.value = false
-      showSuccessModal.value = true
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden'
-    } else {
-      const text = await res.text()
-      serverError.value = text || 'Registratie mislukt'
-    }
-  } catch {
-    serverError.value = 'Netwerkfout. Probeer later opnieuw.'
+    form.name = ''
+    form.lastName = ''
+    form.email = ''
+    form.password = ''
+    acceptedTerms.value = false
+    showSuccessModal.value = true
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden'
+  } catch (e) {
+    serverError.value = e.message || 'Netwerkfout. Probeer later opnieuw.'
   } finally {
     submitting.value = false
   }
@@ -663,20 +654,20 @@ onUnmounted(() => {
   .success-modal {
     padding: 32px 24px;
   }
-  
+
   .success-icon-circle {
     width: 64px;
     height: 64px;
   }
-  
+
   .success-checkmark {
     font-size: 36px;
   }
-  
+
   .success-modal h3 {
     font-size: 1.75rem;
   }
-  
+
   .success-modal p {
     font-size: 14px;
   }

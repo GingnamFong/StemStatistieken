@@ -1,38 +1,15 @@
-# Maven build output
+# Exclude large XML files from Docker build context
+# These are mounted as volumes instead
+**/TK2021/
+**/TK2023/
+**/TK2025/
+**/*.eml.xml
+**/Gemeente tellingen/
+**/Gemeente tellingen 2/
+**/Kandidatenlijsten/
+
+# Exclude other unnecessary files
 target/
-.mvn/
-
-# Maven wrapper
-mvnw
-mvnw.cmd
-
-# IDE
-.idea/
-.vscode/
-*.iml
-*.iws
-*.ipr
-.classpath
-.project
-.settings/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Git
 .git/
-.gitignore
-.gitattributes
-
-# Documentation
-README.md
-HELP.md
-docs/
-
-# Logs
-*.log
-
-# Test
-src/test/
-
+.idea/
+*.iml

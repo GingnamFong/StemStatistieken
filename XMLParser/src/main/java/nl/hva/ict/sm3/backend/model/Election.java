@@ -6,8 +6,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents an election in the system.
+ * 
+ * <p>This entity stores election data including constituencies, parties, candidates,
+ * and national votes. Elections are linked to multiple related entities through
+ * one-to-many relationships.</p>
+ * 
+ * <p>Performance optimizations:
+ * <ul>
+ *   <li>Lazy loading - Related entities (constituencies, parties, candidates, national votes)
+ *       are loaded only when accessed</li>
+ *   <li>Caching - Entity is cached at the second level to reduce database queries</li>
+ * </ul>
+ * </p>
+ */
 @Entity
 @Table(name = "elections")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
 public class Election {
     @Id
     private String id;
@@ -21,6 +38,24 @@ public class Election {
     @MapKey(name = "id")
     private Map<String, Party> parties = new HashMap<>();
     
+    /**
+     * One-to-many relationship with Candidate.
+     * An election contains multiple candidates from different parties.
+     * 
+     * <p>Performance optimizations:
+     * <ul>
+     *   <li>Cascade operations are set to ALL, meaning that when an election is deleted,
+     *       all associated candidates will also be deleted</li>
+     *   <li>Fetch type is LAZY to improve performance by loading candidates only when needed</li>
+     *   <li>Orphan removal is enabled to automatically remove candidates when they are no longer
+     *       associated with an election</li>
+     * </ul>
+     * </p>
+     * 
+     * <p>Lazy loading strategy: The candidates collection is not loaded from the database
+     * until it is explicitly accessed, reducing initial query overhead and memory usage.
+     * This prevents N+1 query problems and improves application performance.</p>
+     */
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "election_id")
     private List<Candidate> candidates = new ArrayList<>();
