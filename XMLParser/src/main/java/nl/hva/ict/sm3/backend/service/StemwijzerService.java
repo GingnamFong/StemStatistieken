@@ -1,5 +1,6 @@
 package nl.hva.ict.sm3.backend.service;
 
+import nl.hva.ict.sm3.backend.dto.StemwijzerDto;
 import nl.hva.ict.sm3.backend.model.Election;
 import nl.hva.ict.sm3.backend.model.National;
 import nl.hva.ict.sm3.backend.model.Party;
@@ -320,7 +321,7 @@ public class StemwijzerService {
      * @return list of match results sorted by percentage
      * @throws IllegalStateException if TK2025 election data is not available
      */
-    public List<Map<String, Object>> calculateMatches(Map<Integer, String> answers) {
+    public List<StemwijzerDto> calculateMatches(Map<Integer, String> answers) {
         if (answers == null || answers.isEmpty()) {
             return new ArrayList<>();
         }
@@ -350,26 +351,25 @@ public class StemwijzerService {
                     
                     int matchPercentage = Math.round((float) score.matchingAnswers / score.totalQuestions * 100);
                     
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("partyId", partyId);
-                    result.put("partyName", partyInfo.name);
-                    result.put("partyColor", partyInfo.color);
-                    result.put("matchPercentage", matchPercentage);
-                    
-                    return result;
+                    return new StemwijzerDto(
+                            partyId,
+                            partyInfo.name,
+                            partyInfo.color,
+                            matchPercentage
+                    );
                 })
                 .filter(Objects::nonNull)
                 .sorted((a, b) -> {
                     // Sort by match percentage descending, then by party name alphabetically
                     int percentageCompare = Integer.compare(
-                            (Integer) b.get("matchPercentage"),
-                            (Integer) a.get("matchPercentage")
+                            b.getMatchPercentage(),
+                            a.getMatchPercentage()
                     );
                     if (percentageCompare != 0) {
                         return percentageCompare;
                     }
                     // Use compareTo for alphabetical sorting
-                    return ((String) a.get("partyName")).compareTo((String) b.get("partyName"));
+                    return a.getPartyName().compareTo(b.getPartyName());
                 })
                 .limit(10) // Top 10 matches
                 .collect(Collectors.toList());
