@@ -3,6 +3,7 @@ package nl.hva.ict.sm3.backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
@@ -19,16 +20,18 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         
-        // Allow these origins
-        config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "http://localhost:3000",
-            "https://hva-frontend.onrender.com"
+        // Use allowedOriginPatterns for flexibility (supports patterns and works with credentials)
+        config.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "https://hva-frontend.onrender.com",
+            "http://13.48.214.231",
+            "http://stemstatistieken.me",
+            "https://stemstatistieken.me"
         ));
         
         // Allow all common HTTP methods
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         
         // Allow all headers
         config.setAllowedHeaders(Arrays.asList("*"));

@@ -69,7 +69,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { API_BASE_URL } from '@/config/api.js'
+import { UserService } from '@/services/UserService.js'
 
 const email = ref('')
 const password = ref('')
@@ -85,66 +85,27 @@ async function onSubmit() {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value
-      })
-    })
+    const data = await UserService.login(email.value, password.value)
+    console.log('Login response:', data)
 
-    if (res.ok) {
-      const data = await res.json()
-      console.log('Login response:', data)
-
-      // Store the token from the response
-      if (data.token) {
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('userId', data.userId?.toString() || '')
-        // Store user data for profile page
-        if (data.firstName || data.email) {
-          localStorage.setItem('userData', JSON.stringify({
-            id: data.userId,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
-            birthDate: data.birthDate || null
-          }))
-        }
-        window.dispatchEvent(new CustomEvent('loginStateChanged'))
-        router.push('/')
-      } else {
-        errorMessage.value = 'Ongeldige response van server.'
+    // Store the token from the response
+    if (data.token) {
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('userId', data.userId?.toString() || '')
+      // Store user data for profile page
+      if (data.firstName || data.email) {
+        localStorage.setItem('userData', JSON.stringify({
+          id: data.userId,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          birthDate: data.birthDate || null
+        }))
       }
+      window.dispatchEvent(new CustomEvent('loginStateChanged'))
+      router.push('/')
     } else {
-      // Try to read error message from response
-      let errorText = 'Ongeldige e-mail of wachtwoord.'
-      try {
-        // First try to parse as JSON
-        const contentType = res.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await res.json()
-          errorText = errorData.message || errorData.error || errorText
-        } else {
-          // If not JSON, read as text
-          const text = await res.text()
-          if (text && text.trim()) {
-            errorText = text.trim()
-          }
-        }
-      } catch {
-        // If parsing fails, try to read as text
-        try {
-          const text = await res.text()
-          if (text && text.trim()) {
-            errorText = text.trim()
-          }
-        } catch (textError) {
-          console.error('Error reading response:', textError)
-        }
-      }
-      errorMessage.value = errorText
+      errorMessage.value = 'Ongeldige response van server.'
     }
   } catch (e) {
     console.error(e)
@@ -152,7 +113,7 @@ async function onSubmit() {
     if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
       errorMessage.value = 'Kan geen verbinding maken met de server. Zorg dat de backend draait.'
     } else {
-      errorMessage.value = 'Netwerkfout. Probeer later opnieuw.'
+      errorMessage.value = e.message || 'Netwerkfout. Probeer later opnieuw.'
     }
   }
 }
