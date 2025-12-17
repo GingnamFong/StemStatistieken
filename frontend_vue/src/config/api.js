@@ -12,12 +12,16 @@ const getApiBaseUrl = () => {
   const hostname = window.location.hostname
   const origin = window.location.origin
 
-  // IMPORTANT: If we're NOT on localhost, use AWS server
-  // This prevents the browser's private network access block
+  // IMPORTANT: If we're NOT on localhost, detect deployment environment
   if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-    // Detect AWS server (13.48.214.231)
-    if (hostname === '13.48.214.231' || hostname.includes('13.48.214.231')) {
-      return 'http://13.48.214.231:8081'
+    // Azure deployment - use Azure backend URL
+    if (hostname.includes('azurewebsites.net')) {
+      return 'https://hva-backend-dghpcwaga7h7bug7.germanywestcentral-01.azurewebsites.net'
+    }
+
+    // Render deployment
+    if (origin === 'https://hva-frontend.onrender.com') {
+      return 'https://hva-backend-c647.onrender.com'
     }
 
     // Detect stemstatistieken.me domain (with or without www)
@@ -27,9 +31,9 @@ const getApiBaseUrl = () => {
       return 'http://13.48.214.231:8081'
     }
 
-    // Fallback: detect based on current origin
-    if (origin === 'https://hva-frontend.onrender.com') {
-      return 'https://hva-backend-c647.onrender.com'
+    // Detect AWS server (13.48.214.231)
+    if (hostname === '13.48.214.231' || hostname.includes('13.48.214.231')) {
+      return 'http://13.48.214.231:8081'
     }
 
     // If we're on any other domain (not localhost), use AWS server
