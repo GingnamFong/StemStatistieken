@@ -8,17 +8,32 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for managing ForumQuestion entities.
+ *
+ * <p>Extends JpaRepository to provide standard CRUD operations.
+ * Additional custom queries are defined for forum-specific requirements,
+ * such as retrieving top-level questions, fetching comments, and including authors.
+ */
+
+
+/**
+ * Retrieves all child questions (comments) for a given parent question,
+ * ordered by creation time ascending.
+ */
 public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Long> {
     // All comments (child questions) for a given parent question, ordered by creation time
     List<ForumQuestion> findByQuestionIdOrderByCreatedAtAsc(Long questionId);
 
     List<ForumQuestion> findByAuthorIdOrderByCreatedAtAsc(Long authorId);
 
+    // Find specific question data including the author
     @Query("""
     select q from ForumQuestion q
     join fetch q.author
     where q.id = :questionId
 """)
+    // Find comments from a specific parent question
     Optional<ForumQuestion> findByIdWithAuthor(@Param("questionId") Long questionId);
     @Query("""
   select c from ForumQuestion c
