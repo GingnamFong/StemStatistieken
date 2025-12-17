@@ -8,7 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+import org.springframework.security.config.Customizer;
 
 
 /**
@@ -48,11 +48,14 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, UserRepository userRepository) throws Exception {
         return http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 // Configure endpoint access rules
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         // Authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
@@ -62,10 +65,9 @@ public class SecurityConfig {
 
                         // Protected forum write actions
                         .requestMatchers(HttpMethod.POST, "/api/forum/questions").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/forum/*/comments").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/forum/comments/*").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/forum/comments/*/like").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/forum/comments/*/like").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/forum/*/questions").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/forum/questions/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/forum/questions").authenticated()
 
                         .anyRequest().permitAll()
                 )
