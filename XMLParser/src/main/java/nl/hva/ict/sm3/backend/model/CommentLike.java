@@ -31,30 +31,92 @@ import java.time.LocalDateTime;
 )
 public class CommentLike {
 
+    /**
+     * Primary key of the comment like.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * The user who liked the comment.
+     *
+     * <p>This association is mandatory; a like cannot exist without a user.
+     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // This points to FORUM_QUESTIONS (your comments are there)
+
+    /**
+     * The forum comment that was liked.
+     *
+     * <p>This field references a {@link ForumQuestion} that represents a comment,
+     * not a top-level forum question. Validation to ensure this is a comment
+     * (i.e. {@code question != null}) is handled in the service or controller layer.
+     */
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "forum_question_id", nullable = false)
     private ForumQuestion forumQuestion;
 
+    /**
+     * Timestamp indicating when the like was created.
+     *
+     * <p>This value is automatically initialized when the entity is created.
+     */
+
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * Default constructor required by JPA.
+     */
+
     public CommentLike() {}
 
+    /**
+     * Returns the unique identifier of this comment like.
+     *
+     * @return the ID of the comment like
+     */
+
     public Long getId() { return id; }
+
+    /**
+     * Returns the user who liked the comment.
+     *
+     * @return the liking user
+     */
     public User getUser() { return user; }
+
+    /**
+     * Sets the user who liked the comment.
+     *
+     * @param user the user performing the like
+     */
     public void setUser(User user) { this.user = user; }
 
+    /**
+     * Returns the forum comment that was liked.
+     *
+     * @return the liked forum comment
+     */
     public ForumQuestion getForumQuestion() { return forumQuestion; }
+
+    /**
+     * Sets the forum comment that was liked.
+     *
+     * @param forumQuestion the forum comment
+     */
+
     public void setForumQuestion(ForumQuestion forumQuestion) { this.forumQuestion = forumQuestion; }
+
+    /**
+     * Returns the timestamp when the like was created.
+     *
+     * @return creation timestamp
+     */
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
