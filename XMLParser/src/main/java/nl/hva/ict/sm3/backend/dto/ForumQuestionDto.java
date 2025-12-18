@@ -8,9 +8,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * DTO for ForumQuestion - used for both input (POST) and output (GET) requests.
+ * DTO (Data Transfer Object) for ForumQuestion - used for both input (POST) and output (GET) requests.
  * For input: only 'body' is required.
  * For output: includes id, body, createdAt, author, and comments.
+ */
+
+
+/**
+ * The text content of the forum question or comment.
+ * Used as input when creating a new question or comment.
+ * Must not be blank.
  */
 public class ForumQuestionDto {
     // For input (POST requests)
@@ -68,19 +75,35 @@ public class ForumQuestionDto {
     }
 
     /**
-     * Static factory method to convert ForumQuestion to DTO for responses.
-     * This extracts only safe author information (no password).
+     * Converts a ForumQuestion entity to a ForumQuestionDto for output.
+     *
+     * <p> This method copies only safe author data.
+     *  Sensitive information such as passwords is never included.
+     *  Comments are not set here to avoid loading issues.
+     *
+     * @param question the ForumQuestion entity to convert
+     * @return a ForumQuestionDto containing safe fields for API responses
      */
+
     public static ForumQuestionDto from(ForumQuestion question) {
         ForumQuestionDto dto = new ForumQuestionDto();
         dto.setId(question.getId());
         dto.setBody(question.getBody());
         dto.setCreatedAt(question.getCreatedAt());
 
-        if (question.getAuthor() != null) {
+        /**
+         * Nested DTO representing the author of a forum question or comment.
+         *
+         * <p>Includes only safe fields (id, name, lastName, email).
+         * Used to avoid exposing sensitive information such as passwords.
+         */
+        if (question.getAuthor() != null) { // checking if getName() isn't null. If null = Anoniem
             String name = question.getAuthor().getName() != null ? question.getAuthor().getName() : "Anoniem";
+            // same way as name, empty lastname if lastname is unknown
             String lastName = question.getAuthor().getLastName() != null ? question.getAuthor().getLastName() : "";
+            // same way as lastname
             String email = question.getAuthor().getEmail() != null ? question.getAuthor().getEmail() : "";
+            // if id is not known, dummy id 0L will be used
             Long id = question.getAuthor().getId() != null ? question.getAuthor().getId() : 0L;
 
             dto.setAuthor(new AuthorDto(id, name, lastName, email));

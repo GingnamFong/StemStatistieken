@@ -15,9 +15,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller responsible for managing forum questions and comments.
+ *
+ * Supports:
+ * - Retrieving top-level questions
+ * - Retrieving a single question with its comments
+ * - Creating questions and comments
+ * - Deleting questions
+ *
+ * Authentication is handled via Spring Security (see http 401, if user == NULL).
+ */
+
+
 @RestController
 @RequestMapping("/api/forum")
 
+// For forum related API-endpoints
 public class ForumQuestionController {
     private final ForumQuestionRepository forumQuestionRepository;
     private final UserRepository userRepository;
@@ -28,13 +42,24 @@ public class ForumQuestionController {
         this.userRepository = userRepository;
     }
 
-    // GET all top-level questions (posts without parent)
+    /**
+     * Retrieves all top-level forum questions (questions without a parent).
+     *
+     * <p>Each top-level question is converted to a ForumQuestionDto to avoid
+     * exposing JPA entities directly and prevent lazy loading issues.
+     *
+     * @return a ResponseEntity containing a list of top-level ForumQuestionDto objects
+     *         and HTTP status 200 if successful, or HTTP 500 if an error occurs
+     */
+
+
+    // GET all top-level questions (posts without parent), gets all the top questions and converts ForumQuestion into ForumQuestionDto
     @GetMapping("/questions")
     public ResponseEntity<List<ForumQuestionDto>> getAllTopLevelQuestions() {
         try {
-            List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions();
+            List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions(); // query
             System.out.println("Found " + questions.size() + " top-level questions");
-            
+            // avoids lazy loading
             List<ForumQuestionDto> responseDtos = questions.stream()
                 .map(question -> {
                     System.out.println("Processing question ID: " + question.getId() + ", Author: " + 
@@ -48,9 +73,20 @@ public class ForumQuestionController {
         } catch (Exception e) {
             System.err.println("Error in getAllTopLevelQuestions: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(500).build(); // gives 500 error with failing
         }
     }
+
+    /**
+     * Retrieves a specific forum question along with its comments.
+     *
+     * <p>The question and its comments are converted to DTOs to avoid lazy loading issues
+     * and prevent recursive JSON serialization.
+     *
+     * @param questionId the ID of the question to retrieve
+     * @return a ResponseEntity containing the question as a ForumQuestionDto with nested
+     *         comments, HTTP 404 if the question does not exist
+     */
 
     // GET a specific question with its comments
     @GetMapping("/questions/{questionId}")
@@ -68,6 +104,16 @@ public class ForumQuestionController {
         return ResponseEntity.ok(dto);
     }
 
+    /**
+     * Creates a new top-level forum question (no parent question).
+     *
+     * <p>Only authenticated users can create questions. The currently authenticated
+     * user is set as the author of the new question.
+     *
+     * @param dto the ForumQuestionDto containing the body of the question
+     * @return a ResponseEntity containing the created ForumQuestionDto and HTTP status 201,
+     *         or HTTP 401 if the user is not authenticated
+     */
 
     // POST create a new top-level question (post)
     @PostMapping("/questions")
@@ -92,7 +138,16 @@ public class ForumQuestionController {
         return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
     }
 
-    // GET all comments for a specific question
+    /**
+     * Retrieves all comments for a given forum question, ordered by creation date.
+     *
+     * @param questionId the ID of the parent question
+     * @return a ResponseEntity containing a list of ForumQuestionDto objects for each comment,
+     *         HTTP 404 if the parent question does not exist
+     */
+
+
+    // GET all comments for a specific (top) question
     @GetMapping("/{questionId}/questions")
     public ResponseEntity<List<ForumQuestionDto>> getQuestionComments(@PathVariable("questionId") Long questionId) {
         if (!forumQuestionRepository.existsById(questionId)) {
@@ -104,6 +159,19 @@ public class ForumQuestionController {
             .collect(Collectors.toList());
         return ResponseEntity.ok(responseDtos);
     }
+
+    /**
+     * Adds a new comment to an existing forum question.
+     *
+     * <p>Only authenticated users can add comments. The new comment references the
+     * parent question and the currently authenticated user as the author.
+     *
+     * @param questionId the ID of the parent question
+     * @param dto the ForumQuestionDto containing the comment body
+     * @return a ResponseEntity containing the created ForumQuestionDto and HTTP status 201,
+     *         or HTTP 404 if the parent question does not exist,
+     *         or HTTP 401 if the user is not authenticated
+     */
 
     // POST create a comment on a question
     @PostMapping("/{questionId}/questions")
@@ -134,7 +202,20 @@ public class ForumQuestionController {
         ForumQuestion saved = forumQuestionRepository.save(question);
         return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
     }
-    @DeleteMapping("/questions/{questionId}")
+
+    /**
+     * Deletes a forum question.
+     *
+     * <p>Only authenticated users can delete questions. Currently, the authorization
+     * check to verify if the authenticated user is the author is commented out.
+     *
+     * @param questionId the ID of the question to delete
+     * @return a ResponseEntity with HTTP status 204 if the deletion was successful,
+     *         HTTP 404 if the question does not exist,
+     *         or HTTP 401 if the user is not authenticated
+     */
+
+    @DeleteMapping("/questions/{questionId}") // Deletes question
     public ResponseEntity<Void> deleteQuestion(@PathVariable("questionId") Long questionId) {
 
         Optional<ForumQuestion> questionOpt  = forumQuestionRepository.findById(questionId);

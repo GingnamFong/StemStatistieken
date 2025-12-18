@@ -65,7 +65,7 @@ class ForumQuestionRepositoryTest {
         // Assert
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getQuestion()).isNull();
-        assertThat(saved.getBody()).isEqualTo("DThis is a top-level question");
+        assertThat(saved.getBody()).isEqualTo("This is a top-level question");
         assertThat(saved.getAuthor()).isNotNull();
     }
 
@@ -83,19 +83,19 @@ class ForumQuestionRepositoryTest {
 
         // Act: Voeg meerdere comments toe
         ForumQuestion comment1 = new ForumQuestion();
-        comment1.setBody("First comment");
+        comment1.setBody("Eerste comment");
         comment1.setQuestion(parentQuestion);
         comment1.setAuthor(testUser);
         forumQuestionRepository.save(comment1);
 
         ForumQuestion comment2 = new ForumQuestion();
-        comment2.setBody("Second comment");
+        comment2.setBody("Tweede comment");
         comment2.setQuestion(parentQuestion);
         comment2.setAuthor(testUser);
         forumQuestionRepository.save(comment2);
 
         ForumQuestion comment3 = new ForumQuestion();
-        comment3.setBody("Third comment");
+        comment3.setBody("Derde comment");
         comment3.setQuestion(parentQuestion);
         comment3.setAuthor(testUser);
         forumQuestionRepository.save(comment3);
