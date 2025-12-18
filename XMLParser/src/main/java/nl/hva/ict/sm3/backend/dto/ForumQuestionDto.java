@@ -77,9 +77,9 @@ public class ForumQuestionDto {
     /**
      * Converts a ForumQuestion entity to a ForumQuestionDto for output.
      *
-     * <p>This method extracts only safe fields for the author, avoiding exposing
-     * sensitive information such as passwords. The comments field is not populated
-     * here to prevent LazyInitializationException; it should be set separately if needed.
+     * <p> This method copies only safe author data.
+     *  Sensitive information such as passwords is never included.
+     *  Comments are not set here to avoid loading issues.
      *
      * @param question the ForumQuestion entity to convert
      * @return a ForumQuestionDto containing safe fields for API responses

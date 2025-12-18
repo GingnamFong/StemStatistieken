@@ -9,15 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository interface for managing ForumQuestion entities.
- *
- * <p>Extends JpaRepository to provide standard CRUD operations.
- * Additional custom queries are defined for forum-specific requirements,
- * such as retrieving top-level questions, fetching comments, and including authors.
- */
-
-
-/**
+ * Repository for accessing and managing ForumQuestion entities.
+ * Provides standard CRUD operations and custom queries
+ * for forum-related data.
+<br>
  * Retrieves all child questions (comments) for a given parent question,
  * ordered by creation time ascending.
  */

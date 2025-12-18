@@ -23,11 +23,10 @@ import java.util.List;
  * - comments: list of child comments
  * - createdAt: timestamp
  * - author: the user who posted
- *
- *  <p>JPA annotations ensure persistence, lazy loading, cascading, and orphan removal.
- *  JSON serialization is configured to avoid infinite recursion.
+ * JPA annotations handle how this entity is stored in the database
+ * and how related data is loaded.
+ * JSON serialization is configured to prevent infinite loops.
  */
-
 
 @Entity
 @Table(name = "forum_questions") // in database
@@ -61,32 +60,28 @@ public class ForumQuestion {
     private ForumQuestion question;
 
     /**
-     * List of child comments for this forum question.
+     * List of comments that belong to this question.
      *
-     * <p>Each comment references this question as its parent.
-     * Cascade operations ensure that changes to the parent question
-     * propagate to the child comments. OrphanRemoval deletes comments
-     * that are no longer linked to a parent.
+     * Each comment refers to this question as its parent.
+     * When the question is deleted, its comments are deleted as well.
      */
+
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ForumQuestion> comments = new ArrayList<>();
 
-    /**
-     * Timestamp indicating when the question or comment was created.
-     * Automatically set before the entity is persisted.
+     /**
+     * The date and time when this question or comment was created.
+     * This value is set automatically when the entity is saved.
      */
-
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     /**
      * The user who created this question or comment.
      *
-     * <p>This field is mandatory and establishes a many-to-one relationship
-     * with the User entity.
+     * Every question or comment must have an author (ManyToOne relationship).
      */
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
