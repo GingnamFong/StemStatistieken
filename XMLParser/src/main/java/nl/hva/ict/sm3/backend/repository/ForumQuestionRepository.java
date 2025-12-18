@@ -13,7 +13,7 @@ import java.util.Optional;
  * Provides standard CRUD operations and custom queries
  * for forum-related data.
 <br>
- * Retrieves all child questions (comments) for a given parent question,
+ * <p>Retrieves all child questions (comments) for a given parent question,
  * ordered by creation time ascending.
  */
 public interface ForumQuestionRepository extends JpaRepository<ForumQuestion, Long> {
