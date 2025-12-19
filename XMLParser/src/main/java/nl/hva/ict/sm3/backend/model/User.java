@@ -25,7 +25,7 @@ import java.util.List;
  * 
  * <p>Relationships:
  * <ul>
- *   <li>One-to-Many with {@link ForumPost} - A user can create multiple forum posts</li>
+ *   <li>One-to-Many with {@link ForumPost} - A user can create multiple forum Questions</li>
  * </ul>
  * </p>
  */

@@ -21,7 +21,9 @@ export const UserService = {
         if (contentType && contentType.includes('application/json')) {
           const errorData = await response.json()
           errorText = errorData.message || errorData.error || errorText
-        } else {
+        }
+        // Plain Text Error
+        else {
           const text = await response.text()
           if (text && text.trim()) {
             errorText = text.trim()
