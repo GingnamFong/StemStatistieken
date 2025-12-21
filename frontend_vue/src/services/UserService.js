@@ -119,8 +119,22 @@ export const UserService = {
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Failed to update user: ${errorText}`)
+      let errorMessage = 'Kon profiel niet bijwerken.'
+      try {
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorData.error || errorMessage
+        } else {
+          const errorText = await response.text()
+          if (errorText && errorText.trim()) {
+            errorMessage = errorText.trim()
+          }
+        }
+      } catch {
+        // If parsing fails, use default error message
+      }
+      throw new Error(errorMessage)
     }
 
     return await response.json()

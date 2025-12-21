@@ -363,6 +363,49 @@ async function saveProfile() {
   errorMessage.value = ''
   successMessage.value = ''
 
+  // Validate firstName if provided
+  if (editForm.value.firstName !== null && editForm.value.firstName !== undefined) {
+    const trimmedFirstName = editForm.value.firstName.trim()
+    if (trimmedFirstName.length === 0) {
+      errorMessage.value = 'Voornaam mag niet leeg zijn als deze is ingevuld.'
+      saving.value = false
+      return
+    }
+    if (trimmedFirstName.length > 30) {
+      errorMessage.value = 'Voornaam mag maximaal 30 tekens bevatten.'
+      saving.value = false
+      return
+    }
+  }
+
+  // Validate lastName if provided
+  if (editForm.value.lastName !== null && editForm.value.lastName !== undefined) {
+    const trimmedLastName = editForm.value.lastName.trim()
+    if (trimmedLastName.length === 0) {
+      errorMessage.value = 'Achternaam mag niet leeg zijn als deze is ingevuld.'
+      saving.value = false
+      return
+    }
+    if (trimmedLastName.length > 30) {
+      errorMessage.value = 'Achternaam mag maximaal 30 tekens bevatten.'
+      saving.value = false
+      return
+    }
+  }
+
+  // Validate birthDate if provided
+  if (editForm.value.birthDate) {
+    const birthDate = new Date(editForm.value.birthDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (birthDate >= today) {
+      errorMessage.value = 'Geboortedatum moet in het verleden liggen.'
+      saving.value = false
+      return
+    }
+  }
+
   try {
     const userId = localStorage.getItem('userId')
     const token = localStorage.getItem('token')

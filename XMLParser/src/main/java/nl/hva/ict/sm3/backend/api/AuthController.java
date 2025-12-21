@@ -106,7 +106,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ongeldig wachtwoord");
         }
 
-        // Generate token (simple token for now, in production use JWT)
+        // Generate token (simple token)
         String token = "user-" + user.getId() + "-" + System.currentTimeMillis();
         
         Map<String, Object> response = new HashMap<>();
@@ -171,14 +171,35 @@ public class AuthController {
         if (updates.containsKey("firstName")) {
             String firstName = (String) updates.get("firstName");
             if (firstName != null && !firstName.isBlank()) {
-                user.setName(firstName.trim());
+                String trimmedFirstName = firstName.trim();
+                // Validate firstName length (max 30 characters)
+                if (trimmedFirstName.length() > 30) {
+                    return ResponseEntity.badRequest()
+                            .body("Voornaam mag maximaal 30 tekens bevatten.");
+                }
+                user.setName(trimmedFirstName);
+            } else if (updates.containsKey("firstName") && (firstName == null || firstName.isBlank())) {
+                // If firstName key exists but is empty, reject it
+                return ResponseEntity.badRequest()
+                        .body("Voornaam mag niet leeg zijn als deze is ingevuld.");
             }
         }
 
         if (updates.containsKey("lastName")) {
             String lastName = (String) updates.get("lastName");
-            // LastName mag leeg zijn of null
-            user.setLastName(lastName != null ? lastName.trim() : null);
+            if (lastName != null && !lastName.isBlank()) {
+                String trimmedLastName = lastName.trim();
+                // Validate lastName length (max 30 characters)
+                if (trimmedLastName.length() > 30) {
+                    return ResponseEntity.badRequest()
+                            .body("Achternaam mag maximaal 30 tekens bevatten.");
+                }
+                user.setLastName(trimmedLastName);
+            } else {
+                // LastName mag niet leeg zijn 
+                return ResponseEntity.badRequest()
+                        .body("Achternaam mag niet leeg zijn als deze is ingevuld.");
+            }
         }
 
         if (updates.containsKey("birthDate")) {
