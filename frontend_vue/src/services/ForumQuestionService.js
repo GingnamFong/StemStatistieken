@@ -1,41 +1,62 @@
 console.log("hello world");
 
 import { API_BASE_URL } from '../config/api.js'
+import { authHeaders } from './http.js'
 
-function getAuthHeaders() {
-  const token = localStorage.getItem('token')
-  const headers = { 'Content-Type': 'application/json' }
-  if (token) headers.Authorization = `Bearer ${token}`
-  return headers
-}
 
-export async function fetchForumPosts() {
-  const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
-    headers: getAuthHeaders()
-  })
-
-  if (!res.ok) {
-    throw new Error(await res.text())
+export async function submitForumPost(title, content) {
+  // Validation (same logic, but service-level)
+  if (!title.trim() || !content.trim()) {
+    throw new Error('Titel en tekst zijn verplicht.')
   }
 
-  return res.json()
-}
-
-export async function createForumPost(body) {
   const token = localStorage.getItem('token')
-  if (!token) throw new Error('Niet ingelogd')
+  if (!token) {
+    throw new Error('Je moet ingelogd zijn om een post te plaatsen.')
+  }
+
+  const bodyText = title.trim() + '\n\n' + content.trim()
 
   const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
     method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ body })
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ body: bodyText })
   })
 
   if (!res.ok) {
-    throw new Error(await res.text())
+    if (res.status === 401) {
+      throw new Error('Je moet ingelogd zijn om een post te plaatsen.')
+    }
+
+    let errorMessage = 'Fout bij opslaan in de server.'
+
+    try {
+      const errorText = await res.text()
+      if (errorText) {
+        try {
+          const errorJson = JSON.parse(errorText)
+          errorMessage =
+            errorJson.message ||
+            errorJson.error ||
+            errorText ||
+            errorMessage
+        } catch {
+          errorMessage = errorText || errorMessage
+        }
+      }
+    } catch (e) {
+      console.error('Error reading response:', e)
+    }
+
+    throw new Error(errorMessage)
   }
 
-  return res.json()
+  // If needed later, you can return data
+  return await res.json().catch(() => null)
 }
+
 
 

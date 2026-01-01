@@ -292,6 +292,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { API_BASE_URL } from '@/config/api.js'
+import {submitForumPost} from "@/services/ForumQuestionService.js";
 
 const selectedSort = ref('hot')
 const showPostForm = ref(false)
@@ -638,64 +639,28 @@ function closePostForm() {
   newPostContent.value = ''
 }
 
+// new backend added, new logic in ForumQuestionService.js
 async function submitPost() {
   error.value = ''
-  if (!newPostTitle.value.trim() || !newPostContent.value.trim()) {
-    error.value = 'Titel en tekst zijn verplicht.'
-    return
-  }
   loading.value = true
+
   try {
-    // Get authentication token from localStorage
-    const token = localStorage.getItem('token')
-    if (!token) {
-      error.value = 'Je moet ingelogd zijn om een post te plaatsen.'
-      loading.value = false
-      return
-    }
+    await submitForumPost(
+      newPostTitle.value,
+      newPostContent.value
+    )
 
-    // Combine title and content into body (ForumQuestion uses single 'body' field)
-    const bodyText = newPostTitle.value.trim() + '\n\n' + newPostContent.value.trim()
-
-    const res = await fetch(`${API_BASE_URL}/api/forum/questions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ body: bodyText })
-    })
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        throw new Error('Je moet ingelogd zijn om een post te plaatsen.')
-      }
-      // Try to get error message from response
-      let errorMessage = 'Fout bij opslaan in de server.'
-      try {
-        const errorText = await res.text()
-        if (errorText) {
-          try {
-            const errorJson = JSON.parse(errorText)
-            errorMessage = errorJson.message || errorJson.error || errorText || errorMessage
-          } catch {
-            errorMessage = errorText || errorMessage
-          }
-        }
-      } catch (e) {
-        console.error('Error reading response:', e)
-      }
-      throw new Error(errorMessage)
-    }
     await loadPosts()
     closePostForm()
   } catch (e) {
     console.error(e)
-    error.value = e.message || 'Er is een fout opgetreden bij het opslaan van je post.'
+    error.value =
+      e.message || 'Er is een fout opgetreden bij het opslaan van je post.'
   } finally {
     loading.value = false
   }
 }
+
 
 function clearFilters() {
   searchQuery.value = ''
