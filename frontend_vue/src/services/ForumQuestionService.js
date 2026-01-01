@@ -1,7 +1,6 @@
 console.log("hello world");
 
 import { API_BASE_URL } from '../config/api.js'
-import { authHeaders } from './http.js'
 
 
 export async function submitForumPost(title, content) {
