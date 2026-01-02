@@ -402,89 +402,20 @@ const dummyPosts = [
 const posts = ref([...dummyPosts])
 
 // Computed property for active filter count
-const activeFilterCount = computed(() => {
-  let count = 0
-  if (searchQuery.value.trim()) count++
-  if (filterAuthor.value.trim()) count++
-  if (filterDate.value) count++
-  if (filterMinScore.value !== null && filterMinScore.value > 0) count++
-  if (filterMinComments.value !== null && filterMinComments.value > 0) count++
-  return count
-})
+import { useForumFilters } from '@/composables/ForumFilters.js'
 
-// Filter and sort posts
-const sortedPosts = computed(() => {
-  let filtered = [...posts.value]
+const { sortedPosts, activeFilterCount } = useForumFilters(
+  posts,
+  {
+    searchQuery,
+    filterAuthor,
+    filterDate,
+    filterMinScore,
+    filterMinComments
+  },
+  selectedSort
+)
 
-  // Apply text search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase().trim()
-    filtered = filtered.filter(post => {
-      const titleMatch = post.title?.toLowerCase().includes(query)
-      const contentMatch = post.content?.toLowerCase().includes(query)
-      return titleMatch || contentMatch
-    })
-  }
-
-  // Apply author filter
-  if (filterAuthor.value.trim()) {
-    const authorQuery = filterAuthor.value.toLowerCase().trim()
-    filtered = filtered.filter(post =>
-      post.author?.toLowerCase().includes(authorQuery)
-    )
-  }
-
-  // Apply date filter
-  if (filterDate.value) {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
-    const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000)
-
-    filtered = filtered.filter(post => {
-      const postDate = new Date(post.createdAt)
-      switch (filterDate.value) {
-        case 'today':
-          return postDate >= today
-        case 'week':
-          return postDate >= weekAgo
-        case 'month':
-          return postDate >= monthAgo
-        case 'year':
-          return postDate >= yearAgo
-        default:
-          return true
-      }
-    })
-  }
-
-  // Apply minimum score filter
-  if (filterMinScore.value !== null && filterMinScore.value > 0) {
-    filtered = filtered.filter(post => post.score >= filterMinScore.value)
-  }
-
-  // Apply minimum comments filter
-  if (filterMinComments.value !== null && filterMinComments.value > 0) {
-    filtered = filtered.filter(post => (post.comments || 0) >= filterMinComments.value)
-  }
-
-  // Apply sorting
-  switch (selectedSort.value) {
-    case 'new':
-      return filtered.sort((a, b) => b.createdAt - a.createdAt)
-    case 'top':
-      return filtered.sort((a, b) => b.score - a.score)
-    case 'hot':
-    default:
-      // Hot = combination of score and recency
-      return filtered.sort((a, b) => {
-        const scoreWeight = b.score - a.score
-        const timeWeight = (b.createdAt - a.createdAt) / (1000 * 60 * 60) // hours
-        return scoreWeight * 0.7 - timeWeight * 0.3
-      })
-  }
-})
 
 // Apply filters function (can be called manually if needed)
 function applyFilters() {
