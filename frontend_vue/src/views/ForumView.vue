@@ -350,19 +350,14 @@ const totalComments = computed(() => {
 // fetchForumPosts
 import { fetchForumPosts } from '@/services/ForumQuestionService.js'
 
-async function loadPosts() {
-  loading.value = true
-  error.value = ''
 
-  try {
+// Async for loading a post
+import { runAsyncWithState } from '@/composables/AsyncHandler.js'
+
+async function loadPosts() {
+  await runAsyncWithState(async () => {
     posts.value = await fetchForumPosts()
-  } catch (e) {
-    console.error(e)
-    error.value =
-      e.message || 'Er is een fout opgetreden bij het laden van de berichten.'
-  } finally {
-    loading.value = false
-  }
+  }, { loading, error })
 }
 
 
@@ -382,6 +377,7 @@ function closePostForm() {
   newPostTitle.value = ''
   newPostContent.value = ''
 }
+
 
 // new backend added, new logic in ForumQuestionService.js
 async function submitPost() {

@@ -56,6 +56,7 @@ export async function submitForumPost(title, content) {
   return await res.json().catch(() => null)
 }
 
+
 // VotePost placed in service
 export function votePost(posts, postId, voteType) {
   const post = posts.value.find(p => p.id === postId)
