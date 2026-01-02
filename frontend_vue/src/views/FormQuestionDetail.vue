@@ -152,7 +152,7 @@ async function load() {
 
     comments.value = (data.comments || []).map(normalizeCommentDto)
 
-    // load like counts for each comment
+
     await Promise.all(
       comments.value.map(async (c) => {
         try {

@@ -6,7 +6,6 @@ import nl.hva.ict.sm3.backend.model.User;
 import nl.hva.ict.sm3.backend.repository.CommentLikeRepository;
 import nl.hva.ict.sm3.backend.repository.ForumQuestionRepository;
 import nl.hva.ict.sm3.backend.repository.UserRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,6 +72,7 @@ public class CommentLikeController {
             CommentLike like = new CommentLike();
             like.setUser(user);
             like.setForumQuestion(comment);
+
             commentLikeRepository.save(like);
         }
 
@@ -129,6 +129,7 @@ public class CommentLikeController {
 
         return ResponseEntity.ok(Map.of("commentId", commentId, "likes", count, "likedByMe", likedByMe));
     }
+
 
     /**
      * Retrieves the currently authenticated user.

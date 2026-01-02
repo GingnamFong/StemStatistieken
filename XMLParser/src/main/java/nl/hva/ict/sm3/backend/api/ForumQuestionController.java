@@ -131,7 +131,7 @@ public class ForumQuestionController {
 
         ForumQuestion question = new ForumQuestion();
         question.setBody(dto.getBody());
-        question.setQuestion(null); // Top-level question has no parent
+        question.setQuestion(null);
         question.setAuthor(user);
 
         ForumQuestion saved = forumQuestionRepository.save(question);
