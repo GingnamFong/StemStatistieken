@@ -598,26 +598,13 @@ async function loadPosts() {
   }
 }
 
+// VotePost logic replaced to ForumQuestionService.js
+import { votePost } from '@/services/ForumQuestionService.js'
+
 function vote(postId, voteType) {
-  const post = posts.value.find(p => p.id === postId)
-  if (!post) return
-
-  if (post.userVote === voteType) {
-    // Unvote
-    if (voteType === 'up') post.score--
-    if (voteType === 'down') post.score++
-    post.userVote = null
-  } else {
-    // Change vote
-    if (post.userVote === 'up') post.score--
-    if (post.userVote === 'down') post.score++
-
-    if (voteType === 'up') post.score++
-    if (voteType === 'down') post.score--
-
-    post.userVote = voteType
-  }
+  votePost(posts, postId, voteType)
 }
+
 
 function formatTime(date) {
   const d = date instanceof Date ? date : new Date(date)

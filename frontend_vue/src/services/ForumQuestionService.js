@@ -1,6 +1,7 @@
 console.log("hello world");
 
 import { API_BASE_URL } from '../config/api.js'
+import { computed } from 'vue'
 
 
 export async function submitForumPost(title, content) {
@@ -56,6 +57,27 @@ export async function submitForumPost(title, content) {
   // If needed later, you can return data
   return await res.json().catch(() => null)
 }
+
+// VotePost placed in service
+export function votePost(posts, postId, voteType) {
+  const post = posts.value.find(p => p.id === postId)
+  if (!post) return
+
+  if (post.userVote === voteType) {
+    if (voteType === 'up') post.score--
+    if (voteType === 'down') post.score++
+    post.userVote = null
+  } else {
+    if (post.userVote === 'up') post.score--
+    if (post.userVote === 'down') post.score++
+
+    if (voteType === 'up') post.score++
+    if (voteType === 'down') post.score--
+
+    post.userVote = voteType
+  }
+}
+
 
 
 
