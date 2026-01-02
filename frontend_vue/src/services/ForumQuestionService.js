@@ -77,5 +77,75 @@ export function votePost(posts, postId, voteType) {
 }
 
 
+// fetchForumPosts
+
+export async function fetchForumPosts() {
+  const token = localStorage.getItem('token')
+  const headers = {
+    'Content-Type': 'application/json'
+  }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/forum/questions`, { headers })
+
+  if (!res.ok) {
+    const errorText = await res.text()
+    throw new Error(
+      `Kon forumberichten niet laden: ${res.status} ${errorText}`
+    )
+  }
+
+  const data = await res.json()
+
+  if (!Array.isArray(data)) {
+    return []
+  }
+
+  return data.map(mapPostFromApi)
+}
+
+/**
+ * Backend → Frontend mapping
+ */
+function mapPostFromApi(p) {
+  const bodyParts = p.body?.split('\n\n') || ['']
+  const title = bodyParts[0] || 'Geen titel'
+  const content = bodyParts.slice(1).join('\n\n').trim()
+
+  let createdAt = p.createdAt
+    ? new Date(p.createdAt)
+    : new Date()
+
+  let authorName = 'Anoniem'
+  if (typeof p.author === 'string') {
+    authorName = p.author
+  } else if (p.author?.name) {
+    authorName = p.author.name
+    if (p.author.lastName) {
+      authorName += ` ${p.author.lastName}`
+    }
+  } else if (p.author?.firstName) {
+    authorName = p.author.firstName
+    if (p.author.lastName) {
+      authorName += ` ${p.author.lastName}`
+    }
+  }
+
+  return {
+    id: p.id,
+    title,
+    content,
+    author: authorName,
+    score: 0,
+    comments: p.comments?.length || 0,
+    createdAt,
+    userVote: null
+  }
+}
+
+
+
 
 
