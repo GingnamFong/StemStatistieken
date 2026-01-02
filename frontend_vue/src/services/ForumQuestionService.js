@@ -1,8 +1,6 @@
 console.log("hello world");
 
 import { API_BASE_URL } from '../config/api.js'
-import { computed } from 'vue'
-
 
 export async function submitForumPost(title, content) {
   // Validation (same logic, but service-level)

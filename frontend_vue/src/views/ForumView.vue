@@ -402,6 +402,7 @@ const dummyPosts = [
 const posts = ref([...dummyPosts])
 
 // Computed property for active filter count
+// Backend logic can be found in ForumFilters.js
 import { useForumFilters } from '@/composables/ForumFilters.js'
 
 const { sortedPosts, activeFilterCount } = useForumFilters(
