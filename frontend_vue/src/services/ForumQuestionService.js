@@ -78,7 +78,6 @@ export function votePost(posts, postId, voteType) {
 
 
 // fetchForumPosts
-
 export async function fetchForumPosts() {
   const token = localStorage.getItem('token')
   const headers = {
