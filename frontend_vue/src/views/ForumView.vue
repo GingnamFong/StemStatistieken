@@ -304,8 +304,8 @@ function vote(postId, voteType) {
 }
 
 // Piece of time
-import { formatTime } from '@/utils/time.js'
 import ForumPostCard from "@/components/ForumPostCard.vue";
+import CreatePostCard from "@/components/CreatePostCard.vue";
 
 
 function closePostForm() {
