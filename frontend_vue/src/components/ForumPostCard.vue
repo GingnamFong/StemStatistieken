@@ -60,14 +60,14 @@
 import { defineProps, defineEmits } from 'vue'
 import { formatTime } from '@/utils/time.js'
 
+// eslint-disable-next-line no-unused-vars
 const props = defineProps({
   post: {
     type: Object,
     required: true
   }
 })
-
-const emit = defineEmits(['vote', 'open'])
+defineEmits(['vote', 'open']);
 </script>
 
 <style scoped>
