@@ -22,104 +22,21 @@
       <div class="forum-layout">
         <!-- Main Content -->
         <div class="forum-main">
-          <!-- Filter and Sort Bar -->
-          <div class="filter-sort-container">
-            <!-- Search and Filters -->
-            <div class="filter-section">
-              <div class="search-filter-wrapper">
-                <div class="search-input-wrapper">
-                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="7" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <input
-                    v-model="searchQuery"
-                    type="text"
-                    placeholder="Zoeken op titel of inhoud..."
-                    class="search-filter-input"
-                    @input="applyFilters"
-                  />
-                </div>
-                <button @click="showFilters = !showFilters" class="filter-toggle-btn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                  </svg>
-                  Filters
-                  <span v-if="activeFilterCount > 0" class="filter-badge">{{ activeFilterCount }}</span>
-                </button>
-              </div>
 
-              <!-- Advanced Filters Panel -->
-              <div v-if="showFilters" class="filters-panel">
-                <div class="filter-group">
-                  <label class="filter-label">Auteur</label>
-                  <input
-                    v-model="filterAuthor"
-                    type="text"
-                    placeholder="Zoek op auteur..."
-                    class="filter-input"
-                    @input="applyFilters"
-                  />
-                </div>
+          <!-- Filter and Sort Bar, logic can be found in ForumFilters.vue -->
+          <ForumFilters
+            v-model:search="searchQuery"
+            v-model:author="filterAuthor"
+            v-model:date="filterDate"
+            v-model:minScore="filterMinScore"
+            v-model:minComments="filterMinComments"
+            v-model:sort="selectedSort"
+            :activeFilterCount="activeFilterCount"
+            @clear="clearFilters"
+          />
 
-                <div class="filter-group">
-                  <label class="filter-label">Datum</label>
-                  <select v-model="filterDate" class="filter-select" @change="applyFilters">
-                    <option value="">Alle datums</option>
-                    <option value="today">Vandaag</option>
-                    <option value="week">Deze week</option>
-                    <option value="month">Deze maand</option>
-                    <option value="year">Dit jaar</option>
-                  </select>
-                </div>
 
-                <div class="filter-group">
-                  <label class="filter-label">Minimale score</label>
-                  <input
-                    v-model.number="filterMinScore"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    class="filter-input"
-                    @input="applyFilters"
-                  />
-                </div>
-
-                <div class="filter-group">
-                  <label class="filter-label">Minimaal aantal reacties</label>
-                  <input
-                    v-model.number="filterMinComments"
-                    type="number"
-                    placeholder="0"
-                    min="0"
-                    class="filter-input"
-                    @input="applyFilters"
-                  />
-                </div>
-
-                <div class="filter-actions">
-                  <button @click="clearFilters" class="clear-filters-btn">Filters wissen</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sort Options -->
-            <div class="sort-bar">
-              <button
-                v-for="sort in sortOptions"
-                :key="sort.value"
-                @click="selectedSort = sort.value"
-                :class="['sort-btn', { active: selectedSort === sort.value }]"
-              >
-                <svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path :d="sort.icon" />
-                </svg>
-                {{ sort.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Create Post Card, logic in component -->
+          <!-- Create Post Card, logic in component CreatePostCard.vue-->
           <CreatePostCard
             v-model:title="newPostTitle"
             :open="showPostForm"
@@ -237,18 +154,11 @@ const error = ref('')
 
 // Filter states
 const searchQuery = ref('')
-const showFilters = ref(false)
+ref(false);
 const filterAuthor = ref('')
 const filterDate = ref('')
 const filterMinScore = ref(null)
 const filterMinComments = ref(null)
-
-const sortOptions = [
-  { value: 'hot', label: 'Populair', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-  { value: 'new', label: 'Nieuw', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' },
-  { value: 'top', label: 'Top', icon: 'M5 10l7-7m0 0l7 7m-7-7v18' }
-]
-
 // Dummy posts for demonstration
 import { dummyPosts } from '@/data/dummyPosts.js'
 
@@ -273,11 +183,6 @@ const { sortedPosts, activeFilterCount } = useForumFilters(
 )
 
 // Apply filters function (can be called manually if needed)
-function applyFilters() {
-  // Filters are automatically applied through computed property
-  // This function can be used for debouncing if needed
-}
-
 const totalComments = computed(() => {
   return posts.value.reduce((sum, post) => sum + (post.comments || 0), 0)
 })
@@ -306,6 +211,7 @@ function vote(postId, voteType) {
 // Piece of time
 import ForumPostCard from "@/components/ForumPostCard.vue";
 import CreatePostCard from "@/components/CreatePostCard.vue";
+import ForumFilters from "@/components/ForumFilters.vue";
 
 
 function closePostForm() {
