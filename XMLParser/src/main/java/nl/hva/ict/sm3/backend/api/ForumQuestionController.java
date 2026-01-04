@@ -10,6 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +67,7 @@ public class ForumQuestionController {
         try {
             List<ForumQuestion> questions = forumQuestionRepository.findAllTopLevelQuestions(); // query
             System.out.println("Found " + questions.size() + " top-level questions");
+
             // avoids lazy loading
             List<ForumQuestionDto> responseDtos = questions.stream()
                 .map(question -> {
@@ -73,7 +82,15 @@ public class ForumQuestionController {
         } catch (Exception e) {
             System.err.println("Error in getAllTopLevelQuestions: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).build(); // gives 500 error with failing
+
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 500);
+            errorResponse.put("error", "Internal Server Error");
+            errorResponse.put("message", "Failed to retrieve forum questions");
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body((List<ForumQuestionDto>) errorResponse);
         }
     }
 
@@ -120,7 +137,9 @@ public class ForumQuestionController {
     public ResponseEntity<ForumQuestionDto> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity
+                    .status(401)
+                    .build();
         }
 
         String email = auth.getName();
