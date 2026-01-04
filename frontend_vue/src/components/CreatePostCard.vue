@@ -43,7 +43,7 @@ defineProps({
   title: String, // read-only prop
   open: Boolean
 })
-
+// test
 defineEmits(['update:title', 'open'])
 </script>
 
