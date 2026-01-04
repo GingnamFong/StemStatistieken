@@ -49,7 +49,7 @@
             </template>
           </CreatePostCard>
 
-          <!-- Post Form Modal -->
+          <!-- Post Form Modal, logic can be found in ForumPostCard.vue -->
           <PostForm
             v-if="showPostForm"
             v-model:title="newPostTitle"
@@ -60,7 +60,7 @@
             @close="closePostForm"
           />
 
-          <!-- Filter Results Info -->
+          <!-- Filter Results Info, logic can be found in ForumFilters.vue -->
           <div v-if="activeFilterCount > 0" class="filter-results-info">
             <span class="filter-results-text">
               {{ sortedPosts.length }} van {{ posts.length }} posts getoond
@@ -68,7 +68,7 @@
             <button @click="clearFilters" class="clear-filters-link">Filters wissen</button>
           </div>
 
-          <!-- Posts List -->
+          <!-- Posts List, logic can be found in ForumPostCard.vue -->
           <div class="posts-list">
             <ForumPostCard
               v-for="post in sortedPosts"
@@ -80,7 +80,7 @@
           </div>
         </div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar, logic can be found in ForumSideBar.vue -->
         <ForumSideBar
           :postsCount="posts.length"
           :commentsCount="totalComments"
