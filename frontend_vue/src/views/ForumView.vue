@@ -53,35 +53,16 @@
 
 
           <!-- Post Form Modal -->
-          <div v-if="showPostForm" class="post-form-modal">
-            <div class="post-form-card">
-              <div class="post-form-header">
-                <h3>Maak een post</h3>
-                <button @click="closePostForm" class="close-btn">×</button>
-              </div>
-              <div class="post-form-body">
-                <input
-                  v-model="newPostTitle"
-                  type="text"
-                  placeholder="Titel..."
-                  class="post-form-title"
-                />
-                <textarea
-                  v-model="newPostContent"
-                  placeholder="Tekst"
-                  class="post-form-content"
-                  rows="6"
-                ></textarea>
-                <div class="post-form-actions">
-                  <button @click="closePostForm" class="cancel-btn">Annuleren</button>
-                  <button @click="submitPost" class="submit-btn" :disabled="loading">
-                    {{ loading ? 'Opslaan...' : 'Posten' }}
-                  </button>
-                </div>
-                <p v-if="error" class="error-text">{{ error }}</p>
-              </div>
-            </div>
-          </div>
+          <PostForm
+            v-if="showPostForm"
+            v-model:title="newPostTitle"
+            v-model:content="newPostContent"
+            :loading="loading"
+            :error="error"
+            @submit="submitPost"
+            @close="closePostForm"
+          />
+
 
           <!-- Filter Results Info -->
           <div v-if="activeFilterCount > 0" class="filter-results-info">
@@ -212,6 +193,7 @@ function vote(postId, voteType) {
 import ForumPostCard from "@/components/ForumPostCard.vue";
 import CreatePostCard from "@/components/CreatePostCard.vue";
 import ForumFilters from "@/components/ForumFilters.vue";
+import PostForm from "@/components/PostForm.vue";
 
 
 function closePostForm() {
