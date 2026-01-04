@@ -4,6 +4,7 @@ import nl.hva.ict.sm3.backend.model.*;
 import nl.hva.ict.sm3.backend.repository.ElectionRepository;
 import nl.hva.ict.sm3.backend.service.DutchElectionService;
 import nl.hva.ict.sm3.backend.service.MunicipalityService;
+import nl.hva.ict.sm3.backend.service.PollingStationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -28,16 +29,18 @@ import java.util.List;
 public class ElectionController {
     private final DutchElectionService electionService;
     private final ElectionRepository electionRepository;
-    
+    private final PollingStationService pollingStationService;
+
     /**
      * Constructs the controller with an injected {@link DutchElectionService}.
      *
      * @param electionService service that loads, caches, and provides election data
      * @param electionRepository repository for paginated election queries
      */
-    public ElectionController(DutchElectionService electionService, ElectionRepository electionRepository) {
+    public ElectionController(DutchElectionService electionService, ElectionRepository electionRepository, PollingStationService pollingStationService) {
         this.electionService = electionService;
         this.electionRepository = electionRepository;
+        this.pollingStationService = pollingStationService;
     }
 
     /**
@@ -186,8 +189,8 @@ public class ElectionController {
             return ResponseEntity.status(404).body("Election not found");
         }
 
-        MunicipalityService muniService = new MunicipalityService(election);
-        PollingStation station = muniService.findPollingStationByPostalCode(postalCode);
+        PollingStation station = pollingStationService.findByPostalCode(electionId, postalCode);
+
 
         if (station == null) {
             return ResponseEntity.status(404)
