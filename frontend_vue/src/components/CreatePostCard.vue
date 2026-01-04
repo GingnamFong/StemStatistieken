@@ -1,10 +1,16 @@
 <template>
   <div class="create-post-card">
+    <!-- Avatar -->
     <div class="create-post-avatar">
-      <slot name="avatar" />
+      <slot>
+        <!-- Default avatar SVG -->
+        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+        </svg>
+      </slot>
     </div>
 
-    <!-- Correctly bind value without mutating prop -->
+    <!-- Input -->
     <input
       type="text"
       :value="title"
@@ -15,11 +21,22 @@
       class="create-post-input"
     />
 
+    <!-- Button -->
     <button v-if="!open" @click="$emit('open')" class="create-post-btn">
-      <slot name="icon" />
+      <slot>
+        <!-- Default post icon SVG -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14,2 14,8 20,8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10,9 9,9 8,9" />
+        </svg>
+      </slot>
     </button>
   </div>
 </template>
+
 
 <script setup>
 defineProps({
