@@ -51,7 +51,6 @@
           </CreatePostCard>
 
 
-
           <!-- Post Form Modal -->
           <PostForm
             v-if="showPostForm"
@@ -97,10 +96,22 @@
 </template>
 
 <script setup>
-import ForumHeader from '@/components/ForumHeader.vue'
+// Service and other javascript imports
+import {submitForumPost} from "@/services/ForumQuestionService.js"; // fetchForumPosts
+import { fetchForumPosts } from '@/services/ForumQuestionService.js' // Async for loading a post
+import { runAsyncWithState } from '@/composables/AsyncHandler.js'
+import { dummyPosts } from '@/data/dummyPosts.js' // Dummy posts for demonstration
+import { useForumFilters } from '@/composables/ForumFilters.js'// Computed property for active filter count, Backend logic can be found in ForumFilters.js
+import { votePost } from '@/services/ForumQuestionService.js' // VotePost logic replaced to ForumQuestionService.js
 
+// Vue imports
 import { ref, computed, onMounted } from 'vue'
-import {submitForumPost} from "@/services/ForumQuestionService.js";
+import ForumPostCard from "@/components/ForumPostCard.vue"; // Forum post card
+import CreatePostCard from "@/components/CreatePostCard.vue"; // Creating a post
+import ForumFilters from "@/components/ForumFilters.vue"; // Filters
+import PostForm from "@/components/PostForm.vue"; // Post
+import ForumSideBar from "@/components/ForumSideBar.vue"; // Sidebar
+import ForumHeader from '@/components/ForumHeader.vue' // Header
 
 const selectedSort = ref('hot')
 const showPostForm = ref(false)
@@ -116,16 +127,10 @@ const filterAuthor = ref('')
 const filterDate = ref('')
 const filterMinScore = ref(null)
 const filterMinComments = ref(null)
-// Dummy posts for demonstration
-import { dummyPosts } from '@/data/dummyPosts.js'
 
 // now initialize reactive posts with dummy data
 const posts = ref([...dummyPosts])
 
-
-// Computed property for active filter count
-// Backend logic can be found in ForumFilters.js
-import { useForumFilters } from '@/composables/ForumFilters.js'
 
 const { sortedPosts, activeFilterCount } = useForumFilters(
   posts,
@@ -144,12 +149,6 @@ const totalComments = computed(() => {
   return posts.value.reduce((sum, post) => sum + (post.comments || 0), 0)
 })
 
-// fetchForumPosts
-import { fetchForumPosts } from '@/services/ForumQuestionService.js'
-
-
-// Async for loading a post
-import { runAsyncWithState } from '@/composables/AsyncHandler.js'
 
 async function loadPosts() {
   await runAsyncWithState(async () => {
@@ -158,20 +157,9 @@ async function loadPosts() {
 }
 
 
-// VotePost logic replaced to ForumQuestionService.js
-import { votePost } from '@/services/ForumQuestionService.js'
-
 function vote(postId, voteType) {
   votePost(posts, postId, voteType)
 }
-
-// Piece of time
-import ForumPostCard from "@/components/ForumPostCard.vue";
-import CreatePostCard from "@/components/CreatePostCard.vue";
-import ForumFilters from "@/components/ForumFilters.vue";
-import PostForm from "@/components/PostForm.vue";
-import ForumSideBar from "@/components/ForumSideBar.vue";
-
 
 function closePostForm() {
   showPostForm.value = false
@@ -201,7 +189,6 @@ async function submitPost() {
     loading.value = false
   }
 }
-
 
 function clearFilters() {
   searchQuery.value = ''
