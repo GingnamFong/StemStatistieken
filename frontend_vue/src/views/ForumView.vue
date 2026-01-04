@@ -86,35 +86,11 @@
         </div>
 
         <!-- Sidebar -->
-        <div class="forum-sidebar">
-          <div class="sidebar-card">
-            <h3>Over r/Forum</h3>
-            <p>
-              Stel hier je vragen, deel je standpunten en gedachten of bespreek de verkiezingen en andere politieke onderwerpen.
-            </p>
-            <div class="sidebar-stats">
-              <div class="stat">
-                <span class="stat-value">{{ posts.length }}</span>
-                <span class="stat-label">Posts</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">{{ totalComments }}</span>
-                <span class="stat-label">Reacties</span>
-              </div>
-            </div>
-          </div>
+        <ForumSideBar
+          :postsCount="posts.length"
+          :commentsCount="totalComments"
+        />
 
-          <div class="sidebar-card">
-            <h3>Regels</h3>
-            <ul class="rules-list">
-              <li>Wees respectvol tegen elkaar</li>
-              <li>Geen spam of zelfpromotie</li>
-              <li>Blijf relevant bij het onderwerp</li>
-              <li>Geen persoonlijke aanvallen</li>
-              <li>Blijf neutraal</li>
-            </ul>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -194,6 +170,7 @@ import ForumPostCard from "@/components/ForumPostCard.vue";
 import CreatePostCard from "@/components/CreatePostCard.vue";
 import ForumFilters from "@/components/ForumFilters.vue";
 import PostForm from "@/components/PostForm.vue";
+import ForumSideBar from "@/components/ForumSideBar.vue";
 
 
 function closePostForm() {
