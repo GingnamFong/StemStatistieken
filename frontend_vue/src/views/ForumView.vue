@@ -35,7 +35,6 @@
             @clear="clearFilters"
           />
 
-
           <!-- Create Post Card, logic in component CreatePostCard.vue-->
           <CreatePostCard
             v-model:title="newPostTitle"
@@ -50,7 +49,6 @@
             </template>
           </CreatePostCard>
 
-
           <!-- Post Form Modal -->
           <PostForm
             v-if="showPostForm"
@@ -61,7 +59,6 @@
             @submit="submitPost"
             @close="closePostForm"
           />
-
 
           <!-- Filter Results Info -->
           <div v-if="activeFilterCount > 0" class="filter-results-info">
@@ -81,7 +78,6 @@
               @open="$router.push(`/forum/questions/${$event}`)"
             />
           </div>
-
         </div>
 
         <!-- Sidebar -->
@@ -131,7 +127,7 @@ const filterMinComments = ref(null)
 // now initialize reactive posts with dummy data
 const posts = ref([...dummyPosts])
 
-
+// ForumFilters.vue
 const { sortedPosts, activeFilterCount } = useForumFilters(
   posts,
   {
@@ -149,18 +145,28 @@ const totalComments = computed(() => {
   return posts.value.reduce((sum, post) => sum + (post.comments || 0), 0)
 })
 
+// ForumFilters.vue
+function clearFilters() {
+  searchQuery.value = ''
+  filterAuthor.value = ''
+  filterDate.value = ''
+  filterMinScore.value = null
+  filterMinComments.value = null
+}
 
+// AsyncHandler.js
 async function loadPosts() {
   await runAsyncWithState(async () => {
     posts.value = await fetchForumPosts()
   }, { loading, error })
 }
 
-
+// ForumQuestionService.js
 function vote(postId, voteType) {
   votePost(posts, postId, voteType)
 }
 
+// PostForm.vue
 function closePostForm() {
   showPostForm.value = false
   newPostTitle.value = ''
@@ -190,14 +196,6 @@ async function submitPost() {
   }
 }
 
-function clearFilters() {
-  searchQuery.value = ''
-  filterAuthor.value = ''
-  filterDate.value = ''
-  filterMinScore.value = null
-  filterMinComments.value = null
-}
-
 onMounted(() => {
   loadPosts()
 })
@@ -209,9 +207,7 @@ onMounted(() => {
   background: #f8fafc;
   font-family: 'Nunito', sans-serif;
 }
-
 /* Header - Same as other pages */
-
 .badge-icon {
   width: 20px;
   height: 20px;
@@ -234,28 +230,21 @@ onMounted(() => {
   gap: 24px;
   margin-top: 24px;
 }
-
 .forum-main {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* Filter and Sort Container */
-
-/* Filter Section */
+/* Filter and Sort Container
+ Filter Section */
 
 .filter-toggle-btn svg {
   width: 18px;
   height: 18px;
 }
 
-/* Filters Panel */
-
-/* Sort Bar */
-
 /* Create Post Card */
-
 .create-post-avatar svg {
   width: 20px;
   height: 20px;
@@ -267,7 +256,6 @@ onMounted(() => {
 }
 
 /* Post Form Modal */
-
 .post-form-header h3 {
   margin: 0;
   font-size: 20px;
@@ -326,7 +314,6 @@ onMounted(() => {
 }
 
 /* Sidebar */
-
 .sidebar-card h3 {
   margin: 0 0 12px 0;
   font-size: 16px;
