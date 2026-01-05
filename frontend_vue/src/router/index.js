@@ -61,6 +61,11 @@ const router = createRouter({
       component: () => import('../views/ForumView.vue'),
     },
     {
+      path: '/stemwijzer',
+      name: 'Stemwijzer',
+      component: () => import('../views/StemwijzerView.vue'),
+    },
+    {
       path: '/profile',
       name: 'Profile',
       component: () => import('../views/ProfileView.vue'),
