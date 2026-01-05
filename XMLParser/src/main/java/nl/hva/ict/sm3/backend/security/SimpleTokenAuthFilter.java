@@ -18,14 +18,14 @@ import java.util.List;
 
 /**
  * SimpleTokenAuthFilter is an authentication filter that
- * authenticates users based on Bearer tokens with expiration.
+ * authenticates users based on secure Bearer tokens.
  *
  * <p>The expected token format is:
  * <ul>
- *   <li>{@code user-{userId}-{timestamp}}</li>
+ *   <li>{@code user-{userId}-{timestamp}-{signature}}</li>
  * </ul>
  *
- * <p>The filter validates the token expiration, retrieves the corresponding
+ * <p>The filter validates the token signature and expiration, retrieves the corresponding
  * {@link User} from the database, and sets the authentication in the
  * {@link SecurityContextHolder}.
  *
@@ -69,7 +69,7 @@ public class SimpleTokenAuthFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7).trim();
             
-            // Validate token (signature + expiration check)
+            // Validate token (HMAC signature + expiration check)
             Long userId = tokenService.validateToken(token);
 
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
