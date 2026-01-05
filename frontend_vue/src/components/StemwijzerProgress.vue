@@ -26,25 +26,25 @@ const progress = computed(() => ((props.current + 1) / props.total) * 100)
 .progress-bar-container {
   position: relative;
   width: 100%;
-  height: 8px;
+  height: 6px;
   background: #e2e8f0;
-  border-radius: 4px;
-  margin-bottom: 32px;
+  border-radius: 3px;
+  margin-bottom: 16px;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 4px;
+  border-radius: 3px;
   transition: width 0.3s ease;
 }
 
 .progress-text {
   position: absolute;
-  top: 12px;
+  top: 10px;
   right: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #64748b;
   font-weight: 600;
 }
