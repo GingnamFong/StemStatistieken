@@ -264,12 +264,20 @@ public class ForumQuestionController {
 
         ForumQuestion question = new ForumQuestion();
         question.setBody(dto.getBody());
-        // link this new question as a comment to the parent question
-        question.setQuestion(parentQuestion);
+        question.setQuestion(parentQuestion); // link this new question as a comment to the parent question
         question.setAuthor(user);
 
         ForumQuestion saved = forumQuestionRepository.save(question);
-        return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
+
+        // 201 code for when a reply is added successfully
+        Map<String, Object> successResponse = new HashMap<>();
+        successResponse.put("status", 201);
+        successResponse.put("message", "Reply added successfully");
+        successResponse.put("data", ForumQuestionDto.from(saved));
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body((ForumQuestionDto) successResponse);
     }
 
     /**
