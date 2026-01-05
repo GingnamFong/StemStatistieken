@@ -10,18 +10,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * REST controller responsible for managing forum questions and comments.
@@ -134,7 +131,7 @@ public class ForumQuestionController {
 
     // POST create a new top-level question (post)
     @PostMapping("/questions")
-    public ResponseEntity<ForumQuestionDto> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
+    public ResponseEntity<Map<String, Object>> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         // 401 error if user is not authenticated (creating a question)
@@ -146,7 +143,7 @@ public class ForumQuestionController {
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body((ForumQuestionDto) errorResponse);
+                    .body(errorResponse);
         }
 
         String email = auth.getName();
@@ -161,7 +158,7 @@ public class ForumQuestionController {
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body((ForumQuestionDto) errorResponse);
+                    .body(errorResponse);
         }
 
         ForumQuestion question = new ForumQuestion();
@@ -178,7 +175,7 @@ public class ForumQuestionController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body((ForumQuestionDto) successResponse);
+                .body(successResponse);
     }
 
     /**
@@ -218,7 +215,7 @@ public class ForumQuestionController {
 
     // POST create a comment on a question
     @PostMapping("/{questionId}/questions")
-    public ResponseEntity<ForumQuestionDto> addQuestion(@PathVariable Long questionId,
+    public ResponseEntity<Map<String, Object>> addQuestion(@PathVariable Long questionId,
                                                      @Valid @RequestBody ForumQuestionDto dto) {
         // 404 error when parent question is not found
         ForumQuestion parentQuestion = forumQuestionRepository.findById(questionId).orElse(null);
@@ -230,7 +227,7 @@ public class ForumQuestionController {
 
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body((ForumQuestionDto) errorResponse);
+                    .body(errorResponse);
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -244,7 +241,7 @@ public class ForumQuestionController {
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body((ForumQuestionDto) errorResponse);
+                    .body(errorResponse);
         }
 
         String email = auth.getName();
@@ -259,7 +256,7 @@ public class ForumQuestionController {
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body((ForumQuestionDto) errorResponse);
+                    .body(errorResponse);
         }
 
         ForumQuestion question = new ForumQuestion();
@@ -277,7 +274,7 @@ public class ForumQuestionController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body((ForumQuestionDto) successResponse);
+                .body(successResponse);
     }
 
     /**
@@ -288,37 +285,69 @@ public class ForumQuestionController {
      *
      * @param questionId the ID of the question to delete
      * @return a ResponseEntity with HTTP status 204 if the deletion was successful,
-     *         HTTP 404 if the question does not exist,
-     *         or HTTP 401 if the user is not authenticated
+     * HTTP 404 if the question does not exist,
+     * or HTTP 401 if the user is not authenticated
      */
 
     @DeleteMapping("/questions/{questionId}") // Deletes question
-    public ResponseEntity<Void> deleteQuestion(@PathVariable("questionId") Long questionId) {
+    public ResponseEntity<Map<String, Object>> deleteQuestion(@PathVariable("questionId") Long questionId) {
 
+        // 404 error for when a question is not found
         Optional<ForumQuestion> questionOpt  = forumQuestionRepository.findById(questionId);
         if (questionOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 404);
+            errorResponse.put("error", "Not Found");
+            errorResponse.put("message", "Question not found");
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(errorResponse);
         }
 
         ForumQuestion question = questionOpt.get();
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // 401 error when user is unauthorized
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            return ResponseEntity.status(401).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 401);
+            errorResponse.put("error", "Unauthorized");
+            errorResponse.put("message", "You must be logged in to delete a question");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(errorResponse);
         }
 
         User user = userRepository.findByEmail(auth.getName()).orElse(null);
+
+        // 401 error when user is not found
         if (user == null) {
-            return ResponseEntity.status(401).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 401);
+            errorResponse.put("error", "Unauthorized");
+            errorResponse.put("message", "Authenticated user not found");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(errorResponse);
         }
-/*
+
+        // 403 error when user is not the owner of the question
         if (question.getPost() == null
                 || question.getPost().getAuthor() == null
                 || !question.getPost().getAuthor().getId().equals(user.getId())) {
-            return ResponseEntity.status(403).build();
-        }
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 403);
+            errorResponse.put("error", "Forbidden");
+            errorResponse.put("message", "You are not allowed to delete this question");
 
- */
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(errorResponse);
+        }
 
         forumQuestionRepository.delete(question);
         return ResponseEntity.noContent().build();
