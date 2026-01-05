@@ -137,7 +137,7 @@ public class ForumQuestionController {
     public ResponseEntity<ForumQuestionDto> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // 401 error if user is not authenticated
+        // 401 error if user is not authenticated (creating a question)
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("status", 401);
@@ -220,20 +220,46 @@ public class ForumQuestionController {
     @PostMapping("/{questionId}/questions")
     public ResponseEntity<ForumQuestionDto> addQuestion(@PathVariable Long questionId,
                                                      @Valid @RequestBody ForumQuestionDto dto) {
+        // 404 error when parent question is not found
         ForumQuestion parentQuestion = forumQuestionRepository.findById(questionId).orElse(null);
         if (parentQuestion == null) {
-            return ResponseEntity.notFound().build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 404);
+            errorResponse.put("error", "Not Found");
+            errorResponse.put("message", "Parent question not found");
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body((ForumQuestionDto) errorResponse);
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // 401 error when user is not authenticated (question reply)
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
-            return ResponseEntity.status(401).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 401);
+            errorResponse.put("error", "Unauthorized");
+            errorResponse.put("message", "You must be logged in to reply to a question");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body((ForumQuestionDto) errorResponse);
         }
 
         String email = auth.getName();
         User user = userRepository.findByEmail(email).orElse(null);
+
+        // 401 error when user is not found
         if (user == null) {
-            return ResponseEntity.status(401).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 401);
+            errorResponse.put("error", "Unauthorized");
+            errorResponse.put("message", "Authenticated user not found");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body((ForumQuestionDto) errorResponse);
         }
 
         ForumQuestion question = new ForumQuestion();
