@@ -152,9 +152,16 @@ public class ForumQuestionController {
         String email = auth.getName();
         User user = userRepository.findByEmail(email).orElse(null);
 
-
+        // 401 error if user is not found
         if (user == null) {
-            return ResponseEntity.status(401).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 401);
+            errorResponse.put("error", "Unauthorized");
+            errorResponse.put("message", "Authenticated user not found");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body((ForumQuestionDto) errorResponse);
         }
 
         ForumQuestion question = new ForumQuestion();
@@ -162,8 +169,16 @@ public class ForumQuestionController {
         question.setQuestion(null); // Top-level question has no parent
         question.setAuthor(user);
 
+        // 201 code when question is created successfully
         ForumQuestion saved = forumQuestionRepository.save(question);
-        return ResponseEntity.status(201).body(ForumQuestionDto.from(saved));
+        Map<String, Object> successResponse = new HashMap<>();
+        successResponse.put("status", 201);
+        successResponse.put("message", "Question created successfully");
+        successResponse.put("data", ForumQuestionDto.from(saved));
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body((ForumQuestionDto) successResponse);
     }
 
     /**
