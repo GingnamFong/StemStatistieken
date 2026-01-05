@@ -2,6 +2,7 @@ package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.User;
 import nl.hva.ict.sm3.backend.repository.UserRepository;
+import nl.hva.ict.sm3.backend.service.TokenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,10 +22,12 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, TokenService tokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/register")
@@ -106,8 +109,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ongeldig wachtwoord");
         }
 
-        // Generate token (simple token)
-        String token = "user-" + user.getId() + "-" + System.currentTimeMillis();
+        // Generate secure token with signature and expiration
+        String token = tokenService.generateToken(user.getId());
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Login successful");

@@ -1,6 +1,7 @@
 package nl.hva.ict.sm3.backend.security;
 
 import nl.hva.ict.sm3.backend.repository.UserRepository;
+import nl.hva.ict.sm3.backend.service.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,7 +24,7 @@ import org.springframework.security.config.Customizer;
  * </ul>
  *
  * <p>A custom {@link SimpleTokenAuthFilter} is used to authenticate users
- * based on a simple Bearer token.
+ * based on secure signed Bearer tokens with expiration.
  *
  */
 @Configuration
@@ -42,11 +43,12 @@ public class SecurityConfig {
      *
      * @param http            the {@link HttpSecurity} to configure
      * @param userRepository  repository used by the authentication filter
+     * @param tokenService    service for validating tokens
      * @return the configured {@link SecurityFilterChain}
      * @throws Exception if the security configuration fails
      */
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, UserRepository userRepository) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, UserRepository userRepository, TokenService tokenService) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
@@ -71,7 +73,7 @@ public class SecurityConfig {
 
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(new SimpleTokenAuthFilter(userRepository), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new SimpleTokenAuthFilter(userRepository, tokenService), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
