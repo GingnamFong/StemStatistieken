@@ -29,7 +29,7 @@ import java.util.List;
 public class ElectionController {
     private final DutchElectionService electionService;
     private final ElectionRepository electionRepository;
-    private final PollingStationService pollingStationService;
+
 
     /**
      * Constructs the controller with an injected {@link DutchElectionService}.
@@ -37,10 +37,9 @@ public class ElectionController {
      * @param electionService service that loads, caches, and provides election data
      * @param electionRepository repository for paginated election queries
      */
-    public ElectionController(DutchElectionService electionService, ElectionRepository electionRepository, PollingStationService pollingStationService) {
+    public ElectionController(DutchElectionService electionService, ElectionRepository electionRepository ) {
         this.electionService = electionService;
         this.electionRepository = electionRepository;
-        this.pollingStationService = pollingStationService;
     }
 
     /**
@@ -175,70 +174,19 @@ public class ElectionController {
         if (election == null) return ResponseEntity.status(500).build();
         return ResponseEntity.ok(election);
     }
-
-    @GetMapping("/{electionId}/pollingstations/postcode/{postalCode}")
-    public ResponseEntity<?> getPollingStationByPostalCode(
-            @PathVariable String electionId,
-            @PathVariable String postalCode) {
-
-        validateId(electionId, "Election ID");
-        validatePostalCode(postalCode);
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            return ResponseEntity.status(404).body("Election not found");
-        }
-
-        PollingStation station = pollingStationService.findByPostalCode(electionId, postalCode);
-
-
-        if (station == null) {
-            return ResponseEntity.status(404)
-                    .body("No polling station found for postcode " + postalCode);
-        }
-
-        return ResponseEntity.ok(station);
-    }
-
-    @GetMapping("/{electionId}/pollingstations")
-    public ResponseEntity<List<PollingStation>> getAllPollingStations(
-            @PathVariable String electionId) {
-        validateId(electionId, "Election ID");
-
-        Election election = electionService.getElectionById(electionId);
-        if (election == null) {
-            return ResponseEntity.status(404).body(null);
-        }
-
-        List<PollingStation> allSb = election.getConstituencies().stream()
-                .flatMap(c -> c.getMunicipalities().stream())
-                .flatMap(m -> m.getPollingStations().stream())
-                .toList();
-
-        return ResponseEntity.ok(allSb);
-    }
-
     private void validateId(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException(fieldName + " cannot be empty");
         }
+
         String trimmed = value.trim();
 
-        // Letters, cijfers, underscores en dashes toegestaan
+        // Letters, digits, underscores and dashes allowed
         if (!trimmed.matches("^[A-Za-z0-9_-]+$")) {
             throw new IllegalArgumentException(fieldName + " contains illegal characters");
         }
     }
 
-    private void validatePostalCode(String postalCode) {
-        if (postalCode == null || postalCode.trim().isEmpty()) {
-            throw new IllegalArgumentException("Postal code cannot be empty");
-        }
-        // Nederlands format tolerant: letters/cijfers/spaties
-        if (!postalCode.matches("^[A-Za-z0-9 ]+$")) {
-            throw new IllegalArgumentException("Invalid postal code");
-        }
-    }
 }
 
 
