@@ -153,78 +153,78 @@ const importanceOptions = [
 <style scoped>
 .question-card {
   background: white;
-  padding: 48px 40px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
 }
 
 .question-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 8px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
 .question-category {
   display: inline-block;
-  padding: 6px 16px;
+  padding: 4px 12px;
   background: #3b82f6;
   color: white;
-  border-radius: 20px;
-  font-size: 14px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 .question-subcategory {
   display: inline-block;
-  padding: 6px 16px;
+  padding: 4px 12px;
   background: #f1f5f9;
   color: #64748b;
-  border-radius: 20px;
-  font-size: 13px;
+  border-radius: 16px;
+  font-size: 11px;
   font-weight: 500;
 }
 
 .question-text {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   line-height: 1.4;
 }
 
 .section-label {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #64748b;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 /* 5-punt antwoordschaal */
 .answer-section {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .answer-buttons {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .answer-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 8px;
+  gap: 4px;
+  padding: 10px 4px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 8px;
   background: white;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -233,19 +233,19 @@ const importanceOptions = [
 
 .answer-btn:hover {
   border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .answer-icon {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.05);
 }
 
@@ -321,10 +321,10 @@ const importanceOptions = [
 
 /* Importantie sectie */
 .importance-section {
-  margin-bottom: 32px;
-  padding: 24px;
+  margin-bottom: 20px;
+  padding: 14px;
   background: #f8fafc;
-  border-radius: 12px;
+  border-radius: 8px;
   opacity: 0.4;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -338,17 +338,17 @@ const importanceOptions = [
 .importance-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .importance-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px;
+  gap: 4px;
+  padding: 10px 8px;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 8px;
   background: white;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -357,8 +357,8 @@ const importanceOptions = [
 
 .importance-btn:hover {
   border-color: #fbbf24;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .importance-btn.active {
@@ -368,11 +368,11 @@ const importanceOptions = [
 
 .importance-stars {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .star {
-  font-size: 24px;
+  font-size: 18px;
   color: #e2e8f0;
   transition: color 0.2s ease;
 }
@@ -386,7 +386,7 @@ const importanceOptions = [
 }
 
 .importance-label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: #64748b;
 }
@@ -399,21 +399,21 @@ const importanceOptions = [
 .question-navigation {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  padding-top: 24px;
+  gap: 12px;
+  padding-top: 16px;
   border-top: 1px solid #e2e8f0;
 }
 
 .nav-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
+  gap: 6px;
+  padding: 10px 18px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   background: white;
   color: #64748b;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -432,8 +432,8 @@ const importanceOptions = [
 }
 
 .nav-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .nav-btn-next {
@@ -463,27 +463,27 @@ const importanceOptions = [
 /* Responsive */
 @media (max-width: 768px) {
   .question-card {
-    padding: 32px 24px;
+    padding: 16px 14px;
   }
 
   .question-text {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .answer-buttons {
     grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
 
   .answer-btn {
-    padding: 12px 4px;
-    font-size: 11px;
+    padding: 8px 2px;
+    font-size: 10px;
   }
 
   .answer-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
   }
 
   .importance-buttons {
@@ -493,7 +493,8 @@ const importanceOptions = [
   .importance-btn {
     flex-direction: row;
     justify-content: flex-start;
-    gap: 16px;
+    gap: 12px;
+    padding: 8px 12px;
   }
 }
 
