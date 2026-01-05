@@ -98,7 +98,7 @@ public class User {
      * <p>Performance optimizations:
      * <ul>
      *   <li>Fetch type is LAZY - likes are only loaded when explicitly accessed</li>
-     *   <li>No cascade delete - likes are not deleted when user is deleted (or use REMOVE if needed)</li>
+     *   <li>No cascade delete - likes are deleted when user is deleted </li>
      * </ul>
      * </p>
      */
