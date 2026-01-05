@@ -33,18 +33,29 @@ public class TokenService {
     /**
      * Creates a TokenService with the provided secret key.
      * 
-     * @param tokenSecret the secret key for signing tokens (should be at least 32 characters)
+     * <p>The constructor initializes an HMAC-SHA256 instance with the provided secret key.
+     * This HMAC instance is used to generate and verify cryptographic signatures for tokens,
+     * ensuring that tokens cannot be tampered with.
+     * 
+     * @param tokenSecret the secret key for signing tokens, injected from application.properties.
+     *                    This key is required - the application will fail to start if not provided.
+     * @throws RuntimeException if HMAC initialization fails (e.g., invalid algorithm or key)
      */
     public TokenService(@Value("${app.token.secret}") String tokenSecret) {
         try {
-            // Initialize HMAC with the secret key
+            // Create a secret key specification for HMAC-SHA256
             SecretKeySpec keySpec = new SecretKeySpec(
                 tokenSecret.getBytes(StandardCharsets.UTF_8), 
                 HMAC_ALGORITHM
             );
+
             this.hmac = Mac.getInstance(HMAC_ALGORITHM);
+            
+            // Initialize the HMAC instance with our secret key
+            // This prepares it to generate and verify signatures
             this.hmac.init(keySpec);
         } catch (Exception e) {
+
             throw new RuntimeException("Failed to initialize TokenService", e);
         }
     }
