@@ -35,7 +35,7 @@ public class TokenService {
      * 
      * @param tokenSecret the secret key for signing tokens (should be at least 32 characters)
      */
-    public TokenService(@Value("${app.token.secret:change-me-in-production-use-random-64-char-string}") String tokenSecret) {
+    public TokenService(@Value("${app.token.secret}") String tokenSecret) {
         try {
             // Initialize HMAC with the secret key
             SecretKeySpec keySpec = new SecretKeySpec(
