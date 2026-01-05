@@ -136,14 +136,23 @@ public class ForumQuestionController {
     @PostMapping("/questions")
     public ResponseEntity<ForumQuestionDto> createTopLevelQuestion(@Valid @RequestBody ForumQuestionDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // 401 error if user is not authenticated
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 401);
+            errorResponse.put("error", "Unauthorized");
+            errorResponse.put("message", "You must be logged in to create a question");
+
             return ResponseEntity
-                    .status(401)
-                    .build();
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body((ForumQuestionDto) errorResponse);
         }
 
         String email = auth.getName();
         User user = userRepository.findByEmail(email).orElse(null);
+
+
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
