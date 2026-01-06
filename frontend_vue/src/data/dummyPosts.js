@@ -1,6 +1,6 @@
 // src/data/dummyPosts.js
 
-// dummy data
+// dummy posts data
 export const dummyPosts = [
   {
     id: 1,
