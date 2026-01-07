@@ -15,13 +15,43 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
+/**
+ * REST controller responsible for managing likes on forum comments.
+ *
+ * <p>This controller exposes endpoints to like, unlike, and retrieve
+ * the number of likes for a specific forum comment.
+ *
+ * <p>Only authenticated users are allowed to like or unlike comments.
+ * A forum post can only be liked if it is a comment (i.e. it has a parent question).
+ *
+ * <p>This controller delegates persistence operations to repository classes.
+ * Business rules such as authorization and comment validation are handled here.
+ */
 @RestController
 @RequestMapping("/api/forum")
 public class CommentLikeController {
 
+    /**
+     * Constructs a new {@code CommentLikeController}.
+     *
+     * @param commentLikeRepository repository for {@link CommentLike} entities
+     * @param forumQuestionRepository repository for {@link ForumQuestion} entities
+     * @param userRepository repository for {@link User} entities
+     */
+
     private final CommentLikeRepository commentLikeRepository;
     private final ForumQuestionRepository forumQuestionRepository;
     private final UserRepository userRepository;
+
+    /**
+     * Likes a forum comment on behalf of the authenticated user.
+     *
+     * <p>If the user has already liked the comment, no new like is created.
+     * Only comments (not top-level questions) can be liked.
+     *
+     * @param commentId the ID of the comment to like
+     * @return HTTP 201 with the updated like count, or an error response
+     */
 
     public CommentLikeController(CommentLikeRepository commentLikeRepository,
                                  ForumQuestionRepository forumQuestionRepository,
@@ -50,6 +80,16 @@ public class CommentLikeController {
         return ResponseEntity.status(201).body(Map.of("commentId", commentId, "likes", count));
     }
 
+    /**
+     * Removes a like from a forum comment for the authenticated user.
+     *
+     * <p>If the user has not previously liked the comment, the operation
+     * completes without error.
+     *
+     * @param commentId the ID of the comment to unlike
+     * @return HTTP 200 with the updated like count
+     */
+
     @DeleteMapping("/comments/{commentId}/like")
     public ResponseEntity<?> unlike(@PathVariable Long commentId) {
         User user = requireUser();
@@ -61,6 +101,16 @@ public class CommentLikeController {
         long count = commentLikeRepository.countByForumQuestionId(commentId);
         return ResponseEntity.ok(Map.of("commentId", commentId, "likes", count));
     }
+
+    /**
+     * Retrieves the number of likes for a forum comment.
+     *
+     * <p>If the user is authenticated, this endpoint also indicates whether
+     * the current user has liked the comment.
+     *
+     * @param commentId the ID of the comment
+     * @return HTTP 200 containing the like count and user-specific like status
+     */
 
     @GetMapping("/comments/{commentId}/likes")
     public ResponseEntity<?> count(@PathVariable Long commentId) {
@@ -80,6 +130,12 @@ public class CommentLikeController {
         return ResponseEntity.ok(Map.of("commentId", commentId, "likes", count, "likedByMe", likedByMe));
     }
 
+    /**
+     * Retrieves the currently authenticated user.
+     *
+     * @return the authenticated {@link User}
+     * @throws ResponseStatusException if no authenticated user is present
+     */
     private User requireUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {

@@ -25,19 +25,25 @@ const getApiBaseUrl = () => {
     }
 
     // Detect stemstatistieken.me domain (with or without www)
+    // Use HTTPS if page is loaded over HTTPS, otherwise HTTP
     if (hostname === 'stemstatistieken.me' ||
         hostname === 'www.stemstatistieken.me' ||
         hostname.includes('stemstatistieken.me')) {
-      return 'http://13.48.214.231:8081'
+      // Use same protocol as the page (HTTPS if page is HTTPS)
+      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+      return `${protocol}//${hostname}`
     }
 
     // Detect AWS server (13.48.214.231)
     if (hostname === '13.48.214.231' || hostname.includes('13.48.214.231')) {
-      return 'http://13.48.214.231:8081'
+      // Use same protocol as the page
+      const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+      return `${protocol}//13.48.214.231:8081`
     }
 
-    // If we're on any other domain (not localhost), use AWS server
-    return 'http://13.48.214.231:8081'
+    // If we're on any other domain (not localhost), use same protocol
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+    return `${protocol}//13.48.214.231:8081`
   }
 
   // Only use localhost if we're actually on localhost
