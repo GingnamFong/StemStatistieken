@@ -2,6 +2,7 @@ package nl.hva.ict.sm3.backend.api;
 
 import nl.hva.ict.sm3.backend.model.User;
 import nl.hva.ict.sm3.backend.repository.UserRepository;
+import nl.hva.ict.sm3.backend.service.TokenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,10 +22,12 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, TokenService tokenService) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.tokenService = tokenService;
     }
 
     @PostMapping("/register")
@@ -106,8 +109,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ongeldig wachtwoord");
         }
 
-        // Generate token (simple token for now, in production use JWT)
-        String token = "user-" + user.getId() + "-" + System.currentTimeMillis();
+        // Generate secure token with signature and expiration
+        String token = tokenService.generateToken(user.getId());
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Login successful");
@@ -171,14 +174,35 @@ public class AuthController {
         if (updates.containsKey("firstName")) {
             String firstName = (String) updates.get("firstName");
             if (firstName != null && !firstName.isBlank()) {
-                user.setName(firstName.trim());
+                String trimmedFirstName = firstName.trim();
+                // Validate firstName length (max 30 characters)
+                if (trimmedFirstName.length() > 30) {
+                    return ResponseEntity.badRequest()
+                            .body("Voornaam mag maximaal 30 tekens bevatten.");
+                }
+                user.setName(trimmedFirstName);
+            } else if (updates.containsKey("firstName") && (firstName == null || firstName.isBlank())) {
+                // If firstName key exists but is empty, reject it
+                return ResponseEntity.badRequest()
+                        .body("Voornaam mag niet leeg zijn als deze is ingevuld.");
             }
         }
 
         if (updates.containsKey("lastName")) {
             String lastName = (String) updates.get("lastName");
-            // LastName mag leeg zijn of null
-            user.setLastName(lastName != null ? lastName.trim() : null);
+            if (lastName != null && !lastName.isBlank()) {
+                String trimmedLastName = lastName.trim();
+                // Validate lastName length (max 30 characters)
+                if (trimmedLastName.length() > 30) {
+                    return ResponseEntity.badRequest()
+                            .body("Achternaam mag maximaal 30 tekens bevatten.");
+                }
+                user.setLastName(trimmedLastName);
+            } else {
+                // LastName mag niet leeg zijn 
+                return ResponseEntity.badRequest()
+                        .body("Achternaam mag niet leeg zijn als deze is ingevuld.");
+            }
         }
 
         if (updates.containsKey("birthDate")) {

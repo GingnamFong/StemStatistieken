@@ -71,7 +71,7 @@ public class User {
     private String profilePicture; // encoded image or URL
 
     /**
-     * One-to-many relationship with ForumPost.
+     * One-to-many relationship with ForumQuestion.
      * A user can create multiple forum posts.
      *
      * <p>Performance optimizations:
@@ -90,6 +90,35 @@ public class User {
      */
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ForumQuestion> forumQuestions = new ArrayList<>();
+
+    /**
+     * One-to-many relationship with CommentLike.
+     * A user can like multiple comments.
+     *
+     * <p>Performance optimizations:
+     * <ul>
+     *   <li>Fetch type is LAZY - likes are only loaded when explicitly accessed</li>
+     *   <li>No cascade delete - likes are deleted when user is deleted </li>
+     * </ul>
+     * </p>
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<CommentLike> commentLikes = new ArrayList<>();
+
+    /**
+     * Many-to-one relationship with Party (favorite party).
+     * A user can have one favorite party.
+     *
+     * <p>Performance optimizations:
+     * <ul>
+     *   <li>Fetch type is EAGER - favorite party is usually needed when displaying profile</li>
+     *   <li>No cascade - party should not be deleted when user is deleted</li>
+     * </ul>
+     * </p>
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "favorite_party_id")
+    private Party favoritePartyEntity;
 
     /**
      * Default constructor for JPA.
@@ -198,6 +227,42 @@ public class User {
     public void removeForumQuestion(ForumQuestion forumQuestion) {
         forumQuestions.remove(forumQuestion);
         forumQuestion.setAuthor(null);
+    }
+
+    /**
+     * Gets the list of comment likes given by this user.
+     *
+     * @return a list of CommentLike entities associated with this user
+     */
+    public List<CommentLike> getCommentLikes() {
+        return commentLikes;
+    }
+
+    public void setCommentLikes(List<CommentLike> commentLikes) {
+        this.commentLikes = commentLikes;
+    }
+
+    public void addCommentLike(CommentLike commentLike) {
+        commentLikes.add(commentLike);
+        commentLike.setUser(this);
+    }
+
+    public void removeCommentLike(CommentLike commentLike) {
+        commentLikes.remove(commentLike);
+        commentLike.setUser(null);
+    }
+
+    /**
+     * Gets the favorite party entity (if using relationship instead of string).
+     *
+     * @return the favorite Party entity
+     */
+    public Party getFavoritePartyEntity() {
+        return favoritePartyEntity;
+    }
+
+    public void setFavoritePartyEntity(Party favoritePartyEntity) {
+        this.favoritePartyEntity = favoritePartyEntity;
     }
 }
 

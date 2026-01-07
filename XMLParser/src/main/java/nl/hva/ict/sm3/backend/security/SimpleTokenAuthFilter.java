@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import nl.hva.ict.sm3.backend.model.User;
 import nl.hva.ict.sm3.backend.repository.UserRepository;
+import nl.hva.ict.sm3.backend.service.TokenService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,16 +17,15 @@ import java.util.List;
 
 
 /**
- * SimpleTokenAuthFilter is a lightweight authentication filter that
- * authenticates users based on a simple Bearer token.
+ * SimpleTokenAuthFilter is an authentication filter that
+ * authenticates users based on secure Bearer tokens.
  *
  * <p>The expected token format is:
  * <ul>
- *   <li>{@code user-{id}}</li>
- *   <li>{@code user-{id}-{timestamp}}</li>
+ *   <li>{@code user-{userId}-{timestamp}-{signature}}</li>
  * </ul>
  *
- * <p>The filter extracts the user ID from the token, retrieves the corresponding
+ * <p>The filter validates the token signature and expiration, retrieves the corresponding
  * {@link User} from the database, and sets the authentication in the
  * {@link SecurityContextHolder}.
  *
@@ -35,13 +35,17 @@ import java.util.List;
 public class SimpleTokenAuthFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
+    private final TokenService tokenService;
+    
     /**
      * Creates a new {@code SimpleTokenAuthFilter}.
      *
      * @param userRepository repository used to load users by ID
+     * @param tokenService service for validating tokens
      */
-    public SimpleTokenAuthFilter(UserRepository userRepository) {
+    public SimpleTokenAuthFilter(UserRepository userRepository, TokenService tokenService) {
         this.userRepository = userRepository;
+        this.tokenService = tokenService;
     }
     /**
      * Processes each incoming HTTP request and checks for a Bearer token
@@ -63,8 +67,10 @@ public class SimpleTokenAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7).trim(); // verwacht: user-123 of user-123-....
-            Long userId = parseUserId(token);
+            String token = header.substring(7).trim();
+            
+            // Validate token (HMAC signature + expiration check)
+            Long userId = tokenService.validateToken(token);
 
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = userRepository.findById(userId).orElse(null);
@@ -77,30 +83,5 @@ public class SimpleTokenAuthFilter extends OncePerRequestFilter {
         }
 
         chain.doFilter(request, response);
-    }
-    /**
-     * Extracts the user ID from a token string.
-     *
-     * <p>Supports tokens in the following formats:
-     * <ul>
-     *   <li>{@code user-123}</li>
-     *   <li>{@code user-123-<timestamp>}</li>
-     * </ul>
-     *
-     * @param token the raw token value (without "Bearer ")
-     * @return the extracted user ID, or {@code null} if the token is invalid
-     */
-    private Long parseUserId(String token) {
-        try {
-            if (!token.startsWith("user-")) return null;
-
-            // ondersteunt zowel "user-123" als "user-123-<timestamp>"
-            String rest = token.substring(5);
-            String idPart = rest.contains("-") ? rest.substring(0, rest.indexOf('-')) : rest;
-
-            return Long.parseLong(idPart);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

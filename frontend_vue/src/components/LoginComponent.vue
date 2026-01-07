@@ -84,6 +84,13 @@ async function onSubmit() {
     return
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value.trim())) {
+    errorMessage.value = 'Voer een geldig e-mailadres in.'
+    return
+  }
+
   try {
     const data = await UserService.login(email.value, password.value)
     console.log('Login response:', data)
