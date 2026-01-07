@@ -1,6 +1,5 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import Stemwijzer from '@/components/Stemwijzer.vue'
 
 const router = useRouter()
 
@@ -114,9 +113,6 @@ const navigateToCompare = () => {
         </div>
       </div>
     </section>
-
-    <!-- Stemwijzer Section -->
-    <Stemwijzer />
 
     <!-- CTA Section -->
     <section class="cta-section">
