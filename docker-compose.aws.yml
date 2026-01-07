@@ -28,8 +28,6 @@ services:
     ports:
       - "8080:80"  # Changed to 8080 so Nginx on host can use 80/443
     restart: unless-stopped
-    environment:
-      # API URL is detected at runtime based on the page origin
     networks:
       - hva-network
     depends_on:
